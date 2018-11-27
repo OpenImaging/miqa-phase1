@@ -25,12 +25,8 @@ setTimeout(() => {
       },
       "views": {
         "viewData": {
-          "View3D:default": {
-            "background": "linear-gradient(#333, #999)"
-          }
         },
         "viewOrder": [
-          "View3D:default",
           "View2D_Y:y",
           "View2D_X:x",
           "View2D_Z:z"
@@ -47,11 +43,11 @@ setTimeout(() => {
         "group": "Sources",
         "name": "TrivialProducer",
         "props": {
-          "name": "Tooth.nrrd",
+          "name": "image.nii.gz",
           "type": "vtkImageData",
           "dataset": {
-            "name": "Tooth.nrrd",
-            "url": "https://kitware.github.io/vtk-js-datasets/data/nrrd/tooth.nrrd"
+            "name": "image.nii.gz",
+            "url": "http://localhost:8085/image.nii.gz"
           }
         }
       }
@@ -60,7 +56,7 @@ setTimeout(() => {
       {
         "id": "2",
         "group": "Views",
-        "name": "View3D",
+        "name": "View2D_Y",
         "props": {
           "name": "default",
           "background": [

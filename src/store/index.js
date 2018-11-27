@@ -8,7 +8,7 @@ import Presets from '../vtk/ColorMaps';
 
 import { proxy } from '../vtk';
 import { getView } from '../vtk/viewManager';
-import { DEFAULT_VIEW_TYPE } from '../vtk/constants';
+// import { DEFAULT_VIEW_TYPE } from '../vtk/constants';
 
 Vue.use(Vuex);
 

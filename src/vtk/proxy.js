@@ -123,7 +123,7 @@ export default {
       ),
     },
     Views: {
-      View3D: createDefaultView(vtkView, proxyUI.View3D),
+      // View3D: createDefaultView(vtkView, proxyUI.View3D),
       View2D: createDefaultView(vtk2DView, proxyUI.View2D),
       View2D_X: createDefaultView(vtk2DView, proxyUI.View2D, { axis: 0 }),
       View2D_Y: createDefaultView(vtk2DView, proxyUI.View2D, { axis: 1 }),
@@ -131,7 +131,7 @@ export default {
     },
   },
   representations: {
-    View3D: proxyViewRepresentationMapping.View3D,
+    // View3D: proxyViewRepresentationMapping.View3D,
     View2D: proxyViewRepresentationMapping.View2D,
     View2D_X: Object.assign({}, proxyViewRepresentationMapping.View2D, {
       vtkImageData: { name: 'SliceX' },
