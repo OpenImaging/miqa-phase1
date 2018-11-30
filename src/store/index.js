@@ -13,6 +13,7 @@ import { getView } from '../vtk/viewManager';
 Vue.use(Vuex);
 
 const proxyManager = vtkProxyManager.newInstance({ proxyConfiguration: proxy });
+window.proxyManager = proxyManager;
 // console.log(proxyManager);
 
 // let view = getView(proxyManager, DEFAULT_VIEW_TYPE);
@@ -21,13 +22,14 @@ const proxyManager = vtkProxyManager.newInstance({ proxyConfiguration: proxy });
 export default new Vuex.Store({
   state: {
     proxyManager,
-    views: {}
+    views: {},
+    vtkViews: []
   },
   mutations: {
 
   },
   actions: {
-    loadState({ commit, dispatch, state }, appState) {
+    loadState({ commit, dispatch, state, getters }, appState) {
       // console.log(JSON.stringify(appState, null, 4));
       return state.proxyManager
         .loadState(appState, {
@@ -97,20 +99,24 @@ export default new Vuex.Store({
             state.proxyManager
               .getSources()
               .forEach(state.proxyManager.createRepresentationInAllViews);
+
+            state.views.viewOrder.forEach(type => {
+              state.vtkViews.push(getView(state.proxyManager, type));
+            })
           }, 100);
         });
     }
   },
-  getters: {
-    vtkViews(state, getters) {
-      if (!state.views || !state.views.viewOrder) {
-        return [];
-      }
-      return state.views.viewOrder
-        .filter((v, i) => i < state.views.viewCount)
-        .map((t) => getView(state.proxyManager, t))
-    }
-  }
+  // getters: {
+  //   vtkViews(state, getters) {
+  //     if (!state.views || !state.views.viewOrder) {
+  //       return [];
+  //     }
+  //     return state.views.viewOrder
+  //       .filter((v, i) => i < state.views.viewCount)
+  //       .map((type) => getView(state.proxyManager, type))
+  //   }
+  // }
 });
 
 

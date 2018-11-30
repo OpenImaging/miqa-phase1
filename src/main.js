@@ -3,7 +3,8 @@ import App from './App.vue'
 import router from './router'
 import store from './store'
 
-console.log(store);
+// console.log(store);
+window.store = store;
 
 Vue.config.productionTip = false
 
@@ -27,11 +28,12 @@ setTimeout(() => {
         "viewData": {
         },
         "viewOrder": [
+          "View3D:default",
           "View2D_Z:z",
           "View2D_Y:y",
           "View2D_X:x"
         ],
-        "viewCount": 3
+        "viewCount": 4
       }
     },
     "options": {
@@ -53,7 +55,6 @@ setTimeout(() => {
       }
     ],
     "views": [
-      
     ],
     "representations": [
     ],

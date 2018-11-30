@@ -9,26 +9,31 @@ export default {
     VtkViewer
   },
   computed: {
-    ...mapGetters(["vtkViews"])
+    ...mapState(["vtkViews"])
   }
 };
 </script>
 
 <template>
   <div class="layout">
-    <VtkViewer
-        v-for="(vtkView, index) in vtkViews"
-        :key="index"
-        :view="vtkView"/>
+    <div class="view" v-for="(vtkView, index) in vtkViews" :key="index">
+      <VtkViewer :view="vtkView"/>
+    </div>
   </div>
 </template>
 
-<style scoped>
+<style lang="scss" scoped>
 .layout {
   position: absolute;
   top: 0;
   bottom: 0;
   left: 0;
   right: 0;
+  display: flex;
+
+  .view {
+    position: relative;
+    flex: 1 0 0px;
+  }
 }
 </style>
