@@ -31,7 +31,7 @@ export default new Vuex.Store({
   actions: {
     loadState({ commit, dispatch, state, getters }, appState) {
       // console.log(JSON.stringify(appState, null, 4));
-      return state.proxyManager
+      return proxyManager
         .loadState(appState, {
           datasetHandler(ds) {
             // if (ds.vtkClass) {
@@ -53,7 +53,7 @@ export default new Vuex.Store({
                   return dataset;
                 }
                 if (reader && reader.setProxyManager) {
-                  reader.setProxyManager(state.proxyManager);
+                  reader.setProxyManager(proxyManager);
                   return null;
                 }
                 throw new Error('Invalid dataset');
@@ -81,10 +81,10 @@ export default new Vuex.Store({
             // commit(Mutations.LOADING_STATE, false);
 
             // Force update
-            state.proxyManager.modified();
+            proxyManager.modified();
 
             // Activate visible view with a preference for the 3D one
-            // const visibleViews = state.proxyManager
+            // const visibleViews = proxyManager
             //   .getViews()
             //   .filter((view) => view.getContainer());
             // const view3D = visibleViews.find(
@@ -96,13 +96,21 @@ export default new Vuex.Store({
             // }
 
             // Make sure pre-existing view (not expected in state) have a representation
-            state.proxyManager
-              .getSources()
-              .forEach(state.proxyManager.createRepresentationInAllViews);
+            // proxyManager
+            //   .getSources()
+            //   .forEach(proxyManager.createRepresentationInAllViews);
+
+            var update = () => {
+              proxyManager.autoAnimateViews();
+            }
 
             state.views.viewOrder.forEach(type => {
-              state.vtkViews.push(getView(state.proxyManager, type));
-            })
+              var view = getView(proxyManager, type);
+              state.vtkViews.push(view);
+              view.getRepresentations().forEach(representation => {
+                representation.onModified(update);
+              });
+            });
           }, 100);
         });
     }

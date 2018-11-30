@@ -2,11 +2,16 @@ import Vue from 'vue'
 import App from './App.vue'
 import router from './router'
 import store from './store'
+import Vuetify from 'vuetify';
+ 
+import 'vuetify/dist/vuetify.min.css'
+
+Vue.use(Vuetify);
 
 // console.log(store);
 window.store = store;
 
-Vue.config.productionTip = false
+Vue.config.productionTip = true
 
 new Vue({
   router,
@@ -28,12 +33,10 @@ setTimeout(() => {
         "viewData": {
         },
         "viewOrder": [
-          "View3D:default",
           "View2D_Z:z",
-          "View2D_Y:y",
-          "View2D_X:x"
-        ],
-        "viewCount": 4
+          "View2D_X:x",
+          "View2D_Y:y"
+        ]
       }
     },
     "options": {
