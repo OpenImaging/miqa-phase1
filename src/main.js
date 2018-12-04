@@ -52,7 +52,7 @@ setTimeout(() => {
           "type": "vtkImageData",
           "dataset": {
             "name": "image.nii.gz",
-            "url": "http://localhost:8085/image.nii.gz"
+            "url": "image.nii.gz"
           }
         }
       }

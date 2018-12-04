@@ -2,6 +2,14 @@ const CopyPlugin = require('copy-webpack-plugin');
 const path = require('path');
 
 module.exports = {
+  devServer: {
+    proxy: {
+      '/image.nii.gz': {
+        target: "http://localhost:8085",
+        secure: false
+      }
+    }
+  },
   baseUrl: process.env.NODE_ENV === 'production'
     ? '/'
     : '/',
