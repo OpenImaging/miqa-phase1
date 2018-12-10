@@ -34,6 +34,18 @@ export default {
   .view {
     position: relative;
     flex: 1 0 0px;
+
+    border: 1.5px solid white;
+    border-top: none;
+    border-bottom: none;
+
+    &:first-child {
+      border-left: none;
+    }
+
+    &:last-child {
+      border-right: none;
+    }
   }
 }
 </style>
