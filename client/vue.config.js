@@ -8,7 +8,8 @@ module.exports = {
         target: "http://localhost:8085",
         secure: false
       }
-    }
+    },
+    public: "localhost:8080"
   },
   baseUrl: process.env.NODE_ENV === 'production'
     ? '/'

@@ -42,7 +42,7 @@ export default {
     }
   },
   created() {
-    console.log(this.view);
+    // console.log(this.view);
     this.slice = this.representation.getSlice();
   },
   mounted() {
@@ -75,7 +75,7 @@ export default {
       </v-layout>
     </div>
     <div ref="viewer" class="viewer"></div>
-    <v-toolbar class="toolbar" dark color="black" dense>
+    <v-toolbar class="toolbar elevation-0" dark color="black" dense>
       <div class="indicator body-2" :class="name">{{displayName}}</div>
       <v-spacer></v-spacer>
       <v-btn icon>
@@ -159,9 +159,10 @@ export default {
   }
 
   .viewer {
-    flex: 1 0 auto;
+    flex: 1 1 0px;
     position: relative;
     background: linear-gradient(rgb(51, 51, 51), rgb(153, 153, 153));
+    overflow-y: hidden;
   }
 }
 </style>

@@ -8,12 +8,15 @@ import Presets from '../vtk/ColorMaps';
 
 import { proxy } from '../vtk';
 import { getView } from '../vtk/viewManager';
-// import { DEFAULT_VIEW_TYPE } from '../vtk/constants';
+import proxyConfigGenerator from './proxyConfigGenerator';
+
+import { API_URL } from '../constants';
+import girder from '../girder';
 
 Vue.use(Vuex);
 
-const proxyManager = vtkProxyManager.newInstance({ proxyConfiguration: proxy });
-window.proxyManager = proxyManager;
+// const proxyManager = vtkProxyManager.newInstance({ proxyConfiguration: proxy });
+// window.proxyManager = proxyManager;
 // console.log(proxyManager);
 
 // let view = getView(proxyManager, DEFAULT_VIEW_TYPE);
@@ -21,18 +24,33 @@ window.proxyManager = proxyManager;
 
 export default new Vuex.Store({
   state: {
-    proxyManager,
-    views: {},
-    vtkViews: []
+    proxyManager: null,
+    sessionTree: null,
+    vtkViews: [],
+    proxyManagerCache: {},
+    proxyManagerCacheList: [],
+    currentDataset: null,
+    loadingDataset: false
   },
   mutations: {
 
   },
   actions: {
-    loadState({ commit, dispatch, state, getters }, appState) {
-      // console.log(JSON.stringify(appState, null, 4));
+    async loadSessions({ state }) {
+      let { data: sessionTree } = await girder.rest.get('miqa/sessions');
+      state.sessionTree = sessionTree;
+    },
+    // async setDataset({ state, dispatch }, dataset) {
+    //   let dataset = await dispatch('cacheDataset', dataset);
+    //   store.dispatch('swapToDataset', dataset);
+    //   state.currentDataset = dataset;
+    // },
+    cacheDataset({ commit, dispatch, state, getters }, dataset) {
+      let url = `${API_URL}/item/${dataset._id}/download`;
+      var proxyManager = vtkProxyManager.newInstance({ proxyConfiguration: proxy });
+      var config = proxyConfigGenerator(url);
       return proxyManager
-        .loadState(appState, {
+        .loadState(config, {
           datasetHandler(ds) {
             // if (ds.vtkClass) {
             // return vtk(ds);
@@ -70,49 +88,44 @@ export default new Vuex.Store({
                 throw new Error(`${e.message} (${moreInfo})`);
               });
           },
-        })
-        .then((userData) => {
+        }).then((userData) => {
           // this.replaceState(merge(state, appState.userData));
-          merge(state, appState.userData);
+          // merge(state, appState.userData);
 
           // Wait for the layout to be done (nextTick is not enough)
-          setTimeout(() => {
-            // Advertise that state loading is done
-            // commit(Mutations.LOADING_STATE, false);
+          return new Promise((resolve, reject) => {
+            setTimeout(() => {
+              proxyManager.modified();
 
-            // Force update
-            proxyManager.modified();
-
-            // Activate visible view with a preference for the 3D one
-            // const visibleViews = proxyManager
-            //   .getViews()
-            //   .filter((view) => view.getContainer());
-            // const view3D = visibleViews.find(
-            //   (view) => view.getProxyName() === 'View3D'
-            // );
-            // const viewToActivate = view3D || visibleViews[0];
-            // if (viewToActivate) {
-            //   viewToActivate.activate();
-            // }
-
-            // Make sure pre-existing view (not expected in state) have a representation
-            // proxyManager
-            //   .getSources()
-            //   .forEach(proxyManager.createRepresentationInAllViews);
-
-            var update = () => {
-              proxyManager.autoAnimateViews();
-            }
-
-            state.views.viewOrder.forEach(type => {
-              var view = getView(proxyManager, type);
-              state.vtkViews.push(view);
-              view.getRepresentations().forEach(representation => {
-                representation.onModified(update);
-              });
-            });
-          }, 100);
+              resolve();
+            }, 100)
+          });
+        }).then(() => {
+          console.log('pushed');
+          Vue.set(state.proxyManagerCache, dataset._id, proxyManager);
+          state.proxyManagerCacheList.push(dataset);
+          if (state.proxyManagerCacheList.length > 4) {
+            let dataset = state.proxyManagerCacheList.shift();
+            Vue.delete(state.proxyManagerCache, dataset._id);
+          }
+          return proxyManager;
         });
+    },
+    async swapToDataset({ commit, dispatch, state, getters }, dataset) {
+      state.loadingDataset = true;
+      if (!state.proxyManagerCache[dataset._id]) {
+        await dispatch('cacheDataset', dataset);
+      }
+      state.currentDataset = dataset;
+      let proxyManager = state.proxyManagerCache[dataset._id];
+      prepareProxyManager(proxyManager);
+
+      // state.vtkViews = [];
+      // setTimeout(() => {
+      state.proxyManager = proxyManager;
+      state.vtkViews = proxyManager.getViews();
+      state.loadingDataset = false;
+      // }, 0);
     }
   },
   // getters: {
@@ -126,6 +139,21 @@ export default new Vuex.Store({
   //   }
   // }
 });
+
+function prepareProxyManager(proxyManager) {
+  if (!proxyManager.getViews().length) {
+    var update = () => {
+      proxyManager.autoAnimateViews();
+    }
+
+    ["View2D_Z:z", "View2D_X:x", "View2D_Y:y"].forEach(type => {
+      let view = getView(proxyManager, type);
+      view.getRepresentations().forEach(representation => {
+        representation.onModified(update);
+      });
+    });
+  }
+}
 
 
 // http://jsperf.com/typeofvar

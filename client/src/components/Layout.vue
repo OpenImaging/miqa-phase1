@@ -15,15 +15,15 @@ export default {
 </script>
 
 <template>
-  <div class="layout">
-    <div class="view" v-for="(vtkView, index) in vtkViews" :key="index">
+  <div class="my-layout">
+    <div class="view" v-for="(vtkView, index) in vtkViews" :key="Math.random(index)">
       <VtkViewer :view="vtkView"/>
     </div>
   </div>
 </template>
 
 <style lang="scss" scoped>
-.layout {
+.my-layout {
   position: absolute;
   top: 0;
   bottom: 0;
