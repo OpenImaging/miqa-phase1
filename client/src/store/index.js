@@ -1,6 +1,7 @@
 import Vue from 'vue';
 import Vuex from 'vuex';
 import vtkProxyManager from 'vtk.js/Sources/Proxy/Core/ProxyManager';
+import _ from 'lodash';
 
 import ReaderFactory from '../utils/ReaderFactory';
 import '../utils/ParaViewGlanceReaders';
@@ -22,18 +23,72 @@ Vue.use(Vuex);
 // let view = getView(proxyManager, DEFAULT_VIEW_TYPE);
 // console.log(view);
 
-export default new Vuex.Store({
+const store = new Vuex.Store({
   state: {
+    drawer: true,
     proxyManager: null,
     sessionTree: null,
     vtkViews: [],
     proxyManagerCache: {},
     proxyManagerCacheList: [],
     currentDataset: null,
-    loadingDataset: false
+    loadingDataset: false,
+  },
+  getters: {
+    nextDataset(state) {
+      if (!state.currentDataset || !state.sessionTree) {
+        return;
+      }
+      let takeNext = false;
+      for (let batch of state.sessionTree) {
+        for (let session of batch.sessions) {
+          for (let dataset of session.datasets) {
+            if (dataset === state.currentDataset) {
+              takeNext = true;
+              continue;
+            }
+            if (takeNext) {
+              return dataset;
+            }
+          }
+        }
+      }
+    },
+    previousDataset(state) {
+      let previousDataset = null;
+      if (!state.currentDataset || !state.sessionTree) {
+        return;
+      }
+      for (let batch of state.sessionTree) {
+        for (let session of batch.sessions) {
+          for (let dataset of session.datasets) {
+            if (dataset === state.currentDataset) {
+              return previousDataset;
+            }
+            previousDataset = dataset;
+          }
+        }
+      }
+    },
+    currentSesssionDatasets(state) {
+      if (!state.currentDataset || !state.sessionTree) {
+        return;
+      }
+      for (let batch of state.sessionTree) {
+        for (let session of batch.sessions) {
+          for (let dataset of session.datasets) {
+            if (dataset === state.currentDataset) {
+              return session.datasets;
+            }
+          }
+        }
+      }
+    }
   },
   mutations: {
-
+    setDrawer(state, value) {
+      state.drawer = value;
+    }
   },
   actions: {
     async loadSessions({ state }) {
@@ -46,10 +101,19 @@ export default new Vuex.Store({
     //   state.currentDataset = dataset;
     // },
     cacheDataset({ commit, dispatch, state, getters }, dataset) {
+      var cached = state.proxyManagerCache[dataset._id];
+      if (cached) {
+        if (!cached.then) {
+          return Promise.resolve();
+        }
+        else {
+          return cached;
+        }
+      }
       let url = `${API_URL}/item/${dataset._id}/download`;
       var proxyManager = vtkProxyManager.newInstance({ proxyConfiguration: proxy });
       var config = proxyConfigGenerator(url);
-      return proxyManager
+      var caching = proxyManager
         .loadState(config, {
           datasetHandler(ds) {
             // if (ds.vtkClass) {
@@ -110,22 +174,31 @@ export default new Vuex.Store({
           }
           return proxyManager;
         });
+      Vue.set(state.proxyManagerCache, dataset._id, caching);
+      return caching;
     },
     async swapToDataset({ commit, dispatch, state, getters }, dataset) {
       state.loadingDataset = true;
-      if (!state.proxyManagerCache[dataset._id]) {
-        await dispatch('cacheDataset', dataset);
-      }
+      // if (!state.proxyManagerCache[dataset._id]) {
+      await dispatch('cacheDataset', dataset);
+      // }
       state.currentDataset = dataset;
       let proxyManager = state.proxyManagerCache[dataset._id];
-      prepareProxyManager(proxyManager);
 
-      // state.vtkViews = [];
-      // setTimeout(() => {
-      state.proxyManager = proxyManager;
-      state.vtkViews = proxyManager.getViews();
-      state.loadingDataset = false;
-      // }, 0);
+      function change() {
+        prepareProxyManager(proxyManager);
+        state.proxyManager = proxyManager;
+        state.vtkViews = proxyManager.getViews();
+        state.loadingDataset = false;
+      }
+      // Give progress inidicator a chance to show if proxy views are not ready, even though it will be blocked so it won't animate
+      if (proxyManager.getViews().length) {
+        change();
+      } else {
+        setTimeout(() => {
+          change();
+        }, 0);
+      }
     }
   },
   // getters: {
@@ -139,6 +212,23 @@ export default new Vuex.Store({
   //   }
   // }
 });
+
+
+
+store.watch((state, getters) => getters.nextDataset, _.debounce((nextDataset) => {
+  console.log('caching next dataset');
+  if (nextDataset) {
+    store.dispatch('cacheDataset', nextDataset);
+  }
+  // console.log(nextDataset);
+}, 1500));
+
+store.watch((state, getters) => getters.previousDataset, _.debounce((previousDataset) => {
+  console.log('caching previous dataset');
+  if (previousDataset) {
+    store.dispatch('cacheDataset', previousDataset);
+  }
+}, 3000));
 
 function prepareProxyManager(proxyManager) {
   if (!proxyManager.getViews().length) {
@@ -179,3 +269,5 @@ function merge(dst, src) {
   return dst;
 }
 /* eslint-enable no-param-reassign */
+
+export default store;
