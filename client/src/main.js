@@ -21,8 +21,6 @@ window.store = store;
 Vue.config.productionTip = true
 
 girder.rest.fetchUser().then(() => {
-  store.dispatch('loadSessions');
-
   new Vue({
     router,
     store,
@@ -30,15 +28,3 @@ girder.rest.fetchUser().then(() => {
     provide: { girderRest: girder.rest },
   }).$mount('#app');
 });
-
-
-// setTimeout(async () => {
-//   // store.dispatch('loadState', proxyConfigGenerator('image.nii.gz'));
-//   let proxyManager = await store.dispatch('cacheDataset', 'image.nii.gz');
-//   store.dispatch('swapToDataset', { proxyManager });
-// }, 0);
-
-// setTimeout(async () => {
-//   let proxyManager = await store.dispatch('cacheDataset', 'http://localhost:8081/api/v1/file/5c1070866cc2491028ad84d4/download?contentDisposition=inline');
-//   store.dispatch('swapToDataset', { proxyManager });
-// }, 2000);

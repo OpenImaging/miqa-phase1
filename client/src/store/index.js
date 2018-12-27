@@ -31,19 +31,33 @@ const store = new Vuex.Store({
     vtkViews: [],
     proxyManagerCache: {},
     proxyManagerCacheList: [],
-    currentDataset: null,
-    loadingDataset: false,
+    currentDatasetId: null,
+    loadingDataset: false
   },
   getters: {
-    nextDataset(state) {
-      if (!state.currentDataset || !state.sessionTree) {
+    currentDataset(state) {
+      if (!state.currentDatasetId || !state.sessionTree) {
+        return;
+      }
+      for (let batch of state.sessionTree) {
+        for (let session of batch.sessions) {
+          for (let dataset of session.datasets) {
+            if (dataset._id === state.currentDatasetId) {
+              return dataset;
+            }
+          }
+        }
+      }
+    },
+    nextDataset(state, getters) {
+      if (!getters.currentDataset || !state.sessionTree) {
         return;
       }
       let takeNext = false;
       for (let batch of state.sessionTree) {
         for (let session of batch.sessions) {
           for (let dataset of session.datasets) {
-            if (dataset === state.currentDataset) {
+            if (dataset === getters.currentDataset) {
               takeNext = true;
               continue;
             }
@@ -54,15 +68,15 @@ const store = new Vuex.Store({
         }
       }
     },
-    previousDataset(state) {
+    previousDataset(state, getters) {
       let previousDataset = null;
-      if (!state.currentDataset || !state.sessionTree) {
+      if (!getters.currentDataset || !state.sessionTree) {
         return;
       }
       for (let batch of state.sessionTree) {
         for (let session of batch.sessions) {
           for (let dataset of session.datasets) {
-            if (dataset === state.currentDataset) {
+            if (dataset === getters.currentDataset) {
               return previousDataset;
             }
             previousDataset = dataset;
@@ -70,15 +84,31 @@ const store = new Vuex.Store({
         }
       }
     },
-    currentSesssionDatasets(state) {
-      if (!state.currentDataset || !state.sessionTree) {
+    getDataset(state, getters) {
+      return function (datasetId) {
+        if (!datasetId || !state.sessionTree) {
+          return;
+        }
+        for (let batch of state.sessionTree) {
+          for (let session of batch.sessions) {
+            for (let dataset of session.datasets) {
+              if (dataset._id === datasetId) {
+                return dataset;
+              }
+            }
+          }
+        }
+      }
+    },
+    currentSession(state, getters) {
+      if (!getters.currentDataset || !state.sessionTree) {
         return;
       }
       for (let batch of state.sessionTree) {
         for (let session of batch.sessions) {
           for (let dataset of session.datasets) {
-            if (dataset === state.currentDataset) {
-              return session.datasets;
+            if (dataset === getters.currentDataset) {
+              return session;
             }
           }
         }
@@ -95,11 +125,6 @@ const store = new Vuex.Store({
       let { data: sessionTree } = await girder.rest.get('miqa/sessions');
       state.sessionTree = sessionTree;
     },
-    // async setDataset({ state, dispatch }, dataset) {
-    //   let dataset = await dispatch('cacheDataset', dataset);
-    //   store.dispatch('swapToDataset', dataset);
-    //   state.currentDataset = dataset;
-    // },
     cacheDataset({ commit, dispatch, state, getters }, dataset) {
       var cached = state.proxyManagerCache[dataset._id];
       if (cached) {
@@ -177,12 +202,11 @@ const store = new Vuex.Store({
       Vue.set(state.proxyManagerCache, dataset._id, caching);
       return caching;
     },
-    async swapToDataset({ commit, dispatch, state, getters }, dataset) {
+    async swapToDataset({ commit, dispatch, state, getters }, datasetId) {
       state.loadingDataset = true;
-      // if (!state.proxyManagerCache[dataset._id]) {
+      state.currentDatasetId = datasetId;
+      let dataset = getters.currentDataset;
       await dispatch('cacheDataset', dataset);
-      // }
-      state.currentDataset = dataset;
       let proxyManager = state.proxyManagerCache[dataset._id];
 
       function change() {
@@ -199,18 +223,15 @@ const store = new Vuex.Store({
           change();
         }, 0);
       }
-    }
-  },
-  // getters: {
-  //   vtkViews(state, getters) {
-  //     if (!state.views || !state.views.viewOrder) {
-  //       return [];
-  //     }
-  //     return state.views.viewOrder
-  //       .filter((v, i) => i < state.views.viewCount)
-  //       .map((type) => getView(state.proxyManager, type))
-  //   }
-  // }
+    },
+    // async loadSession({ state, getters }) {
+    //   let currentSession = getters.currentSession;
+    //   console.log(currentSession);
+    //   let { data: folder } = await girder.rest.get(`folder/${currentSession.folderId}`);
+    //   console.log(folder);
+    //   // state.note=folder.
+    // }
+  }
 });
 
 
@@ -220,7 +241,6 @@ store.watch((state, getters) => getters.nextDataset, _.debounce((nextDataset) =>
   if (nextDataset) {
     store.dispatch('cacheDataset', nextDataset);
   }
-  // console.log(nextDataset);
 }, 1500));
 
 store.watch((state, getters) => getters.previousDataset, _.debounce((previousDataset) => {
@@ -229,6 +249,21 @@ store.watch((state, getters) => getters.previousDataset, _.debounce((previousDat
     store.dispatch('cacheDataset', previousDataset);
   }
 }, 3000));
+
+// store.watch((state, getters) => getters.currentSession, async (currentSession) => {
+//   let state = store.state;
+//   state.note = '';
+//   state.review = null;
+//   let { data: folder } = await girder.rest.get(`folder/${currentSession.folderId}`);
+//   if (folder.meta) {
+//     if (folder.meta.note) {
+//       state.note = folder.meta.note;
+//     }
+//     if (folder.meta.review) {
+//       state.review = folder.meta.review;
+//     }
+//   }
+// });
 
 function prepareProxyManager(proxyManager) {
   if (!proxyManager.getViews().length) {

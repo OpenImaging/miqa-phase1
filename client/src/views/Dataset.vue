@@ -10,13 +10,111 @@ export default {
     Layout,
     SessionsView
   },
+  inject: ["girderRest"],
+  data: () => ({
+    note: "",
+    rating: null,
+    reviewer: "",
+    reviewChanged: false,
+    unsavedDialog: false,
+    unsavedDialogResolve: null
+  }),
   computed: {
-    ...mapState(["loadingDataset", "drawer", "currentDataset"]),
-    ...mapGetters(["nextDataset", "previousDataset", "currentSesssionDatasets"])
+    ...mapState(["loadingDataset", "drawer"]),
+    ...mapGetters([
+      "nextDataset",
+      "currentDataset",
+      "getDataset",
+      "currentSession",
+      "previousDataset"
+    ])
   },
+  async created() {
+    await this.loadSessions();
+    if (this.$route.params.datasetId) {
+      this.swapToDataset(this.$route.params.datasetId);
+    }
+  },
+  watch: {
+    async currentSession(session, oldSession) {
+      if (session === oldSession) {
+        return;
+      }
+      let { data: folder } = await this.girderRest.get(
+        `folder/${session.folderId}`
+      );
+      this.note = "";
+      this.rating = null;
+      this.reviewer = "";
+      this.reviewChanged = false;
+      if (folder.meta) {
+        if (folder.meta.note) {
+          this.note = folder.meta.note;
+        }
+        if (folder.meta.rating) {
+          this.rating = folder.meta.rating;
+        }
+        if (folder.meta.reviewer) {
+          this.reviewer = folder.meta.reviewer;
+        }
+      }
+    }
+  },
+  async beforeRouteUpdate(to, from, next) {
+    let toDataset = this.getDataset(to.params.datasetId);
+    let result = await this.beforeLeaveSession(toDataset);
+    next(result);
+    if (result) {
+      this.swapToDataset(to.params.datasetId);
+    }
+  },
+  // beforeRouteLeave(to, from, next) {
+  //   next();
+  // },
   methods: {
     ...mapMutations(["setDrawer"]),
-    ...mapActions(["swapToDataset"])
+    ...mapActions(["loadSessions", "swapToDataset"]),
+    async beforeLeaveSession(toDataset) {
+      let currentDataset = this.currentDataset;
+      if (
+        currentDataset &&
+        (!toDataset || toDataset.folderId !== this.currentDataset.folderId) &&
+        this.reviewChanged
+      ) {
+        this.unsavedDialog = true;
+        return await new Promise((resolve, reject) => {
+          this.unsavedDialogResolve = resolve;
+        });
+      }
+      return Promise.resolve(true);
+    },
+    async save() {
+      let user = this.girderRest.user;
+      let reviewer = user.firstName + " " + user.lastName;
+      await this.girderRest.put(
+        `folder/${this.currentSession.folderId}/metadata`,
+        {
+          note: this.note,
+          rating: this.rating,
+          reviewer
+        }
+      );
+      this.reviewer = reviewer;
+      this.reviewChanged = false;
+    },
+    async unsavedDialogYes() {
+      await this.save();
+      this.unsavedDialogResolve(true);
+      this.unsavedDialog = false;
+    },
+    unsavedDialogNo() {
+      this.unsavedDialogResolve(true);
+      this.unsavedDialog = false;
+    },
+    unsavedDialogCancel() {
+      this.unsavedDialogResolve(false);
+      this.unsavedDialog = false;
+    }
   }
 };
 </script>
@@ -102,19 +200,23 @@ export default {
               <v-container fluid grid-list-sm>
                 <v-layout>
                   <v-flex>
-                    <v-textarea solo label="Add note" rows="4" hide-details></v-textarea>
+                    <v-textarea solo label="Note" rows="4" hide-details
+                      v-model="note" @input="reviewChanged=true"></v-textarea>
                   </v-flex>
                 </v-layout>
                 <v-layout>
                   <v-flex xs5>
                     <v-text-field
                       class="small"
-                      label="Reviewer name"
+                      label="Reviewer"
                       solo
-                      hide-details></v-text-field>
+                      readonly
+                      hide-details
+                      :value="reviewer"></v-text-field>
                   </v-flex>
                   <v-flex xs7>
-                    <v-btn-toggle mandatory class="buttons">
+                    <v-btn-toggle class="buttons elevation-2"
+                      v-model="rating" @change="reviewChanged=true">
                       <v-btn flat value="bad">Bad</v-btn>
                       <v-btn flat value="good">Good</v-btn>
                       <v-btn flat value="goodExtra">Good extra</v-btn>
@@ -122,13 +224,15 @@ export default {
                   </v-flex>
                 </v-layout>
                 <v-layout align-center justify-space-between>
+                  <v-spacer />
                   <v-btn
-                    color="primary">
+                    color="primary"
+                    :disabled="!reviewChanged"
+                    @click="save">
                     Save
                     <v-icon right>save</v-icon>
                   </v-btn>
-                  <v-spacer />
-                  <v-menu v-if="currentSesssionDatasets && currentSesssionDatasets.length>1"
+                  <v-menu v-if="currentSession && currentSession.datasets.length>1"
                     offset-y>
                     <v-btn
                       slot="activator"
@@ -139,9 +243,9 @@ export default {
                     </v-btn>
                     <v-list>
                       <v-list-tile
-                        v-for="(dataset, index) in currentSesssionDatasets"
+                        v-for="(dataset, index) in currentSession.datasets"
                         :key="index"
-                        @click="swapToDataset(dataset)"
+                        :to="dataset._id"
                         :class="{'primary--text':dataset===currentDataset}">
                         <v-list-tile-title>{{dataset.name}}</v-list-tile-title>
                       </v-list-tile>
@@ -150,14 +254,13 @@ export default {
                   <v-btn fab small
                     class="primary--text elevation-2"
                     :disabled="!previousDataset"
-                    @click="swapToDataset(previousDataset)"
-                    >
+                    :to="previousDataset?previousDataset._id:''">
                     <v-icon>keyboard_arrow_left</v-icon>
                   </v-btn>
                   <v-btn fab small
                     class="primary--text elevation-2"
                     :disabled="!nextDataset"
-                    @click="swapToDataset(nextDataset)">
+                    :to="nextDataset?nextDataset._id:''">
                     <v-icon>keyboard_arrow_right</v-icon>
                   </v-btn>
                 </v-layout>
@@ -172,6 +275,18 @@ export default {
         <div class="title">Select a dataset</div>
       </v-layout>
     </template>
+    <v-dialog v-model="unsavedDialog" persistent max-width="400">
+      <v-card>
+        <v-card-title class="title">Review is not saved</v-card-title>
+        <v-card-text>Do you want save before continue?</v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn flat color="primary" @click="unsavedDialogYes">Yes</v-btn>
+          <v-btn flat color="primary" @click="unsavedDialogNo">no</v-btn>
+          <v-btn flat @click="unsavedDialogCancel">Cancel</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </div>
 </template>
 

@@ -14,7 +14,7 @@ class Miqa(Resource):
 
         self.route('GET', ('sessions',), self.getAllSessions)
 
-    @access.public
+    @access.user
     @autoDescribeRoute(
         Description('Retrieve all sessions in a tree structure')
         .errorResponse())

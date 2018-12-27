@@ -31,7 +31,7 @@ export default new Router({
       beforeEnter
     },
     {
-      path: '/',
+      path: '/:datasetId?',
       name: 'dataset',
       component: Dataset,
       beforeEnter
