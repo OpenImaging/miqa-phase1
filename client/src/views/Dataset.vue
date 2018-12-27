@@ -28,11 +28,16 @@ export default {
     </v-navigation-drawer>
     <template v-if="currentDataset">
       <div class="layout-container">
-        <Layout v-if="!loadingDataset" />
-        <v-layout v-else align-center justify-center row fill-height>
-          <v-flex xs3>
-            <v-progress-linear :indeterminate="true"></v-progress-linear>
-          </v-flex>
+        <Layout/>
+        <v-layout v-if="loadingDataset"
+          class="loading-indicator-container"
+          align-center justify-center row fill-height>
+          <v-progress-circular
+            color="primary"
+            :width="4"
+            :size="50"
+            indeterminate
+          ></v-progress-circular>
         </v-layout>
       </div>
       <div class="bottom">
@@ -110,9 +115,9 @@ export default {
                   </v-flex>
                   <v-flex xs7>
                     <v-btn-toggle mandatory class="buttons">
-                      <v-btn flat value="good">Good</v-btn>
                       <v-btn flat value="bad">Bad</v-btn>
-                      <v-btn flat value="unsure">Unsure</v-btn>
+                      <v-btn flat value="good">Good</v-btn>
+                      <v-btn flat value="goodExtra">Good extra</v-btn>
                     </v-btn-toggle>
                   </v-flex>
                 </v-layout>
@@ -123,7 +128,8 @@ export default {
                     <v-icon right>save</v-icon>
                   </v-btn>
                   <v-spacer />
-                  <v-menu offset-y>
+                  <v-menu v-if="currentSesssionDatasets && currentSesssionDatasets.length>1"
+                    offset-y>
                     <v-btn
                       slot="activator"
                       flat
@@ -178,6 +184,11 @@ export default {
   .layout-container {
     flex: 1 1 0%;
     position: relative;
+
+    .loading-indicator-container {
+      background: #ffffff57;
+      position: relative;
+    }
   }
 
   .bottom {
