@@ -1,10 +1,23 @@
 <script>
 import { mapState, mapMutations } from "vuex";
 
+import UserButton from "./components/girder/UserButton";
+
 export default {
   name: "App",
+  components: {
+    UserButton
+  },
+  inject: ["girderRest"],
   computed: {
     ...mapState(["drawer"])
+  },
+  watch: {
+    "girderRest.user"(user) {
+      if (!user) {
+        this.$router.push("/login");
+      }
+    }
   },
   methods: {
     ...mapMutations(["setDrawer"])
@@ -22,9 +35,8 @@ export default {
       <v-spacer></v-spacer>
       <v-toolbar-items class="hidden-sm-and-down">
         <v-btn flat>Screenshots</v-btn>
-        <v-btn icon>
-          <v-icon>person</v-icon>
-        </v-btn>
+        <UserButton
+          @user="girderRest.logout()" />
       </v-toolbar-items>
     </v-toolbar>
     <v-content>
