@@ -16,13 +16,6 @@ import girder from '../girder';
 
 Vue.use(Vuex);
 
-// const proxyManager = vtkProxyManager.newInstance({ proxyConfiguration: proxy });
-// window.proxyManager = proxyManager;
-// console.log(proxyManager);
-
-// let view = getView(proxyManager, DEFAULT_VIEW_TYPE);
-// console.log(view);
-
 const store = new Vuex.Store({
   state: {
     drawer: true,
@@ -206,6 +199,9 @@ const store = new Vuex.Store({
       state.loadingDataset = true;
       state.currentDatasetId = datasetId;
       let dataset = getters.currentDataset;
+      if (!dataset) {
+        throw new Error(`dataset id doesn't exist`);
+      }
       await dispatch('cacheDataset', dataset);
       let proxyManager = state.proxyManagerCache[dataset._id];
 
@@ -223,14 +219,7 @@ const store = new Vuex.Store({
           change();
         }, 0);
       }
-    },
-    // async loadSession({ state, getters }) {
-    //   let currentSession = getters.currentSession;
-    //   console.log(currentSession);
-    //   let { data: folder } = await girder.rest.get(`folder/${currentSession.folderId}`);
-    //   console.log(folder);
-    //   // state.note=folder.
-    // }
+    }
   }
 });
 
@@ -249,21 +238,6 @@ store.watch((state, getters) => getters.previousDataset, _.debounce((previousDat
     store.dispatch('cacheDataset', previousDataset);
   }
 }, 3000));
-
-// store.watch((state, getters) => getters.currentSession, async (currentSession) => {
-//   let state = store.state;
-//   state.note = '';
-//   state.review = null;
-//   let { data: folder } = await girder.rest.get(`folder/${currentSession.folderId}`);
-//   if (folder.meta) {
-//     if (folder.meta.note) {
-//       state.note = folder.meta.note;
-//     }
-//     if (folder.meta.review) {
-//       state.review = folder.meta.review;
-//     }
-//   }
-// });
 
 function prepareProxyManager(proxyManager) {
   if (!proxyManager.getViews().length) {

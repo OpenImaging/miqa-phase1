@@ -1,6 +1,8 @@
 <script>
 import { mapState, mapGetters } from "vuex";
 
+import fill2DView from "../utils/fill2DView";
+
 export default {
   name: "vtkViewer",
   components: {},
@@ -48,6 +50,7 @@ export default {
   mounted() {
     this.view.setContainer(this.$refs.viewer);
     this.view.resize();
+    fill2DView(this.view);
   },
   methods: {},
   filters: {

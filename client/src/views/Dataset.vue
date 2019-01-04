@@ -32,7 +32,11 @@ export default {
   async created() {
     await this.loadSessions();
     if (this.$route.params.datasetId) {
-      this.swapToDataset(this.$route.params.datasetId);
+      try {
+        await this.swapToDataset(this.$route.params.datasetId);
+      } catch (ex) {
+        this.$router.replace("/");
+      }
     }
   },
   watch: {
