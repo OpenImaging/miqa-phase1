@@ -44,8 +44,13 @@ export default {
     }
   },
   created() {
-    // console.log(this.view);
     this.slice = this.representation.getSlice();
+    this.modifiedSubscription = this.representation.onModified(() => {
+      this.slice = this.representation.getSlice();
+    });
+  },
+  beforeDestroy() {
+    this.modifiedSubscription.unsubscribe();
   },
   mounted() {
     this.view.setContainer(this.$refs.viewer);
@@ -131,6 +136,7 @@ export default {
     }
 
     .slice {
+      width: 100px;
     }
   }
 

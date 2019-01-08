@@ -18,7 +18,7 @@ Vue.use(Vuex);
 
 const store = new Vuex.Store({
   state: {
-    drawer: true,
+    drawer: false,
     proxyManager: null,
     sessionTree: null,
     vtkViews: [],
@@ -242,7 +242,8 @@ store.watch((state, getters) => getters.previousDataset, _.debounce((previousDat
 function prepareProxyManager(proxyManager) {
   if (!proxyManager.getViews().length) {
     var update = () => {
-      proxyManager.autoAnimateViews();
+      proxyManager.renderAllViews();
+      // proxyManager.autoAnimateViews();
     }
 
     ["View2D_Z:z", "View2D_X:x", "View2D_Y:y"].forEach(type => {

@@ -3,12 +3,14 @@ import Layout from "@/components/Layout.vue";
 import { mapState, mapActions, mapGetters, mapMutations } from "vuex";
 
 import SessionsView from "@/components/SessionsView";
+import WindowControl from "@/components/WindowControl";
 
 export default {
   name: "dataset",
   components: {
     Layout,
-    SessionsView
+    SessionsView,
+    WindowControl
   },
   inject: ["girderRest"],
   data: () => ({
@@ -20,7 +22,7 @@ export default {
     unsavedDialogResolve: null
   }),
   computed: {
-    ...mapState(["loadingDataset", "drawer"]),
+    ...mapState(["proxyManager", "loadingDataset", "drawer"]),
     ...mapGetters([
       "nextDataset",
       "currentDataset",
@@ -37,6 +39,8 @@ export default {
       } catch (ex) {
         this.$router.replace("/");
       }
+    } else {
+      this.setDrawer(true);
     }
   },
   watch: {
@@ -86,7 +90,7 @@ export default {
         this.reviewChanged
       ) {
         this.unsavedDialog = true;
-        return await new Promise((resolve, reject) => {
+        return await new Promise(resolve => {
           this.unsavedDialogResolve = resolve;
         });
       }
@@ -146,59 +150,7 @@ export default {
         <v-container fluid grid-list-md>
           <v-layout>
             <v-flex xs6>
-              <v-container fluid grid-list-md>
-                <v-layout>
-                  <v-flex>
-                    <div class="subheading">Window setup</div>
-                  </v-flex>
-                </v-layout>
-                <v-layout>
-                  <v-flex>
-                    <v-slider
-                      label="Window"
-                      :max="255"
-                      :min="0"
-                      :step="1"
-                      :value="128"
-                      hide-details
-                    ></v-slider>
-                  </v-flex>
-                  <v-flex
-                    shrink
-                    style="width: 60px">
-                    <v-text-field
-                      class="mt-0"
-                      hide-details
-                      single-line
-                      type="number"
-                      :value="255"
-                    ></v-text-field>
-                  </v-flex>
-                </v-layout>
-                <v-layout>
-                  <v-flex>
-                    <v-slider
-                      label="Level"
-                      :max="255"
-                      :min="0"
-                      :step="1"
-                      :value="150"
-                      hide-details
-                    ></v-slider>
-                  </v-flex>
-                  <v-flex
-                    shrink
-                    style="width: 60px">
-                    <v-text-field
-                      class="mt-0"
-                      hide-details
-                      single-line
-                      type="number"
-                      :value="128"
-                    ></v-text-field>
-                  </v-flex>
-                </v-layout>
-              </v-container>
+              <WindowControl v-if="proxyManager" />
             </v-flex>
             <v-flex xs6>
               <v-container fluid grid-list-sm>
@@ -274,11 +226,9 @@ export default {
         </v-container>
       </div>
     </template>
-    <template v-else>
-      <v-layout align-center justify-center row fill-height >
-        <div class="title">Select a dataset</div>
-      </v-layout>
-    </template>
+    <v-layout v-else align-center justify-center row fill-height>
+      <div class="title" v-if="!loadingDataset">Select a dataset</div>
+    </v-layout>
     <v-dialog v-model="unsavedDialog" persistent max-width="400">
       <v-card>
         <v-card-title class="title">Review is not saved</v-card-title>
