@@ -5,15 +5,13 @@ module.exports = {
   devServer: {
     proxy: {
       '/image.nii.gz': {
-        target: "http://localhost:8085",
+        target: 'http://localhost:8085',
         secure: false
       }
     },
-    public: "localhost:8080"
+    public: 'localhost:8080'
   },
-  baseUrl: process.env.NODE_ENV === 'production'
-    ? '/'
-    : '/',
+  publicPath: process.env.NODE_ENV === 'production' ? '/' : '/',
   configureWebpack: {
     module: {
       rules: [
@@ -23,9 +21,9 @@ module.exports = {
           use: [
             {
               loader: 'worker-loader',
-              options: { inline: true, fallback: false },
-            },
-          ],
+              options: { inline: true, fallback: false }
+            }
+          ]
         }
       ]
     },
@@ -33,7 +31,7 @@ module.exports = {
       new CopyPlugin([
         {
           from: path.join(__dirname, 'node_modules', 'itk'),
-          to: 'itk',
+          to: 'itk'
         }
       ])
     ]
@@ -42,10 +40,9 @@ module.exports = {
     config.module
       .rule('glsl')
       .test(/\.glsl$/)
-      .include
-      .add(/vtk\.js(\/|\\)/)
+      .include.add(/vtk\.js(\/|\\)/)
       .end()
       .use()
-      .loader('shader-loader')
+      .loader('shader-loader');
   }
-}
+};
