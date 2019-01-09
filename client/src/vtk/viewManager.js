@@ -1,13 +1,10 @@
-import {
-  VIEW_ORIENTATIONS,
-  ANNOTATIONS,
-} from './constants';
+import { VIEW_ORIENTATIONS, ANNOTATIONS } from "./constants";
 
 // ----------------------------------------------------------------------------
 
 function getNumberOfVisibleViews(proxyManager) {
   let nbViews = 0;
-  proxyManager.getViews().forEach((v) => {
+  proxyManager.getViews().forEach(v => {
     nbViews += v.getContainer() ? 1 : 0;
   });
   return nbViews;
@@ -17,13 +14,13 @@ function getNumberOfVisibleViews(proxyManager) {
 
 function getViewActions(proxyManager) {
   const possibleActions = {
-    crop: false,
+    crop: false
   };
 
   // To crop we need at list an image data
-  proxyManager.getSources().forEach((s) => {
+  proxyManager.getSources().forEach(s => {
     const ds = s.getDataset();
-    if (ds && ds.isA && ds.isA('vtkImageData')) {
+    if (ds && ds.isA && ds.isA("vtkImageData")) {
       possibleActions.crop = true;
     }
   });
@@ -40,7 +37,7 @@ function getViewType(view) {
 // ----------------------------------------------------------------------------
 
 function getView(proxyManager, viewType, container) {
-  const [type, name] = viewType.split(':');
+  const [type, name] = viewType.split(":");
   let view = null;
   const views = proxyManager.getViews();
   for (let i = 0; i < views.length; i++) {
@@ -56,12 +53,12 @@ function getView(proxyManager, viewType, container) {
   }
 
   if (!view) {
-    view = proxyManager.createProxy('Views', type, { name });
+    view = proxyManager.createProxy("Views", type, { name });
 
     // Make sure represention is created for new view
     proxyManager
       .getSources()
-      .forEach((s) => proxyManager.getRepresentation(s, view));
+      .forEach(s => proxyManager.getRepresentation(s, view));
 
     // Update orientation
     const { axis, orientation, viewUp } = VIEW_ORIENTATIONS[name];
@@ -71,7 +68,7 @@ function getView(proxyManager, viewType, container) {
     view.setBackground(0, 0, 0, 0);
 
     // FIXME: Use storage to choose defaults
-    view.setPresetToOrientationAxes('default');
+    view.setPresetToOrientationAxes("default");
   }
 
   if (container) {
@@ -87,16 +84,16 @@ function getView(proxyManager, viewType, container) {
 function updateViewsAnnotation(proxyManager) {
   const hasImageData = proxyManager
     .getSources()
-    .find((s) => s.getDataset().isA && s.getDataset().isA('vtkImageData'));
+    .find(s => s.getDataset().isA && s.getDataset().isA("vtkImageData"));
   const views = proxyManager.getViews();
 
   for (let i = 0; i < views.length; i++) {
     const view = views[i];
-    view.setCornerAnnotation('se', '');
-    if (view.getProxyName().indexOf('2D') !== -1 && hasImageData) {
+    view.setCornerAnnotation("se", "");
+    if (view.getProxyName().indexOf("2D") !== -1 && hasImageData) {
       view.setCornerAnnotations(ANNOTATIONS, true);
     } else {
-      view.setCornerAnnotation('nw', '');
+      view.setCornerAnnotation("nw", "");
     }
   }
 }
@@ -114,7 +111,7 @@ export default {
   getView,
   getViewActions,
   getNumberOfVisibleViews,
-  updateViewsAnnotation,
+  updateViewsAnnotation
 };
 
 export {
@@ -123,5 +120,5 @@ export {
   getView,
   getViewActions,
   getNumberOfVisibleViews,
-  updateViewsAnnotation,
+  updateViewsAnnotation
 };

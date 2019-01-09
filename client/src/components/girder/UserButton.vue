@@ -34,7 +34,7 @@ export default {
 </template>
 
 <style lang="scss">
-button.user-avatar-btn .v-btn__content{
+button.user-avatar-btn .v-btn__content {
   height: inherit;
 }
 </style>

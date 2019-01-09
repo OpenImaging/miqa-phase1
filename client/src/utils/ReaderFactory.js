@@ -1,4 +1,4 @@
-import vtkHttpDataAccessHelper from 'vtk.js/Sources/IO/Core/DataAccessHelper/HttpDataAccessHelper';
+import vtkHttpDataAccessHelper from "vtk.js/Sources/IO/Core/DataAccessHelper/HttpDataAccessHelper";
 
 const READER_MAPPING = {};
 
@@ -8,7 +8,7 @@ const FETCH_DATA = {
   },
   readAsText(url, progressCallback) {
     return vtkHttpDataAccessHelper.fetchText({}, url, { progressCallback });
-  },
+  }
 };
 
 function registerReader({
@@ -20,31 +20,31 @@ function registerReader({
   fileNameMethod,
   fileSeriesMethod,
   sourceType,
-  binary,
+  binary
 }) {
   READER_MAPPING[extension] = {
     name,
     vtkReader,
-    readMethod: readMethod || binary ? 'readAsArrayBuffer' : 'readAsText',
-    parseMethod: parseMethod || binary ? 'parseAsArrayBuffer' : 'parseAsText',
+    readMethod: readMethod || binary ? "readAsArrayBuffer" : "readAsText",
+    parseMethod: parseMethod || binary ? "parseAsArrayBuffer" : "parseAsText",
     fileNameMethod,
     fileSeriesMethod,
-    sourceType,
+    sourceType
   };
 }
 
 function getReader({ name }) {
   const lowerCaseName = name.toLowerCase();
-  const extToUse = Object.keys(READER_MAPPING).find((ext) =>
+  const extToUse = Object.keys(READER_MAPPING).find(ext =>
     lowerCaseName.endsWith(ext)
   );
   return READER_MAPPING[extToUse];
 }
 
 function listReaders() {
-  return Object.keys(READER_MAPPING).map((ext) => ({
+  return Object.keys(READER_MAPPING).map(ext => ({
     name: READER_MAPPING[ext].name,
-    ext,
+    ext
   }));
 }
 
@@ -63,18 +63,18 @@ function handleFile(e) {
   filesCallback = null;
 }
 
-const HIDDEN_FILE_ELEMENT = document.createElement('input');
-HIDDEN_FILE_ELEMENT.setAttribute('type', 'file');
-HIDDEN_FILE_ELEMENT.setAttribute('multiple', 'multiple');
-HIDDEN_FILE_ELEMENT.addEventListener('change', handleFile);
+const HIDDEN_FILE_ELEMENT = document.createElement("input");
+HIDDEN_FILE_ELEMENT.setAttribute("type", "file");
+HIDDEN_FILE_ELEMENT.setAttribute("multiple", "multiple");
+HIDDEN_FILE_ELEMENT.addEventListener("change", handleFile);
 
 // ----------------------------------------------------------------------------
 
 function openFiles(extensions, onFilesCallback) {
   filesCallback = onFilesCallback;
   HIDDEN_FILE_ELEMENT.setAttribute(
-    'accept',
-    extensions.map((t) => `.${t}`).join(',')
+    "accept",
+    extensions.map(t => `.${t}`).join(",")
   );
   HIDDEN_FILE_ELEMENT.value = null;
   HIDDEN_FILE_ELEMENT.click();
@@ -90,7 +90,7 @@ function readRawData({ fileName, data }) {
         vtkReader,
         parseMethod,
         fileNameMethod,
-        sourceType,
+        sourceType
       } = readerMapping;
       const reader = vtkReader.newInstance();
       if (fileNameMethod) {
@@ -98,7 +98,7 @@ function readRawData({ fileName, data }) {
       }
       const ds = reader[parseMethod](data);
       Promise.resolve(ds)
-        .then((dataset) =>
+        .then(dataset =>
           resolve({ dataset, reader, sourceType, name: fileName })
         )
         .catch(reject);
@@ -118,12 +118,12 @@ function readFile(file) {
       const io = new FileReader();
       io.onload = function onLoad() {
         readRawData({ fileName: file.name, data: io.result })
-          .then((result) => resolve(result))
-          .catch((error) => reject(error));
+          .then(result => resolve(result))
+          .catch(error => reject(error));
       };
       io[readMethod](file);
     } else {
-      reject(new Error('No reader mapping'));
+      reject(new Error("No reader mapping"));
     }
   });
 }
@@ -140,7 +140,7 @@ function loadFiles(files) {
 
 // ----------------------------------------------------------------------------
 
-function loadFileSeries(files, extension, outFileName = '') {
+function loadFileSeries(files, extension, outFileName = "") {
   return new Promise((resolve, reject) => {
     if (files.length) {
       const readerMapping = READER_MAPPING[extension];
@@ -149,7 +149,7 @@ function loadFileSeries(files, extension, outFileName = '') {
           vtkReader,
           fileSeriesMethod,
           fileNameMethod,
-          sourceType,
+          sourceType
         } = readerMapping;
         const reader = vtkReader.newInstance();
 
@@ -159,11 +159,11 @@ function loadFileSeries(files, extension, outFileName = '') {
 
         if (fileSeriesMethod) {
           const ds = reader[fileSeriesMethod](files);
-          Promise.resolve(ds).then((dataset) =>
+          Promise.resolve(ds).then(dataset =>
             resolve({ dataset, reader, sourceType, name: outFileName })
           );
         } else {
-          reject(new Error('No file series method available'));
+          reject(new Error("No file series method available"));
         }
       } else {
         reject(new Error(`No file series reader mapping for ${extension}`));
@@ -182,7 +182,7 @@ function downloadDataset(fileName, url, progressCallback) {
     if (readerMapping) {
       const { readMethod } = readerMapping;
       FETCH_DATA[readMethod](url, progressCallback)
-        .then((rawData) => {
+        .then(rawData => {
           if (rawData) {
             resolve(new File([rawData], fileName));
           } else {
@@ -204,15 +204,15 @@ function registerReadersToProxyManager(readers, proxyManager) {
     if (reader || dataset) {
       const needSource =
         (reader && reader.getOutputData) ||
-        (dataset && dataset.isA && dataset.isA('vtkDataSet'));
+        (dataset && dataset.isA && dataset.isA("vtkDataSet"));
       const source = needSource
         ? proxyManager.createProxy(
-          'Sources',
-          'TrivialProducer',
-          Object.assign({ name }, metadata)
-        )
+            "Sources",
+            "TrivialProducer",
+            Object.assign({ name }, metadata)
+          )
         : null;
-      if (dataset && dataset.isA && dataset.isA('vtkDataSet')) {
+      if (dataset && dataset.isA && dataset.isA("vtkDataSet")) {
         source.setInputData(dataset, sourceType);
       } else if (reader && reader.getOutputData) {
         source.setInputAlgorithm(reader, sourceType);
@@ -242,7 +242,7 @@ export default {
   registerReader,
   listReaders,
   listSupportedExtensions,
-  registerReadersToProxyManager,
+  registerReadersToProxyManager
 };
 
 export {
@@ -253,5 +253,5 @@ export {
   registerReader,
   listReaders,
   listSupportedExtensions,
-  registerReadersToProxyManager,
+  registerReadersToProxyManager
 };

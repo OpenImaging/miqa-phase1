@@ -1,4 +1,3 @@
-
 export default function fill2DView(view) {
   const viewName = view.getName();
   if (viewName === "default") return;

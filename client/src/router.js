@@ -1,17 +1,16 @@
-import Vue from 'vue'
-import Router from 'vue-router'
+import Vue from "vue";
+import Router from "vue-router";
 
-import girder from './girder'
-import Sessions from './views/Sessions.vue'
-import Dataset from './views/Dataset.vue'
-import Login from './views/Login.vue'
+import girder from "./girder";
+import Sessions from "./views/Sessions.vue";
+import Dataset from "./views/Dataset.vue";
+import Login from "./views/Login.vue";
 
-
-Vue.use(Router)
+Vue.use(Router);
 
 function beforeEnter(to, from, next) {
   if (!girder.rest.user) {
-    next('/login');
+    next("/login");
   } else {
     next();
   }
@@ -20,24 +19,25 @@ function beforeEnter(to, from, next) {
 export default new Router({
   routes: [
     {
-      path: '/login',
-      name: 'login',
+      path: "/login",
+      name: "login",
       component: Login
     },
     {
-      path: '/sessions',
-      name: 'sessions',
+      path: "/sessions",
+      name: "sessions",
       component: Sessions,
       beforeEnter
     },
     {
-      path: '/:datasetId?',
-      name: 'dataset',
+      path: "/:datasetId?",
+      name: "dataset",
       component: Dataset,
       beforeEnter
-    }, {
-      path: '*',
-      redirect: '/'
+    },
+    {
+      path: "*",
+      redirect: "/"
     }
   ]
-})
+});

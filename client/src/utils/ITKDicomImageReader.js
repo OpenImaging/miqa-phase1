@@ -1,12 +1,12 @@
-import macro from 'vtk.js/Sources/macro';
-import ITKHelper from 'vtk.js/Sources/Common/DataModel/ITKHelper';
+import macro from "vtk.js/Sources/macro";
+import ITKHelper from "vtk.js/Sources/Common/DataModel/ITKHelper";
 
-import readImageDICOMFileSeries from 'itk/readImageDICOMFileSeries';
+import readImageDICOMFileSeries from "itk/readImageDICOMFileSeries";
 
 const { convertItkToVtkImage } = ITKHelper;
 
 function getArrayName(filename) {
-  const idx = filename.lastIndexOf('.');
+  const idx = filename.lastIndexOf(".");
   const name = idx > -1 ? filename.substring(0, idx) : filename;
   return `Scalars ${name}`;
 }
@@ -17,10 +17,10 @@ function getArrayName(filename) {
 
 function vtkITKDicomImageReader(publicAPI, model) {
   // Set our className
-  model.classHierarchy.push('vtkITKDicomImageReader');
+  model.classHierarchy.push("vtkITKDicomImageReader");
 
   // Returns a promise to signal when image is ready
-  publicAPI.readFileSeries = (files) => {
+  publicAPI.readFileSeries = files => {
     if (!files || !files.length || files === model.files) {
       return Promise.resolve();
     }
@@ -32,9 +32,9 @@ function vtkITKDicomImageReader(publicAPI, model) {
         webWorker.terminate();
         return image;
       })
-      .then((itkImage) => {
+      .then(itkImage => {
         const imageData = convertItkToVtkImage(itkImage, {
-          scalarArrayName: model.arrayName || getArrayName(model.fileName),
+          scalarArrayName: model.arrayName || getArrayName(model.fileName)
         });
         model.output[0] = imageData;
 
@@ -52,9 +52,9 @@ function vtkITKDicomImageReader(publicAPI, model) {
 // ----------------------------------------------------------------------------
 
 const DEFAULT_VALUES = {
-  fileName: '',
+  fileName: "",
   // If null/undefined a unique array will be generated
-  arrayName: null,
+  arrayName: null
 };
 
 // ----------------------------------------------------------------------------
@@ -65,7 +65,7 @@ export function extend(publicAPI, model, initialValues = {}) {
   // Build VTK API
   macro.obj(publicAPI, model);
   macro.algo(publicAPI, model, 0, 1);
-  macro.setGet(publicAPI, model, ['fileName', 'arrayName']);
+  macro.setGet(publicAPI, model, ["fileName", "arrayName"]);
 
   // vtkITKDicomImageReader methods
   vtkITKDicomImageReader(publicAPI, model);
@@ -73,7 +73,7 @@ export function extend(publicAPI, model, initialValues = {}) {
 
 // ----------------------------------------------------------------------------
 
-export const newInstance = macro.newInstance(extend, 'vtkITKDicomImageReader');
+export const newInstance = macro.newInstance(extend, "vtkITKDicomImageReader");
 
 // ----------------------------------------------------------------------------
 

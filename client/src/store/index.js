@@ -1,18 +1,18 @@
-import Vue from 'vue';
-import Vuex from 'vuex';
-import vtkProxyManager from 'vtk.js/Sources/Proxy/Core/ProxyManager';
-import _ from 'lodash';
+import Vue from "vue";
+import Vuex from "vuex";
+import vtkProxyManager from "vtk.js/Sources/Proxy/Core/ProxyManager";
+import _ from "lodash";
 
-import ReaderFactory from '../utils/ReaderFactory';
-import '../utils/ParaViewGlanceReaders';
-import Presets from '../vtk/ColorMaps';
+import ReaderFactory from "../utils/ReaderFactory";
+import "../utils/ParaViewGlanceReaders";
+import Presets from "../vtk/ColorMaps";
 
-import { proxy } from '../vtk';
-import { getView } from '../vtk/viewManager';
-import proxyConfigGenerator from './proxyConfigGenerator';
+import { proxy } from "../vtk";
+import { getView } from "../vtk/viewManager";
+import proxyConfigGenerator from "./proxyConfigGenerator";
 
-import { API_URL } from '../constants';
-import girder from '../girder';
+import { API_URL } from "../constants";
+import girder from "../girder";
 
 Vue.use(Vuex);
 
@@ -78,7 +78,7 @@ const store = new Vuex.Store({
       }
     },
     getDataset(state, getters) {
-      return function (datasetId) {
+      return function(datasetId) {
         if (!datasetId || !state.sessionTree) {
           return;
         }
@@ -91,7 +91,7 @@ const store = new Vuex.Store({
             }
           }
         }
-      }
+      };
     },
     currentSession(state, getters) {
       if (!getters.currentDataset || !state.sessionTree) {
@@ -115,7 +115,7 @@ const store = new Vuex.Store({
   },
   actions: {
     async loadSessions({ state }) {
-      let { data: sessionTree } = await girder.rest.get('miqa/sessions');
+      let { data: sessionTree } = await girder.rest.get("miqa/sessions");
       state.sessionTree = sessionTree;
     },
     cacheDataset({ commit, dispatch, state, getters }, dataset) {
@@ -123,13 +123,14 @@ const store = new Vuex.Store({
       if (cached) {
         if (!cached.then) {
           return Promise.resolve();
-        }
-        else {
+        } else {
           return cached;
         }
       }
       let url = `${API_URL}/item/${dataset._id}/download`;
-      var proxyManager = vtkProxyManager.newInstance({ proxyConfiguration: proxy });
+      var proxyManager = vtkProxyManager.newInstance({
+        proxyConfiguration: proxy
+      });
       var config = proxyConfigGenerator(url);
       var caching = proxyManager
         .loadState(config, {
@@ -138,10 +139,10 @@ const store = new Vuex.Store({
             // return vtk(ds);
             // }
             return ReaderFactory.downloadDataset(ds.name, ds.url)
-              .then((file) => {
+              .then(file => {
                 return ReaderFactory.loadFiles([file]);
               })
-              .then((readers) => readers[0])
+              .then(readers => readers[0])
               .then(({ dataset, reader }) => {
                 if (reader && reader.getOutputData) {
                   const newDS = reader.getOutputData();
@@ -156,12 +157,12 @@ const store = new Vuex.Store({
                   reader.setProxyManager(proxyManager);
                   return null;
                 }
-                throw new Error('Invalid dataset');
+                throw new Error("Invalid dataset");
               })
-              .catch((e) => {
+              .catch(e => {
                 // more meaningful error
                 const moreInfo = `Dataset doesn't exist or adblock/firewall prevents access.`;
-                if ('xhr' in e) {
+                if ("xhr" in e) {
                   const { xhr } = e;
                   throw new Error(
                     `${xhr.statusText} (${xhr.status}): ${moreInfo}`
@@ -169,8 +170,9 @@ const store = new Vuex.Store({
                 }
                 throw new Error(`${e.message} (${moreInfo})`);
               });
-          },
-        }).then((userData) => {
+          }
+        })
+        .then(userData => {
           // this.replaceState(merge(state, appState.userData));
           // merge(state, appState.userData);
 
@@ -180,10 +182,11 @@ const store = new Vuex.Store({
               proxyManager.modified();
 
               resolve();
-            }, 100)
+            }, 100);
           });
-        }).then(() => {
-          console.log('pushed');
+        })
+        .then(() => {
+          console.log("pushed");
           Vue.set(state.proxyManagerCache, dataset._id, proxyManager);
           state.proxyManagerCacheList.push(dataset);
           if (state.proxyManagerCacheList.length > 4) {
@@ -202,7 +205,7 @@ const store = new Vuex.Store({
       if (!dataset) {
         throw new Error(`dataset id doesn't exist`);
       }
-      await dispatch('cacheDataset', dataset);
+      await dispatch("cacheDataset", dataset);
       let proxyManager = state.proxyManagerCache[dataset._id];
 
       function change() {
@@ -223,29 +226,32 @@ const store = new Vuex.Store({
   }
 });
 
+store.watch(
+  (state, getters) => getters.nextDataset,
+  _.debounce(nextDataset => {
+    console.log("caching next dataset");
+    if (nextDataset) {
+      store.dispatch("cacheDataset", nextDataset);
+    }
+  }, 1500)
+);
 
-
-store.watch((state, getters) => getters.nextDataset, _.debounce((nextDataset) => {
-  console.log('caching next dataset');
-  if (nextDataset) {
-    store.dispatch('cacheDataset', nextDataset);
-  }
-}, 1500));
-
-store.watch((state, getters) => getters.previousDataset, _.debounce((previousDataset) => {
-  console.log('caching previous dataset');
-  if (previousDataset) {
-    store.dispatch('cacheDataset', previousDataset);
-  }
-}, 3000));
+store.watch(
+  (state, getters) => getters.previousDataset,
+  _.debounce(previousDataset => {
+    console.log("caching previous dataset");
+    if (previousDataset) {
+      store.dispatch("cacheDataset", previousDataset);
+    }
+  }, 3000)
+);
 
 function prepareProxyManager(proxyManager) {
   if (!proxyManager.getViews().length) {
     var update = () => {
       proxyManager.renderAllViews();
       // proxyManager.autoAnimateViews();
-    }
-
+    };
     ["View2D_Z:z", "View2D_X:x", "View2D_Y:y"].forEach(type => {
       let view = getView(proxyManager, type);
       view.getRepresentations().forEach(representation => {
@@ -254,7 +260,6 @@ function prepareProxyManager(proxyManager) {
     });
   }
 }
-
 
 // http://jsperf.com/typeofvar
 function typeOf(o) {
@@ -270,7 +275,7 @@ function merge(dst, src) {
   const keys = Object.keys(src);
   for (let i = 0; i < keys.length; ++i) {
     const key = keys[i];
-    if (typeOf(dst[key]) === 'object' && typeOf(src[key]) === 'object') {
+    if (typeOf(dst[key]) === "object" && typeOf(src[key]) === "object") {
       Vue.set(dst, key, merge(dst[key], src[key]));
     } else {
       Vue.set(dst, key, src[key]);

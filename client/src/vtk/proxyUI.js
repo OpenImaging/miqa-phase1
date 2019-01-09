@@ -1,171 +1,171 @@
 const Volume = [
   {
-    name: 'colorBy',
-    domain: {},
+    name: "colorBy",
+    domain: {}
   },
   {
-    name: 'volumeVisibility',
+    name: "volumeVisibility"
   },
   {
-    name: 'useShadow',
+    name: "useShadow"
   },
   {
-    name: 'sampleDistance',
-    domain: { min: 0, max: 1, step: 0.01 },
+    name: "sampleDistance",
+    domain: { min: 0, max: 1, step: 0.01 }
   },
   {
-    name: 'edgeGradient',
-    domain: { min: 0, max: 1, step: 0.01 },
+    name: "edgeGradient",
+    domain: { min: 0, max: 1, step: 0.01 }
   },
   {
-    name: 'windowWidth',
-    domain: { min: 0, max: 255, step: 0.01 },
+    name: "windowWidth",
+    domain: { min: 0, max: 255, step: 0.01 }
   },
   {
-    name: 'windowLevel',
-    domain: { min: 0, max: 255, step: 0.01 },
+    name: "windowLevel",
+    domain: { min: 0, max: 255, step: 0.01 }
   },
   {
-    name: 'sliceVisibility',
+    name: "sliceVisibility"
   },
   {
-    name: 'xSlice',
-    domain: { min: 0, max: 255, step: 1 },
+    name: "xSlice",
+    domain: { min: 0, max: 255, step: 1 }
   },
   {
-    name: 'ySlice',
-    domain: { min: 0, max: 255, step: 1 },
+    name: "ySlice",
+    domain: { min: 0, max: 255, step: 1 }
   },
   {
-    name: 'zSlice',
-    domain: { min: 0, max: 255, step: 1 },
-  },
+    name: "zSlice",
+    domain: { min: 0, max: 255, step: 1 }
+  }
 ];
 
 const Geometry = [
   {
-    name: 'colorBy',
-    domain: {},
+    name: "colorBy",
+    domain: {}
   },
   {
-    name: 'color',
+    name: "color"
   },
   {
-    name: 'representation',
+    name: "representation",
     domain: {
       items: [
-        { text: 'Surface', value: 'Surface' },
-        { text: 'Surface with edges', value: 'Surface with edges' },
-        { text: 'Wireframe', value: 'Wireframe' },
-        { text: 'Points', value: 'Points' },
-      ],
-    },
+        { text: "Surface", value: "Surface" },
+        { text: "Surface with edges", value: "Surface with edges" },
+        { text: "Wireframe", value: "Wireframe" },
+        { text: "Points", value: "Points" }
+      ]
+    }
   },
   {
-    name: 'opacity',
-    domain: { min: 0, max: 1, step: 0.01 },
+    name: "opacity",
+    domain: { min: 0, max: 1, step: 0.01 }
   },
   {
-    name: 'interpolateScalarsBeforeMapping',
+    name: "interpolateScalarsBeforeMapping"
   },
   {
-    name: 'visibility',
+    name: "visibility"
   },
   {
-    name: 'pointSize',
-    domain: { min: 1, max: 50 },
-  },
+    name: "pointSize",
+    domain: { min: 1, max: 50 }
+  }
 ];
 
 const Slice = [
   {
-    name: 'visibility',
+    name: "visibility"
   },
   {
-    name: 'windowWidth',
-    domain: { min: 0, max: 255, step: 0.01 },
+    name: "windowWidth",
+    domain: { min: 0, max: 255, step: 0.01 }
   },
   {
-    name: 'windowLevel',
-    domain: { min: 0, max: 255, step: 0.01 },
+    name: "windowLevel",
+    domain: { min: 0, max: 255, step: 0.01 }
   },
   {
-    name: 'slice',
-    domain: { min: 0, max: 255, step: 1 },
-  },
+    name: "slice",
+    domain: { min: 0, max: 255, step: 1 }
+  }
 ];
 
 const Molecule = [
   {
-    name: 'tolerance',
-    domain: { min: 0, max: 0.5, step: 0.01 },
+    name: "tolerance",
+    domain: { min: 0, max: 0.5, step: 0.01 }
   },
   {
-    name: 'atomicRadiusScaleFactor',
-    domain: { min: 0, max: 0.5, step: 0.01 },
+    name: "atomicRadiusScaleFactor",
+    domain: { min: 0, max: 0.5, step: 0.01 }
   },
   {
-    name: 'bondRadius',
-    domain: { min: 0, max: 0.5, step: 0.01 },
+    name: "bondRadius",
+    domain: { min: 0, max: 0.5, step: 0.01 }
   },
   {
-    name: 'deltaBondFactor',
-    domain: { min: 0, max: 0.5, step: 0.01 },
+    name: "deltaBondFactor",
+    domain: { min: 0, max: 0.5, step: 0.01 }
   },
   {
-    name: 'hideElements',
-  },
+    name: "hideElements"
+  }
 ];
 
 const Glyph = [
   {
-    name: 'edgeVisibility',
-  },
+    name: "edgeVisibility"
+  }
 ];
 
 const View3D = [
-  { name: 'name' },
+  { name: "name" },
   {
-    name: 'background',
+    name: "background",
     domain: {
-      palette: [],
-    },
+      palette: []
+    }
   },
   {
-    name: 'orientationAxesVisibility',
+    name: "orientationAxesVisibility"
   },
   {
-    name: 'presetToOrientationAxes',
+    name: "presetToOrientationAxes",
     domain: {
-      items: [{ text: 'XYZ', value: 'default' }, { text: 'LPS', value: 'lps' }],
-    },
-  },
+      items: [{ text: "XYZ", value: "default" }, { text: "LPS", value: "lps" }]
+    }
+  }
 ];
 
 const View2D = [
-  { name: 'name' },
+  { name: "name" },
   {
-    name: 'background',
+    name: "background",
     domain: {
-      palette: [],
-    },
+      palette: []
+    }
   },
   {
-    name: 'orientationAxesVisibility',
+    name: "orientationAxesVisibility"
   },
   {
-    name: 'presetToOrientationAxes',
+    name: "presetToOrientationAxes",
     domain: {
-      items: [{ text: 'XYZ', value: 'default' }, { text: 'LPS', value: 'lps' }],
-    },
+      items: [{ text: "XYZ", value: "default" }, { text: "LPS", value: "lps" }]
+    }
   },
   {
-    name: 'annotationOpacity',
-    domain: { min: 0, max: 1, step: 0.01 },
-  },
+    name: "annotationOpacity",
+    domain: { min: 0, max: 1, step: 0.01 }
+  }
 ];
 
-const Skybox = [{ name: 'position' }];
+const Skybox = [{ name: "position" }];
 
 export default {
   Volume,
@@ -175,5 +175,5 @@ export default {
   Glyph,
   View3D,
   View2D,
-  Skybox,
+  Skybox
 };

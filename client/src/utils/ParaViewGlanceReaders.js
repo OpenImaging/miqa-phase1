@@ -1,22 +1,20 @@
-import vtkXMLPolyDataReader from 'vtk.js/Sources/IO/XML/XMLPolyDataReader';
-import vtkXMLImageDataReader from 'vtk.js/Sources/IO/XML/XMLImageDataReader';
-import vtkSTLReader from 'vtk.js/Sources/IO/Geometry/STLReader';
-import vtkOBJReader from 'vtk.js/Sources/IO/Misc/OBJReader';
-import vtkPDBReader from 'vtk.js/Sources/IO/Misc/PDBReader';
-import vtkJSONReader from 'vtk.js/Sources/IO/Misc/JSONReader';
-import vtkSkyboxReader from 'vtk.js/Sources/IO/Misc/SkyboxReader';
+import vtkXMLPolyDataReader from "vtk.js/Sources/IO/XML/XMLPolyDataReader";
+import vtkXMLImageDataReader from "vtk.js/Sources/IO/XML/XMLImageDataReader";
+import vtkSTLReader from "vtk.js/Sources/IO/Geometry/STLReader";
+import vtkOBJReader from "vtk.js/Sources/IO/Misc/OBJReader";
+import vtkPDBReader from "vtk.js/Sources/IO/Misc/PDBReader";
+import vtkJSONReader from "vtk.js/Sources/IO/Misc/JSONReader";
+import vtkSkyboxReader from "vtk.js/Sources/IO/Misc/SkyboxReader";
 
+import vtkITKImageReader from "vtk.js/Sources/IO/Misc/ITKImageReader";
 
-import vtkITKImageReader from 'vtk.js/Sources/IO/Misc/ITKImageReader';
-
-import extensionToImageIO from 'itk/extensionToImageIO';
-import readImageArrayBuffer from 'itk/readImageArrayBuffer';
-
+import extensionToImageIO from "itk/extensionToImageIO";
+import readImageArrayBuffer from "itk/readImageArrayBuffer";
 
 // import vtkGlanceStateReader from 'paraview-glance/src/io/GlanceStateReader';
 // import vtkGlanceZipObjReader from 'paraview-glance/src/io/GlanceZipObjReader';
-import ReaderFactory from './ReaderFactory';
-import vtkITKDicomImageReader from './ITKDicomImageReader';
+import ReaderFactory from "./ReaderFactory";
+import vtkITKDicomImageReader from "./ITKDicomImageReader";
 
 // ----------------------------------------------------------------------------
 // Register default readers
@@ -39,79 +37,77 @@ import vtkITKDicomImageReader from './ITKDicomImageReader';
 // });
 
 ReaderFactory.registerReader({
-  extension: 'vtp',
-  name: 'Polydata Reader',
+  extension: "vtp",
+  name: "Polydata Reader",
   vtkReader: vtkXMLPolyDataReader,
-  binary: true,
+  binary: true
 });
 
 ReaderFactory.registerReader({
-  extension: 'vti',
-  name: 'ImageData Reader',
+  extension: "vti",
+  name: "ImageData Reader",
   vtkReader: vtkXMLImageDataReader,
-  binary: true,
+  binary: true
 });
 
 ReaderFactory.registerReader({
-  extension: 'stl',
-  name: 'STL Binary Reader',
+  extension: "stl",
+  name: "STL Binary Reader",
   vtkReader: vtkSTLReader,
-  binary: true,
+  binary: true
 });
 
 ReaderFactory.registerReader({
-  extension: 'obj',
-  name: 'OBJ Reader',
+  extension: "obj",
+  name: "OBJ Reader",
   vtkReader: vtkOBJReader,
-  binary: false,
+  binary: false
 });
 
 ReaderFactory.registerReader({
-  extension: 'pdb',
-  name: 'PDB Reader',
+  extension: "pdb",
+  name: "PDB Reader",
   vtkReader: vtkPDBReader,
   binary: false,
-  sourceType: 'vtkMolecule',
+  sourceType: "vtkMolecule"
 });
 
 ReaderFactory.registerReader({
-  extension: 'glyph',
-  name: 'Glyph Data Reader',
+  extension: "glyph",
+  name: "Glyph Data Reader",
   vtkReader: vtkJSONReader,
   binary: false,
-  sourceType: 'Glyph',
+  sourceType: "Glyph"
 });
 
 ReaderFactory.registerReader({
-  extension: 'skybox',
-  name: 'Skybox Data Reader',
+  extension: "skybox",
+  name: "Skybox Data Reader",
   vtkReader: vtkSkyboxReader,
   binary: true,
-  sourceType: 'Skybox',
+  sourceType: "Skybox"
 });
-
-
 
 vtkITKImageReader.setReadImageArrayBufferFromITK(readImageArrayBuffer);
 
 const extensions = Array.from(
-  new Set(Object.keys(extensionToImageIO).map((ext) => ext.toLowerCase()))
+  new Set(Object.keys(extensionToImageIO).map(ext => ext.toLowerCase()))
 );
 
-extensions.filter((e) => e !== 'dcm').forEach((extension) =>
+extensions.filter(e => e !== "dcm").forEach(extension =>
   ReaderFactory.registerReader({
     extension,
     name: `${extension.toUpperCase()} Reader`,
     vtkReader: vtkITKImageReader,
     binary: true,
-    fileNameMethod: 'setFileName',
+    fileNameMethod: "setFileName"
   })
 );
 
 ReaderFactory.registerReader({
-  extension: 'dcm',
-  name: 'DICOM File Series Reader',
+  extension: "dcm",
+  name: "DICOM File Series Reader",
   vtkReader: vtkITKDicomImageReader,
-  fileNameMethod: 'setFileName',
-  fileSeriesMethod: 'readFileSeries',
+  fileNameMethod: "setFileName",
+  fileSeriesMethod: "readFileSeries"
 });
