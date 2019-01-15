@@ -17,6 +17,7 @@ export default {
     };
   },
   computed: {
+    ...mapState(["proxyManager"]),
     representation() {
       return this.proxyManager.getRepresentation(null, this.view);
     },
@@ -36,7 +37,16 @@ export default {
           return "Axial";
       }
     },
-    ...mapState(["proxyManager"])
+    keyboardBindings() {
+      switch (this.name) {
+        case "z":
+          return ["q", "w"];
+        case "x":
+          return ["a", "s"];
+        case "y":
+          return ["z", "x"];
+      }
+    }
   },
   watch: {
     slice(value) {
@@ -57,7 +67,22 @@ export default {
     this.view.resize();
     fill2DView(this.view);
   },
-  methods: {},
+  methods: {
+    increaseSlice() {
+      var slice = Math.min(
+        (this.slice += this.sliceDomain.step),
+        this.sliceDomain.max
+      );
+      this.slice = slice;
+    },
+    decreaseSlice() {
+      var slice = Math.max(
+        (this.slice -= this.sliceDomain.step),
+        this.sliceDomain.min
+      );
+      this.slice = slice;
+    }
+  },
   filters: {
     roundSlice: function(value) {
       if (!value) return "";
@@ -74,12 +99,16 @@ export default {
       <v-slider
         class="slice-slider mt-0 mx-4"
         hide-details
-        v-model="slice"
         :min="sliceDomain.min"
         :max="sliceDomain.max"
         :step="sliceDomain.step"
+        v-model="slice"
+        v-mousetrap="[
+          {bind:keyboardBindings[1], handler:increaseSlice},
+          {bind:keyboardBindings[0], handler:decreaseSlice}
+        ]"
       ></v-slider>
-      <div class="slice caption px-2">S: {{slice | roundSlice}} mm</div>
+      <div class="slice caption px-2">{{slice | roundSlice}} mm</div>
       </v-layout>
     </div>
     <div ref="viewer" class="viewer"></div>
@@ -136,7 +165,7 @@ export default {
     }
 
     .slice {
-      width: 100px;
+      width: 85px;
     }
   }
 
@@ -170,7 +199,7 @@ export default {
   .viewer {
     flex: 1 1 0px;
     position: relative;
-    background: linear-gradient(rgb(51, 51, 51), rgb(153, 153, 153));
+    background: linear-gradient(#3a3a3a, #1d1d1d);
     overflow-y: hidden;
   }
 }

@@ -76,9 +76,6 @@ export default {
       this.swapToDataset(to.params.datasetId);
     }
   },
-  // beforeRouteLeave(to, from, next) {
-  //   next();
-  // },
   methods: {
     ...mapMutations(["setDrawer"]),
     ...mapActions(["loadSessions", "swapToDataset"]),
@@ -122,6 +119,16 @@ export default {
     unsavedDialogCancel() {
       this.unsavedDialogResolve(false);
       this.unsavedDialog = false;
+    },
+    setRating(rating) {
+      if (rating !== this.rating) {
+        this.rating = rating;
+        this.reviewChanged = true;
+      }
+    },
+    focusNote(el, e) {
+      this.$refs.note.focus();
+      e.preventDefault();
     }
   }
 };
@@ -157,7 +164,9 @@ export default {
                 <v-layout>
                   <v-flex>
                     <v-textarea solo label="Note" rows="4" hide-details
-                      v-model="note" @input="reviewChanged=true"></v-textarea>
+                      v-model="note" @input="reviewChanged=true" ref="note"
+                      v-mousetrap="{ bind:'n', handler: focusNote }"
+                      v-mousetrap.element="{ bind:'esc', handler: ()=>$refs.note.blur(), element: true }"></v-textarea>
                   </v-flex>
                 </v-layout>
                 <v-layout>
@@ -173,9 +182,18 @@ export default {
                   <v-flex xs7>
                     <v-btn-toggle class="buttons elevation-2"
                       v-model="rating" @change="reviewChanged=true">
-                      <v-btn flat value="bad">Bad</v-btn>
-                      <v-btn flat value="good">Good</v-btn>
-                      <v-btn flat value="goodExtra">Good extra</v-btn>
+                      <v-btn flat value="bad"
+                        color="red"
+                        v-mousetrap="{bind:'b', handler: ()=>setRating('bad')}"
+                        >Bad</v-btn>
+                      <v-btn flat value="good"
+                        color="light-green"
+                        v-mousetrap="{bind:'g', handler: ()=>setRating('good')}"
+                        >Good</v-btn>
+                      <v-btn flat value="goodExtra"
+                        color="green"
+                        v-mousetrap="{bind:'e', handler: ()=>setRating('goodExtra')}"
+                        >Good extra</v-btn>
                     </v-btn-toggle>
                   </v-flex>
                 </v-layout>
@@ -184,7 +202,8 @@ export default {
                   <v-btn
                     color="primary"
                     :disabled="!reviewChanged"
-                    @click="save">
+                    @click="save"
+                    v-mousetrap="{bind: 'alt+s', handler: save}">
                     Save
                     <v-icon right>save</v-icon>
                   </v-btn>
@@ -210,13 +229,19 @@ export default {
                   <v-btn fab small
                     class="primary--text elevation-2"
                     :disabled="!previousDataset"
-                    :to="previousDataset?previousDataset._id:''">
+                    :to="previousDataset?previousDataset._id:''"
+                    v-mousetrap="{bind:'left',
+                      disabled:!previousDataset || unsavedDialog,
+                      handler: ()=>$router.push(previousDataset?previousDataset._id:'')}">
                     <v-icon>keyboard_arrow_left</v-icon>
                   </v-btn>
                   <v-btn fab small
                     class="primary--text elevation-2"
                     :disabled="!nextDataset"
-                    :to="nextDataset?nextDataset._id:''">
+                    :to="nextDataset?nextDataset._id:''"
+                    v-mousetrap="{bind:'right',
+                      disabled:!nextDataset || unsavedDialog,
+                      handler: ()=>$router.push(nextDataset?nextDataset._id:'')}">
                     <v-icon>keyboard_arrow_right</v-icon>
                   </v-btn>
                 </v-layout>
@@ -229,15 +254,18 @@ export default {
     <v-layout v-else align-center justify-center row fill-height>
       <div class="title" v-if="!loadingDataset">Select a dataset</div>
     </v-layout>
-    <v-dialog v-model="unsavedDialog" persistent max-width="400">
+    <v-dialog v-model="unsavedDialog" lazy persistent max-width="400">
       <v-card>
         <v-card-title class="title">Review is not saved</v-card-title>
         <v-card-text>Do you want save before continue?</v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn flat color="primary" @click="unsavedDialogYes">Yes</v-btn>
-          <v-btn flat color="primary" @click="unsavedDialogNo">no</v-btn>
-          <v-btn flat @click="unsavedDialogCancel">Cancel</v-btn>
+          <v-btn flat color="primary" @click="unsavedDialogYes"
+            v-mousetrap="{bind:'y', handler: (el)=>el.focus()}">Yes</v-btn>
+          <v-btn flat color="primary" @click="unsavedDialogNo"
+            v-mousetrap="{bind:'n', handler: (el)=>el.focus()}">no</v-btn>
+          <v-btn flat @click="unsavedDialogCancel"
+            v-mousetrap="{bind:'esc', handler: unsavedDialogCancel}">Cancel</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>

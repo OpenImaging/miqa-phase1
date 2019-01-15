@@ -45,6 +45,38 @@ export default {
         this.windowWidth = this.representation.getWindowWidth();
         this.windowLevel = this.representation.getWindowLevel();
       });
+    },
+    increaseWindowWidth() {
+      var windowWidth = Math.min(
+        (this.windowWidth +=
+          (this.windowWidthDomain.max - this.windowWidthDomain.min) / 30),
+        this.windowWidthDomain.max
+      );
+      this.windowWidth = windowWidth;
+    },
+    decreaseWindowWidth() {
+      var windowWidth = Math.max(
+        (this.windowWidth -=
+          (this.windowWidthDomain.max - this.windowWidthDomain.min) / 30),
+        this.windowWidthDomain.min
+      );
+      this.windowWidth = windowWidth;
+    },
+    increaseWindowLevel() {
+      var windowLevel = Math.min(
+        (this.windowLevel +=
+          (this.windowLevelDomain.max - this.windowLevelDomain.min) / 30),
+        this.windowLevelDomain.max
+      );
+      this.windowLevel = windowLevel;
+    },
+    decreaseWindowLevel() {
+      var windowLevel = Math.max(
+        (this.windowLevel -=
+          (this.windowLevelDomain.max - this.windowLevelDomain.min) / 30),
+        this.windowLevelDomain.min
+      );
+      this.windowLevel = windowLevel;
     }
   }
 };
@@ -67,6 +99,10 @@ export default {
           :max="windowWidthDomain.max"
           :step="windowWidthDomain.step"
           v-model="windowWidth"
+          v-mousetrap="[
+            {bind:'=', handler:increaseWindowWidth},
+            {bind:'-', handler:decreaseWindowWidth}
+          ]"
         ></v-slider>
       </v-flex>
       <v-flex
@@ -91,6 +127,10 @@ export default {
           :max="windowLevelDomain.max"
           :step="windowLevelDomain.step"
           v-model="windowLevel"
+          v-mousetrap="[
+            {bind:']', handler:increaseWindowLevel},
+            {bind:'[', handler:decreaseWindowLevel}
+          ]"
         ></v-slider>
       </v-flex>
       <v-flex

@@ -10,6 +10,7 @@
   "dependencies": {
     "@girder/components": "git+https://github.com/girder/girder_web_components.git",
     "itk": "^9.1.1",
+    "mousetrap": "^1.6.2",
     "vtk.js": "^8.1.0",
     "vue": "^2.5.21",
     "vue-router": "^3.0.1",

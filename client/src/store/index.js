@@ -214,7 +214,7 @@ const store = new Vuex.Store({
         state.vtkViews = proxyManager.getViews();
         state.loadingDataset = false;
       }
-      // Give progress inidicator a chance to show if proxy views are not ready, even though it will be blocked so it won't animate
+      // Give progress inidicator a chance to show if proxy views are not ready
       if (proxyManager.getViews().length) {
         change();
       } else {
@@ -254,6 +254,7 @@ function prepareProxyManager(proxyManager) {
     };
     ["View2D_Z:z", "View2D_X:x", "View2D_Y:y"].forEach(type => {
       let view = getView(proxyManager, type);
+      view.setOrientationAxesVisibility(false);
       view.getRepresentations().forEach(representation => {
         representation.onModified(update);
       });

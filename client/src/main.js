@@ -5,6 +5,7 @@ import store from "./store";
 import Girder, { RestClient } from "@girder/components/src";
 import { API_URL } from "./constants";
 
+import vMousetrap from "./utils/vMousetrap";
 import girder from "./girder";
 
 import "vuetify/dist/vuetify.min.css";
@@ -12,6 +13,7 @@ import "vuetify/dist/vuetify.min.css";
 // import proxyConfigGenerator from './store/proxyConfigGenerator';
 
 Vue.use(Girder);
+Vue.use(vMousetrap);
 
 girder.rest = new RestClient({ apiRoot: API_URL });
 
