@@ -44,28 +44,11 @@ export default {
     }
   },
   watch: {
-    async currentSession(session, oldSession) {
+    currentSession(session, oldSession) {
       if (session === oldSession) {
         return;
       }
-      let { data: folder } = await this.girderRest.get(
-        `folder/${session.folderId}`
-      );
-      this.note = "";
-      this.rating = null;
-      this.reviewer = "";
-      this.reviewChanged = false;
-      if (folder.meta) {
-        if (folder.meta.note) {
-          this.note = folder.meta.note;
-        }
-        if (folder.meta.rating) {
-          this.rating = folder.meta.rating;
-        }
-        if (folder.meta.reviewer) {
-          this.reviewer = folder.meta.reviewer;
-        }
-      }
+      this.loadSessionMeta();
     }
   },
   async beforeRouteUpdate(to, from, next) {
@@ -92,6 +75,26 @@ export default {
         });
       }
       return Promise.resolve(true);
+    },
+    async loadSessionMeta() {
+      let { data: folder } = await this.girderRest.get(
+        `folder/${this.currentSession.folderId}`
+      );
+      this.note = "";
+      this.rating = null;
+      this.reviewer = "";
+      this.reviewChanged = false;
+      if (folder.meta) {
+        if (folder.meta.note) {
+          this.note = folder.meta.note;
+        }
+        if (folder.meta.rating) {
+          this.rating = folder.meta.rating;
+        }
+        if (folder.meta.reviewer) {
+          this.reviewer = folder.meta.reviewer;
+        }
+      }
     },
     async save() {
       let user = this.girderRest.user;
@@ -198,6 +201,16 @@ export default {
                   </v-flex>
                 </v-layout>
                 <v-layout align-center justify-space-between>
+                  <v-tooltip top
+                    v-if="reviewChanged">
+                    <v-btn slot="activator"
+                      flat icon
+                      color="grey"
+                      @click="loadSessionMeta">
+                      <v-icon>undo</v-icon>
+                    </v-btn>
+                    <span>Revert</span>
+                  </v-tooltip>
                   <v-spacer />
                   <v-btn
                     color="primary"
