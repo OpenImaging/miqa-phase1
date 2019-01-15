@@ -1,5 +1,5 @@
 <script>
-import { mapState, mapGetters } from "vuex";
+import { mapState } from "vuex";
 
 import fill2DView from "../utils/fill2DView";
 
@@ -35,6 +35,8 @@ export default {
           return "Sagittal";
         case "z":
           return "Axial";
+        default:
+          return "";
       }
     },
     keyboardBindings() {
@@ -45,6 +47,8 @@ export default {
           return ["a", "s"];
         case "y":
           return ["z", "x"];
+        default:
+          return "";
       }
     }
   },

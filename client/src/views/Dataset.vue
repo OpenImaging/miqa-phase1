@@ -231,7 +231,7 @@ export default {
                     :disabled="!previousDataset"
                     :to="previousDataset?previousDataset._id:''"
                     v-mousetrap="{bind:'left',
-                      disabled:!previousDataset || unsavedDialog,
+                      disabled:!previousDataset || unsavedDialog || loadingDataset,
                       handler: ()=>$router.push(previousDataset?previousDataset._id:'')}">
                     <v-icon>keyboard_arrow_left</v-icon>
                   </v-btn>
@@ -240,7 +240,7 @@ export default {
                     :disabled="!nextDataset"
                     :to="nextDataset?nextDataset._id:''"
                     v-mousetrap="{bind:'right',
-                      disabled:!nextDataset || unsavedDialog,
+                      disabled:!nextDataset || unsavedDialog || loadingDataset,
                       handler: ()=>$router.push(nextDataset?nextDataset._id:'')}">
                     <v-icon>keyboard_arrow_right</v-icon>
                   </v-btn>

@@ -5,7 +5,6 @@ import _ from "lodash";
 
 import ReaderFactory from "../utils/ReaderFactory";
 import "../utils/ParaViewGlanceReaders";
-import Presets from "../vtk/ColorMaps";
 
 import { proxy } from "../vtk";
 import { getView } from "../vtk/viewManager";
@@ -77,7 +76,7 @@ const store = new Vuex.Store({
         }
       }
     },
-    getDataset(state, getters) {
+    getDataset(state) {
       return function(datasetId) {
         if (!datasetId || !state.sessionTree) {
           return;
@@ -118,7 +117,7 @@ const store = new Vuex.Store({
       let { data: sessionTree } = await girder.rest.get("miqa/sessions");
       state.sessionTree = sessionTree;
     },
-    cacheDataset({ commit, dispatch, state, getters }, dataset) {
+    cacheDataset({ state }, dataset) {
       var cached = state.proxyManagerCache[dataset._id];
       if (cached) {
         if (!cached.then) {
@@ -172,12 +171,9 @@ const store = new Vuex.Store({
               });
           }
         })
-        .then(userData => {
-          // this.replaceState(merge(state, appState.userData));
-          // merge(state, appState.userData);
-
+        .then((/*userData*/) => {
           // Wait for the layout to be done (nextTick is not enough)
-          return new Promise((resolve, reject) => {
+          return new Promise(resolve => {
             setTimeout(() => {
               proxyManager.modified();
 
@@ -198,7 +194,7 @@ const store = new Vuex.Store({
       Vue.set(state.proxyManagerCache, dataset._id, caching);
       return caching;
     },
-    async swapToDataset({ commit, dispatch, state, getters }, datasetId) {
+    async swapToDataset({ dispatch, state, getters }, datasetId) {
       state.loadingDataset = true;
       state.currentDatasetId = datasetId;
       let dataset = getters.currentDataset;
@@ -261,29 +257,5 @@ function prepareProxyManager(proxyManager) {
     });
   }
 }
-
-// http://jsperf.com/typeofvar
-function typeOf(o) {
-  return {}.toString
-    .call(o)
-    .slice(8, -1)
-    .toLowerCase();
-}
-
-// quick object merge using Vue.set
-/* eslint-disable no-param-reassign */
-function merge(dst, src) {
-  const keys = Object.keys(src);
-  for (let i = 0; i < keys.length; ++i) {
-    const key = keys[i];
-    if (typeOf(dst[key]) === "object" && typeOf(src[key]) === "object") {
-      Vue.set(dst, key, merge(dst[key], src[key]));
-    } else {
-      Vue.set(dst, key, src[key]);
-    }
-  }
-  return dst;
-}
-/* eslint-enable no-param-reassign */
 
 export default store;
