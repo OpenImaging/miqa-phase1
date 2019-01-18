@@ -1,5 +1,5 @@
 <script>
-import { mapState } from "vuex";
+import { mapState, mapGetters, mapMutations } from "vuex";
 
 import fill2DView from "../utils/fill2DView";
 
@@ -18,6 +18,7 @@ export default {
   },
   computed: {
     ...mapState(["proxyManager"]),
+    ...mapGetters(["currentDataset"]),
     representation() {
       return this.proxyManager.getRepresentation(null, this.view);
     },
@@ -72,6 +73,7 @@ export default {
     fill2DView(this.view);
   },
   methods: {
+    ...mapMutations(["setCurrentScreenshot"]),
     increaseSlice() {
       var slice = Math.min(
         (this.slice += this.sliceDomain.step),
@@ -85,6 +87,13 @@ export default {
         this.sliceDomain.min
       );
       this.slice = slice;
+    },
+    async takeScreenshot() {
+      var dataURL = await this.view.captureImage();
+      this.setCurrentScreenshot({
+        name: this.currentDataset.name + " " + this.displayName,
+        dataURL
+      });
     }
   },
   filters: {
@@ -119,8 +128,8 @@ export default {
     <v-toolbar class="toolbar elevation-0" dark color="black" dense>
       <div class="indicator body-2" :class="name">{{displayName}}</div>
       <v-spacer></v-spacer>
-      <v-btn icon>
-        <v-icon>photo_camera</v-icon>
+      <v-btn icon @click="takeScreenshot">
+        <v-icon>add_a_photo</v-icon>
       </v-btn>
     </v-toolbar>
   </div>

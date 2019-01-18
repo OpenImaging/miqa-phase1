@@ -2,15 +2,21 @@
 import Layout from "@/components/Layout.vue";
 import { mapState, mapActions, mapGetters, mapMutations } from "vuex";
 
+import UserButton from "@/components/girder/UserButton";
 import SessionsView from "@/components/SessionsView";
 import WindowControl from "@/components/WindowControl";
+import ScreenshotDialog from "@/components/ScreenshotDialog";
+import EmailDialog from "@/components/EmailDialog";
 
 export default {
   name: "dataset",
   components: {
+    UserButton,
     Layout,
     SessionsView,
-    WindowControl
+    WindowControl,
+    ScreenshotDialog,
+    EmailDialog
   },
   inject: ["girderRest"],
   data: () => ({
@@ -19,10 +25,11 @@ export default {
     reviewer: "",
     reviewChanged: false,
     unsavedDialog: false,
-    unsavedDialogResolve: null
+    unsavedDialogResolve: null,
+    emailDialog: false
   }),
   computed: {
-    ...mapState(["proxyManager", "loadingDataset", "drawer"]),
+    ...mapState(["proxyManager", "loadingDataset", "drawer", "screenshots"]),
     ...mapGetters([
       "nextDataset",
       "currentDataset",
@@ -139,12 +146,32 @@ export default {
 
 <template>
   <div class="dataset">
+    <v-toolbar app>
+      <v-toolbar-side-icon @click.stop="setDrawer(!drawer)"></v-toolbar-side-icon>
+      <v-toolbar-title class="ml-0 pl-3">
+        <span>MIQA</span>
+      </v-toolbar-title>
+      <v-spacer></v-spacer>
+      <v-btn icon class="mr-4"
+        @click="emailDialog=true">
+        <v-badge
+          :value="screenshots.length"
+          right>
+          <span
+            slot="badge"
+            dark>{{screenshots.length}}</span>
+          <v-icon>email</v-icon>
+        </v-badge>
+      </v-btn>
+      <UserButton
+        @user="girderRest.logout()" />
+    </v-toolbar>
     <v-navigation-drawer app :value="drawer" @input="setDrawer($event)" fixed temporary>
       <SessionsView />
     </v-navigation-drawer>
     <template v-if="currentDataset">
       <div class="layout-container">
-        <Layout/>
+        <Layout />
         <v-layout v-if="loadingDataset"
           class="loading-indicator-container"
           align-center justify-center row fill-height>
@@ -190,13 +217,13 @@ export default {
                         v-mousetrap="{bind:'b', handler: ()=>setRating('bad')}"
                         >Bad</v-btn>
                       <v-btn flat value="good"
-                        color="light-green"
+                        color="green"
                         v-mousetrap="{bind:'g', handler: ()=>setRating('good')}"
                         >Good</v-btn>
-                      <v-btn flat value="goodExtra"
-                        color="green"
-                        v-mousetrap="{bind:'e', handler: ()=>setRating('goodExtra')}"
-                        >Good extra</v-btn>
+                      <v-btn flat value="usableExtra"
+                        color="light-green"
+                        v-mousetrap="{bind:'e', handler: ()=>setRating('usableExtra')}"
+                        >Usable extra</v-btn>
                     </v-btn-toggle>
                   </v-flex>
                 </v-layout>
@@ -282,6 +309,8 @@ export default {
         </v-card-actions>
       </v-card>
     </v-dialog>
+    <ScreenshotDialog />
+    <EmailDialog v-model='emailDialog' />
   </div>
 </template>
 

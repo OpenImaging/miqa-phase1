@@ -24,7 +24,9 @@ const store = new Vuex.Store({
     proxyManagerCache: {},
     proxyManagerCacheList: [],
     currentDatasetId: null,
-    loadingDataset: false
+    loadingDataset: false,
+    currentScreenshot: null,
+    screenshots: []
   },
   getters: {
     currentDataset(state) {
@@ -110,6 +112,12 @@ const store = new Vuex.Store({
   mutations: {
     setDrawer(state, value) {
       state.drawer = value;
+    },
+    setCurrentScreenshot(state, screenshot) {
+      state.currentScreenshot = screenshot;
+    },
+    addScreenshot(state, screenshot) {
+      state.screenshots.push(screenshot);
     }
   },
   actions: {
