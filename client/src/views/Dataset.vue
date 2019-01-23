@@ -166,8 +166,17 @@ export default {
       <UserButton
         @user="girderRest.logout()" />
     </v-toolbar>
-    <v-navigation-drawer app :value="drawer" @input="setDrawer($event)" fixed temporary>
-      <SessionsView />
+    <v-navigation-drawer app temporary :value="drawer" @input="setDrawer($event)">
+      <div class="sessions-bar">
+        <v-toolbar dense flat>
+          <v-toolbar-title>Sessions</v-toolbar-title>
+          <v-spacer></v-spacer>
+          <v-btn icon to="sessions">
+            <v-icon>open_in_new</v-icon>
+          </v-btn>
+        </v-toolbar>
+        <SessionsView class='mt-1' />
+      </div>
     </v-navigation-drawer>
     <template v-if="currentDataset">
       <div class="layout-container">
@@ -319,6 +328,16 @@ export default {
   display: flex;
   flex-direction: column;
   height: 100%;
+
+  .sessions-bar {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+
+    .sessions-view {
+      overflow: auto;
+    }
+  }
 
   .layout-container {
     flex: 1 1 0%;

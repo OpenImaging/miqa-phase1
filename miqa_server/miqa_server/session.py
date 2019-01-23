@@ -7,9 +7,9 @@ from girder.models.folder import Folder
 from girder.models.item import Item
 
 
-class Miqa(Resource):
+class Session(Resource):
     def __init__(self):
-        super(Miqa, self).__init__()
+        super(Session, self).__init__()
         self.resourceName = 'miqa'
 
         self.route('GET', ('sessions',), self.getAllSessions)

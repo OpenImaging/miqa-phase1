@@ -2,22 +2,20 @@ import base64
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.image import MIMEImage
-import mimetypes
-from urllib.parse import quote
 import uuid
 
 from girder import events
 from girder.api.rest import Resource
-from girder.api import access, rest
+from girder.api import access
 from girder.api.describe import Description, autoDescribeRoute
 from girder.constants import SettingKey
 from girder.exceptions import RestException
 from girder.models.setting import Setting
 
 
-class MiqaEmail(Resource):
+class Email(Resource):
     def __init__(self):
-        super(MiqaEmail, self).__init__()
+        super(Email, self).__init__()
         self.resourceName = 'miqa_email'
 
         self.route('POST', (), self.sendEmail)
