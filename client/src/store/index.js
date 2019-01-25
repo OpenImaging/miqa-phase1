@@ -107,6 +107,25 @@ const store = new Vuex.Store({
           }
         }
       }
+    },
+    firstDatasetInNextSession(state, getters) {
+      if (!getters.currentDataset || !state.sessionTree) {
+        return;
+      }
+      let takeNext = false;
+      for (let batch of state.sessionTree) {
+        for (let session of batch.sessions) {
+          for (let dataset of session.datasets) {
+            if (takeNext) {
+              return dataset;
+            }
+            if (dataset === getters.currentDataset) {
+              takeNext = true;
+              break;
+            }
+          }
+        }
+      }
     }
   },
   mutations: {

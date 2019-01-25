@@ -7,6 +7,7 @@ import Girder, { RestClient } from "@girder/components/src";
 import { API_URL } from "./constants";
 
 import vMousetrap from "./utils/vMousetrap";
+import snackbar from "./utils/snackbar";
 import girder from "./girder";
 
 import "vuetify/dist/vuetify.min.css";
@@ -15,6 +16,7 @@ import "vuetify/dist/vuetify.min.css";
 
 Vue.use(AsyncComputed);
 Vue.use(Girder);
+Vue.use(snackbar);
 Vue.use(vMousetrap);
 
 girder.rest = new RestClient({ apiRoot: API_URL });
@@ -30,5 +32,7 @@ girder.rest.fetchUser().then(() => {
     store,
     render: h => h(App),
     provide: { girderRest: girder.rest }
-  }).$mount("#app");
+  })
+    .$mount("#app")
+    .$snackbarAttach();
 });

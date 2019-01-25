@@ -35,7 +35,8 @@ export default {
       "currentDataset",
       "getDataset",
       "currentSession",
-      "previousDataset"
+      "previousDataset",
+      "firstDatasetInNextSession"
     ])
   },
   async created() {
@@ -133,7 +134,25 @@ export default {
     setRating(rating) {
       if (rating !== this.rating) {
         this.rating = rating;
-        this.reviewChanged = true;
+        this.ratingChanged();
+      }
+    },
+    async ratingChanged() {
+      await this.save();
+      if (this.firstDatasetInNextSession) {
+        var currentDatasetId = this.currentDataset._id;
+        this.$router.push(this.firstDatasetInNextSession._id);
+        this.$snackbar({
+          text: "Proceeded to next session",
+          button: "Go back",
+          timeout: 6000,
+          immediate: true,
+          callback: () => {
+            // console.log('callback')
+            // console.log(currentDatasetId);
+            this.$router.push(currentDatasetId);
+          }
+        });
       }
     },
     focusNote(el, e) {
@@ -220,7 +239,7 @@ export default {
                   </v-flex>
                   <v-flex xs7>
                     <v-btn-toggle class="buttons elevation-2"
-                      v-model="rating" @change="reviewChanged=true">
+                      v-model="rating" @change="ratingChanged">
                       <v-btn flat value="bad"
                         color="red"
                         v-mousetrap="{bind:'b', handler: ()=>setRating('bad')}"
