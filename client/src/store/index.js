@@ -4,7 +4,7 @@ import vtkProxyManager from "vtk.js/Sources/Proxy/Core/ProxyManager";
 import _ from "lodash";
 
 import ReaderFactory from "../utils/ReaderFactory";
-import "../utils/ParaViewGlanceReaders";
+import "../utils/registerReaders";
 
 import { proxy } from "../vtk";
 import { getView } from "../vtk/viewManager";
