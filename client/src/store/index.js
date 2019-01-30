@@ -13,6 +13,10 @@ import proxyConfigGenerator from "./proxyConfigGenerator";
 import { API_URL } from "../constants";
 import girder from "../girder";
 
+const PRELOAD_SIZE = 6;
+const CACHE_SIZE = PRELOAD_SIZE + 6;
+const CACHE_DELAY_INTERVAL = 1500;
+
 Vue.use(Vuex);
 
 const store = new Vuex.Store({
@@ -22,7 +26,7 @@ const store = new Vuex.Store({
     sessionTree: null,
     vtkViews: [],
     proxyManagerCache: {},
-    proxyManagerCacheList: [],
+    pendingCaching: new Map(),
     currentDatasetId: null,
     loadingDataset: false,
     currentScreenshot: null,
@@ -43,40 +47,40 @@ const store = new Vuex.Store({
         }
       }
     },
-    nextDataset(state, getters) {
-      if (!getters.currentDataset || !state.sessionTree) {
+    allDatasets(state) {
+      if (!state.sessionTree) {
         return;
       }
-      let takeNext = false;
-      for (let batch of state.sessionTree) {
-        for (let session of batch.sessions) {
-          for (let dataset of session.datasets) {
-            if (dataset === getters.currentDataset) {
-              takeNext = true;
-              continue;
-            }
-            if (takeNext) {
-              return dataset;
-            }
-          }
-        }
+      return _.flatMap(state.sessionTree, batch => {
+        return _.flatMap(batch.sessions, session => session.datasets);
+      });
+    },
+    allDatasetIds(state, getters) {
+      if(!getters.allDatasets){
+        return [];
       }
+      return getters.allDatasets.map(dataset => dataset._id);
     },
     previousDataset(state, getters) {
-      let previousDataset = null;
-      if (!getters.currentDataset || !state.sessionTree) {
+      if (!getters.currentDataset || !getters.allDatasets) {
         return;
       }
-      for (let batch of state.sessionTree) {
-        for (let session of batch.sessions) {
-          for (let dataset of session.datasets) {
-            if (dataset === getters.currentDataset) {
-              return previousDataset;
-            }
-            previousDataset = dataset;
-          }
-        }
+      var index = getters.allDatasets.indexOf(getters.currentDataset);
+      return getters.allDatasets.slice(index - 1, index)[0];
+    },
+    nextDataset(state, getters) {
+      if (!getters.currentDataset || !getters.allDatasets) {
+        return;
       }
+      var index = getters.allDatasets.indexOf(getters.currentDataset);
+      return getters.allDatasets.slice(index + 1, index + 2)[0];
+    },
+    nextNextDataset(state, getters) {
+      if (!getters.currentDataset || !getters.allDatasets) {
+        return;
+      }
+      var index = getters.allDatasets.indexOf(getters.currentDataset);
+      return getters.allDatasets.slice(index + 2, index + 3)[0];
     },
     getDataset(state) {
       return function(datasetId) {
@@ -161,27 +165,17 @@ const store = new Vuex.Store({
       var caching = proxyManager
         .loadState(config, {
           datasetHandler(ds) {
-            // if (ds.vtkClass) {
-            // return vtk(ds);
-            // }
             return ReaderFactory.downloadDataset(ds.name, ds.url)
               .then(file => {
-                return ReaderFactory.loadFiles([file]);
+                return ReaderFactory.loadFiles([file]).then(
+                  readers => readers[0]
+                );
               })
-              .then(readers => readers[0])
-              .then(({ dataset, reader }) => {
+              .then(({ reader }) => {
                 if (reader && reader.getOutputData) {
                   const newDS = reader.getOutputData();
                   newDS.set(ds, true); // Attach remote data origin
                   return newDS;
-                }
-                if (dataset && dataset.isA) {
-                  dataset.set(ds, true); // Attach remote data origin
-                  return dataset;
-                }
-                if (reader && reader.setProxyManager) {
-                  reader.setProxyManager(proxyManager);
-                  return null;
                 }
                 throw new Error("Invalid dataset");
               })
@@ -198,24 +192,9 @@ const store = new Vuex.Store({
               });
           }
         })
-        .then((/*userData*/) => {
-          // Wait for the layout to be done (nextTick is not enough)
-          return new Promise(resolve => {
-            setTimeout(() => {
-              proxyManager.modified();
-
-              resolve();
-            }, 100);
-          });
-        })
         .then(() => {
-          console.log("pushed");
+          evictProxyManagerCache();
           Vue.set(state.proxyManagerCache, dataset._id, proxyManager);
-          state.proxyManagerCacheList.push(dataset);
-          if (state.proxyManagerCacheList.length > 4) {
-            let dataset = state.proxyManagerCacheList.shift();
-            Vue.delete(state.proxyManagerCache, dataset._id);
-          }
           return proxyManager;
         });
       Vue.set(state.proxyManagerCache, dataset._id, caching);
@@ -232,16 +211,16 @@ const store = new Vuex.Store({
       let proxyManager = state.proxyManagerCache[dataset._id];
 
       function change() {
-        prepareProxyManager(proxyManager);
         state.proxyManager = proxyManager;
         state.vtkViews = proxyManager.getViews();
         state.loadingDataset = false;
       }
-      // Give progress inidicator a chance to show if proxy views are not ready
       if (proxyManager.getViews().length) {
         change();
       } else {
+        // Give progress inidicator a chance to show if proxy views are not ready
         setTimeout(() => {
+          prepareProxyManager(proxyManager);
           change();
         }, 0);
       }
@@ -250,24 +229,97 @@ const store = new Vuex.Store({
 });
 
 store.watch(
-  (state, getters) => getters.nextDataset,
-  _.debounce(nextDataset => {
-    console.log("caching next dataset");
-    if (nextDataset) {
-      store.dispatch("cacheDataset", nextDataset);
+  (state, getters) => [getters.currentDataset, getters.allDatasets],
+  ([currentDataset, allDatasets]) => {
+    if (!currentDataset || !allDatasets) {
+      return;
     }
-  }, 1500)
+    var state = store.state;
+    var currentDatasetIndex = allDatasets.indexOf(currentDataset);
+    var datasetsToCache = allDatasets.slice(
+      currentDatasetIndex + 1,
+      currentDatasetIndex + 1 + PRELOAD_SIZE
+    );
+    state.pendingCaching.forEach(value => {
+      clearTimeout(value);
+    });
+    state.pendingCaching.clear();
+
+    shrinkUnnecessaryProxyManager();
+
+    var queue = 0;
+    datasetsToCache.forEach(async dataset => {
+      if (dataset._id in state.proxyManagerCache) {
+        if (
+          dataset === store.getters.nextDataset ||
+          dataset === store.getters.nextNextDataset
+        ) {
+          if (state.proxyManagerCache[dataset._id].then) {
+            await state.proxyManagerCache[dataset._id];
+          }
+          prepareProxyManager(state.proxyManagerCache[dataset._id]);
+        }
+        return;
+      }
+      clearTimeout(state.pendingCaching.get(dataset._id));
+      state.pendingCaching.set(
+        dataset._id,
+        setTimeout(async () => {
+          state.pendingCaching.delete(dataset._id);
+          var proxyManger = await store.dispatch("cacheDataset", dataset);
+          if (
+            dataset === store.getters.nextDataset ||
+            dataset === store.getters.nextNextDataset
+          ) {
+            prepareProxyManager(proxyManger);
+          }
+        }, queue++ * CACHE_DELAY_INTERVAL)
+      );
+    });
+  }
 );
 
 store.watch(
   (state, getters) => getters.previousDataset,
-  _.debounce(previousDataset => {
-    console.log("caching previous dataset");
-    if (previousDataset) {
-      store.dispatch("cacheDataset", previousDataset);
+  dataset => {
+    if (!dataset) {
+      return;
     }
-  }, 3000)
+    var state = store.state;
+    clearTimeout(state.pendingCaching.get(dataset._id));
+    state.pendingCaching.set(
+      dataset._id,
+      setTimeout(() => {
+        state.pendingCaching.delete(dataset._id);
+        store.dispatch("cacheDataset", dataset);
+      }, 4000)
+    );
+  }
 );
+
+// Helper for debugging cache
+// store.watch(
+//   state => state.proxyManagerCache,
+//   proxyManagerCache => {
+//     var allDatasetIds = store.getters.allDatasetIds;
+//     console.log(
+//       _.sortBy(Object.keys(proxyManagerCache), datasetId =>
+//         allDatasetIds.indexOf(datasetId)
+//       ).map(
+//         datasetId =>
+//           "" +
+//           allDatasetIds.indexOf(datasetId) +
+//           (proxyManagerCache[datasetId].then
+//             ? ":loading"
+//             : proxyManagerCache[datasetId].getViews().length
+//             ? ":prepared"
+//             : "") +
+//           (datasetId === store.state.currentDatasetId ? ":current" : "")
+//       )
+//     );
+//   },
+//   { deep: true }
+// );
 
 function prepareProxyManager(proxyManager) {
   if (!proxyManager.getViews().length) {
@@ -283,6 +335,53 @@ function prepareProxyManager(proxyManager) {
       });
     });
   }
+}
+
+function shrinkProxyManager(proxyManager) {
+  proxyManager.getViews().forEach(view => {
+    view.setContainer(null);
+    proxyManager.deleteProxy(view);
+  });
+}
+
+function evictProxyManagerCache() {
+  var { state, getters } = store;
+  var cachedDatasetIds = Object.keys(state.proxyManagerCache);
+  if (cachedDatasetIds.length > CACHE_SIZE) {
+    var allDatasetIds = getters.allDatasetIds;
+    var currentDatasetIndex = allDatasetIds.indexOf(state.currentDatasetId);
+    cachedDatasetIds = cachedDatasetIds.filter(datasetId => {
+      var index = allDatasetIds.indexOf(datasetId);
+      // don't evict current and previous dataset
+      return index !== currentDatasetIndex && index !== currentDatasetIndex - 1;
+    });
+    // sort by left and right of current dataset then by distance to current dataset
+    cachedDatasetIds = _.sortBy(cachedDatasetIds, datasetId => {
+      var d = allDatasetIds.indexOf(datasetId) - currentDatasetIndex;
+      // use property of reciprocal function
+      return d < 0 ? d : 1 / d;
+    });
+    // evict the lowerest ranked dataset
+    shrinkProxyManager(state.proxyManagerCache[cachedDatasetIds[0]]);
+    Vue.delete(state.proxyManagerCache, cachedDatasetIds[0]);
+  }
+}
+
+function shrinkUnnecessaryProxyManager() {
+  var { state, getters } = store;
+  Object.keys(state.proxyManagerCache)
+    .filter(datasetId => !state.proxyManagerCache[datasetId].then)
+    .filter(
+      datasetId =>
+        datasetId !== getters.currentDataset._id &&
+        (!getters.previousDataset ||
+          datasetId !== getters.previousDataset._id) &&
+        (!getters.nextDataset || datasetId !== getters.nextDataset._id) &&
+        (!getters.nextNextDataset || datasetId !== getters.nextNextDataset._id)
+    )
+    .forEach(datasetId => {
+      shrinkProxyManager(state.proxyManagerCache[datasetId]);
+    });
 }
 
 export default store;
