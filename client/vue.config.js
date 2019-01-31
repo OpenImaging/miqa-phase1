@@ -3,13 +3,8 @@ const path = require("path");
 
 module.exports = {
   devServer: {
-    proxy: {
-      "/image.nii.gz": {
-        target: "http://localhost:8085",
-        secure: false
-      }
-    },
-    public: "localhost:8080"
+    port: 8081,
+    public: "localhost:8081"
   },
   publicPath: process.env.NODE_ENV === "production" ? "/" : "/",
   configureWebpack: {
