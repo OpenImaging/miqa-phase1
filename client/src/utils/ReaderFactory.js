@@ -1,13 +1,12 @@
-import vtkHttpDataAccessHelper from "vtk.js/Sources/IO/Core/DataAccessHelper/HttpDataAccessHelper";
-
 const READER_MAPPING = {};
 
 const FETCH_DATA = {
-  readAsArrayBuffer(url, progressCallback) {
-    return vtkHttpDataAccessHelper.fetchBinary(url, { progressCallback });
-  },
-  readAsText(url, progressCallback) {
-    return vtkHttpDataAccessHelper.fetchText({}, url, { progressCallback });
+  readAsArrayBuffer(axios, url) {
+    return axios
+      .get(url, {
+        responseType: "arraybuffer"
+      })
+      .then(({ data }) => data);
   }
 };
 
@@ -93,12 +92,12 @@ function loadFiles(files) {
   return Promise.all(promises);
 }
 
-function downloadDataset(fileName, url, progressCallback) {
+function downloadDataset(axios, fileName, url, progressCallback) {
   return new Promise((resolve, reject) => {
     const readerMapping = getReader({ name: fileName });
     if (readerMapping) {
       const { readMethod } = readerMapping;
-      FETCH_DATA[readMethod](url, progressCallback)
+      FETCH_DATA[readMethod](axios, url, progressCallback)
         .then(rawData => {
           if (rawData) {
             resolve(new File([rawData], fileName));

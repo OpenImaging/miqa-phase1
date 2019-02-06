@@ -56,7 +56,7 @@ const store = new Vuex.Store({
       });
     },
     allDatasetIds(state, getters) {
-      if(!getters.allDatasets){
+      if (!getters.allDatasets) {
         return [];
       }
       return getters.allDatasets.map(dataset => dataset._id);
@@ -165,7 +165,7 @@ const store = new Vuex.Store({
       var caching = proxyManager
         .loadState(config, {
           datasetHandler(ds) {
-            return ReaderFactory.downloadDataset(ds.name, ds.url)
+            return ReaderFactory.downloadDataset(girder.rest, ds.name, ds.url)
               .then(file => {
                 return ReaderFactory.loadFiles([file]).then(
                   readers => readers[0]
