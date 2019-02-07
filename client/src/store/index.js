@@ -22,8 +22,10 @@ Vue.use(Vuex);
 const store = new Vuex.Store({
   state: {
     drawer: false,
-    proxyManager: null,
+    batches: null,
+    sessionTreeCache: {},
     sessionTree: null,
+    proxyManager: null,
     vtkViews: [],
     proxyManagerCache: {},
     pendingCaching: new Map(),
@@ -37,8 +39,8 @@ const store = new Vuex.Store({
       if (!state.currentDatasetId || !state.sessionTree) {
         return;
       }
-      for (let batch of state.sessionTree) {
-        for (let session of batch.sessions) {
+      for (let experiment of state.sessionTree.experiments) {
+        for (let session of experiment.sessions) {
           for (let dataset of session.datasets) {
             if (dataset._id === state.currentDatasetId) {
               return dataset;
@@ -51,8 +53,8 @@ const store = new Vuex.Store({
       if (!state.sessionTree) {
         return;
       }
-      return _.flatMap(state.sessionTree, batch => {
-        return _.flatMap(batch.sessions, session => session.datasets);
+      return _.flatMap(state.sessionTree.experiments, experiment => {
+        return _.flatMap(experiment.sessions, session => session.datasets);
       });
     },
     allDatasetIds(state, getters) {
@@ -87,8 +89,8 @@ const store = new Vuex.Store({
         if (!datasetId || !state.sessionTree) {
           return;
         }
-        for (let batch of state.sessionTree) {
-          for (let session of batch.sessions) {
+        for (let experiment of state.sessionTree.experiments) {
+          for (let session of experiment.sessions) {
             for (let dataset of session.datasets) {
               if (dataset._id === datasetId) {
                 return dataset;
@@ -102,8 +104,8 @@ const store = new Vuex.Store({
       if (!getters.currentDataset || !state.sessionTree) {
         return;
       }
-      for (let batch of state.sessionTree) {
-        for (let session of batch.sessions) {
+      for (let experiment of state.sessionTree.experiments) {
+        for (let session of experiment.sessions) {
           for (let dataset of session.datasets) {
             if (dataset === getters.currentDataset) {
               return session;
@@ -117,8 +119,8 @@ const store = new Vuex.Store({
         return;
       }
       let takeNext = false;
-      for (let batch of state.sessionTree) {
-        for (let session of batch.sessions) {
+      for (let experiment of state.sessionTree.experiments) {
+        for (let session of experiment.sessions) {
           for (let dataset of session.datasets) {
             if (takeNext) {
               return dataset;
@@ -141,12 +143,49 @@ const store = new Vuex.Store({
     },
     addScreenshot(state, screenshot) {
       state.screenshots.push(screenshot);
+    },
+    selectSessionTreeByDataset(state, datasetId) {
+      var sessionTree = tryFindSessionTreeByDatasetId(state, datasetId);
+      state.sessionTree = sessionTree;
     }
   },
   actions: {
-    async loadSessions({ state }) {
-      let { data: sessionTree } = await girder.rest.get("miqa/sessions");
-      state.sessionTree = sessionTree;
+    async loadBatches({ state }) {
+      if (state.batches) {
+        return;
+      }
+      let { data: batches } = await girder.rest.get("miqa/batch");
+      state.batches = batches;
+    },
+    async loadSessionsByBatchId({ state }, batchId) {
+      let { data: sessionTree } = await girder.rest.get(
+        `miqa/batch/${batchId}/sessions`
+      );
+      var matchingBatch = _.find(
+        state.batches,
+        batch => batch._id === sessionTree.batch._id
+      );
+      if (matchingBatch) {
+        Vue.set(state.sessionTreeCache, matchingBatch._id, sessionTree);
+      }
+    },
+    async loadAndSetSessionsByDatasetId({ state }, datasetId) {
+      var sessionTree = tryFindSessionTreeByDatasetId(state, datasetId);
+      if (sessionTree) {
+        state.sessionTree = sessionTree;
+      } else {
+        let { data: sessionTree } = await girder.rest.get(
+          `miqa/dataset/${datasetId}/sessions`
+        );
+        var matchingBatch = _.find(
+          state.batches,
+          batch => batch._id === sessionTree.batch._id
+        );
+        if (matchingBatch) {
+          Vue.set(state.sessionTreeCache, matchingBatch._id, sessionTree);
+        }
+        state.sessionTree = sessionTree;
+      }
     },
     cacheDataset({ state }, dataset) {
       var cached = state.proxyManagerCache[dataset._id];
@@ -338,20 +377,24 @@ function prepareProxyManager(proxyManager) {
 }
 
 function shrinkProxyManager(proxyManager) {
-  proxyManager.getViews().forEach(view => {
-    view.setContainer(null);
-    proxyManager.deleteProxy(view);
-  });
+  if (!proxyManager.then) {
+    proxyManager.getViews().forEach(view => {
+      view.setContainer(null);
+      proxyManager.deleteProxy(view);
+    });
+  }
 }
 
 function evictProxyManagerCache() {
   var { state, getters } = store;
   var cachedDatasetIds = Object.keys(state.proxyManagerCache);
+  // console.log(cachedDatasetIds);
   if (cachedDatasetIds.length > CACHE_SIZE) {
     var allDatasetIds = getters.allDatasetIds;
     var currentDatasetIndex = allDatasetIds.indexOf(state.currentDatasetId);
     cachedDatasetIds = cachedDatasetIds.filter(datasetId => {
       var index = allDatasetIds.indexOf(datasetId);
+      index = index === -1 ? null : index;
       // don't evict current and previous dataset
       return index !== currentDatasetIndex && index !== currentDatasetIndex - 1;
     });
@@ -382,6 +425,20 @@ function shrinkUnnecessaryProxyManager() {
     .forEach(datasetId => {
       shrinkProxyManager(state.proxyManagerCache[datasetId]);
     });
+}
+
+function tryFindSessionTreeByDatasetId(state, datasetId) {
+  for (var sessionTree of Object.values(state.sessionTreeCache)) {
+    for (let experiment of sessionTree.experiments) {
+      for (let session of experiment.sessions) {
+        for (let dataset of session.datasets) {
+          if (dataset._id === datasetId) {
+            return sessionTree;
+          }
+        }
+      }
+    }
+  }
 }
 
 export default store;

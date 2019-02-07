@@ -36,19 +36,21 @@ Now a running girder instance should be available at `localhost:8080`
 * Enable *miqa server*
 * Stop `girder serve` process and restart it
 
-#### Populate data (Current method)
+#### Populate data
+* Navigate to localhost:8080 and jump to the Girder interface
 * Navigate to *Collection*
 * Create a collection named `miqa`
 * Copy the collection ID from the URL or detail dialog
 * Navigate to *Admin Console*, *Assetstores*
 * Create a *Filesystem* assetstore
-* Click *Import data*
-* Set *Import path* to a location accessible by the server that contains nii.gz files at third level
-Such as the *data* directory if you have obtained a sample data archive
-* Set *Destination type* to *Collection*
-* Set *Destination ID* to the collection ID copied above, and leave *Leaf Folders as Items* to *False*
-* Click *Begin import*
-* The process should finish without error
+* Navigate back to localhost:8080 and BATCH section
+* Choose a CSV file. the CSV file needs to have the following fields
+  * *xnat_experiment_id*, an id field of an experiment. Same id will be grouped
+  * *nifti_folder*, *scan_id*, and *scan_type* these three columns will be concatenated into a directory path, which needs to be accessible by the server and each directory needs to contain numerous **.nii.gz* files
+  * *experiment_note*
+  * *decision*
+* Click *Import*. The importing will take up to few minutes based on number of record in the CSV file
+
 
 #### Client
 Miqa client is a [Vue CLI](https://cli.vuejs.org/) based application. All Vue-CLI options are available. 

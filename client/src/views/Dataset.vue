@@ -7,6 +7,7 @@ import SessionsView from "@/components/SessionsView";
 import WindowControl from "@/components/WindowControl";
 import ScreenshotDialog from "@/components/ScreenshotDialog";
 import EmailDialog from "@/components/EmailDialog";
+import NavigationTabs from "@/components/NavigationTabs";
 
 export default {
   name: "dataset",
@@ -16,7 +17,8 @@ export default {
     SessionsView,
     WindowControl,
     ScreenshotDialog,
-    EmailDialog
+    EmailDialog,
+    NavigationTabs
   },
   inject: ["girderRest"],
   data: () => ({
@@ -40,10 +42,12 @@ export default {
     ])
   },
   async created() {
-    await this.loadSessions();
-    if (this.$route.params.datasetId) {
+    await this.loadBatches();
+    var datasetId = this.$route.params.datasetId;
+    if (datasetId) {
+      await this.loadAndSetSessionsByDatasetId(datasetId);
       try {
-        await this.swapToDataset(this.$route.params.datasetId);
+        await this.swapToDataset(datasetId);
       } catch (ex) {
         this.$router.replace("/");
       }
@@ -56,10 +60,13 @@ export default {
       if (session === oldSession) {
         return;
       }
-      this.loadSessionMeta();
+      if (session) {
+        this.loadSessionMeta();
+      }
     }
   },
   async beforeRouteUpdate(to, from, next) {
+    this.selectSessionTreeByDataset(to.params.datasetId);
     let toDataset = this.getDataset(to.params.datasetId);
     let result = await this.beforeLeaveSession(toDataset);
     next(result);
@@ -68,8 +75,12 @@ export default {
     }
   },
   methods: {
-    ...mapMutations(["setDrawer"]),
-    ...mapActions(["loadSessions", "swapToDataset"]),
+    ...mapMutations(["setDrawer", "selectSessionTreeByDataset"]),
+    ...mapActions([
+      "loadBatches",
+      "loadAndSetSessionsByDatasetId",
+      "swapToDataset"
+    ]),
     async beforeLeaveSession(toDataset) {
       let currentDataset = this.currentDataset;
       if (
@@ -148,8 +159,6 @@ export default {
           timeout: 6000,
           immediate: true,
           callback: () => {
-            // console.log('callback')
-            // console.log(currentDatasetId);
             this.$router.push(currentDatasetId);
           }
         });
@@ -170,6 +179,7 @@ export default {
       <v-toolbar-title class="ml-0 pl-3">
         <span>MIQA</span>
       </v-toolbar-title>
+      <NavigationTabs />
       <v-spacer></v-spacer>
       <v-btn icon class="mr-4"
         @click="emailDialog=true">
@@ -194,7 +204,7 @@ export default {
             <v-icon>open_in_new</v-icon>
           </v-btn>
         </v-toolbar>
-        <SessionsView class='mt-1' />
+        <SessionsView class='mt-1' minimal />
       </div>
     </v-navigation-drawer>
     <template v-if="currentDataset">
