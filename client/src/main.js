@@ -4,7 +4,7 @@ import App from "./App.vue";
 import router from "./router";
 import store from "./store";
 import Girder, { RestClient } from "@girder/components/src";
-import { API_URL } from "./constants";
+import { API_URL, STATIC_PATH } from "./constants";
 
 import vMousetrap from "./utils/vMousetrap";
 import snackbar from "./utils/snackbar";
@@ -20,6 +20,9 @@ Vue.use(snackbar);
 Vue.use(vMousetrap);
 
 girder.rest = new RestClient({ apiRoot: API_URL });
+
+import config from "itk/itkConfig";
+config.itkModulesPath = STATIC_PATH + config.itkModulesPath;
 
 // console.log(store);
 window.store = store;

@@ -6,7 +6,7 @@ module.exports = {
     port: 8081,
     public: "localhost:8081"
   },
-  publicPath: process.env.NODE_ENV === "production" ? "/" : "/",
+  publicPath: process.env.VUE_APP_STATIC_PATH,
   configureWebpack: {
     module: {
       rules: [

@@ -9,8 +9,6 @@ import "../utils/registerReaders";
 import { proxy } from "../vtk";
 import { getView } from "../vtk/viewManager";
 import proxyConfigGenerator from "./proxyConfigGenerator";
-
-import { API_URL } from "../constants";
 import girder from "../girder";
 
 const PRELOAD_SIZE = 6;
@@ -193,7 +191,7 @@ const store = new Vuex.Store({
           return cached;
         }
       }
-      let url = `${API_URL}/item/${dataset._id}/download`;
+      let url = `/item/${dataset._id}/download`;
       var proxyManager = vtkProxyManager.newInstance({
         proxyConfiguration: proxy
       });
