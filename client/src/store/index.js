@@ -151,9 +151,6 @@ const store = new Vuex.Store({
   },
   actions: {
     async loadBatches({ state }) {
-      if (state.batches) {
-        return;
-      }
       let { data: batches } = await girder.rest.get("miqa/batch");
       state.batches = batches;
     },

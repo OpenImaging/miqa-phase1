@@ -72,6 +72,7 @@ class Session(Resource):
                 sessions.append({
                     'folderId': sessionFolder['_id'],
                     'name': sessionFolder['name'],
+                    'meta': sessionFolder.get('meta', {}),
                     'datasets': datasets
                 })
         return {
@@ -119,7 +120,7 @@ class Session(Resource):
             "failed": failedCount
         }
 
-    @access.user
+    @access.admin
     @access.cookie
     @autoDescribeRoute(
         Description('')

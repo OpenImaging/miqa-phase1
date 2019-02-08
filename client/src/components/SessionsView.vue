@@ -42,18 +42,14 @@ export default {
             <v-icon>attachment</v-icon>
           </v-btn>
         </div>
-        <ul v-if="sessionTreeCache[batch._id]">
+        <ul v-if="sessionTreeCache[batch._id]" class="experiment">
           <li v-for="experiment of sessionTreeCache[batch._id].experiments" class="body-2" :key="experiment.folderId">
             {{experiment.name}}
-            <ul>
+            <ul class="sessions">
               <li v-for="(session) of experiment.sessions" class="body-1" :key="session.folderId" 
               :class="{current:session===currentSession}">
-                <v-btn href flat small :to="session.datasets[0]._id" active-class="">{{session.name}}</v-btn>
-                <!-- <ul>
-                  <li v-for="(dataset) of session.datasets" :key="dataset._id" :class="{current:dataset._id===currentDatasetId}">
-                    <v-btn href flat small :to="dataset._id" active-class="">{{dataset.name}}</v-btn>
-                  </li>
-                </ul> -->
+                <v-btn class="ml-0 px-1" href flat small :to="session.datasets[0]._id" active-class="">{{session.name}}</v-btn>
+                <v-icon small v-if="session.meta && session.meta.rating">check</v-icon>
               </li>
             </ul>
           </li>
@@ -66,5 +62,13 @@ export default {
 <style lang="scss" scoped>
 .current {
   background: rgb(206, 206, 206);
+}
+
+ul.experiment {
+  list-style: none;
+}
+
+ul.sessions {
+  padding-left: 15px;
 }
 </style>

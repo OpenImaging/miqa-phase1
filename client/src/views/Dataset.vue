@@ -95,38 +95,40 @@ export default {
       }
       return Promise.resolve(true);
     },
+    // Load from the server again to get the latest
     async loadSessionMeta() {
       let { data: folder } = await this.girderRest.get(
         `folder/${this.currentSession.folderId}`
       );
-      this.note = "";
-      this.rating = null;
-      this.reviewer = "";
       this.reviewChanged = false;
+      var meta = {
+        note: "",
+        rating: null,
+        reviewer: ""
+      };
       if (folder.meta) {
-        if (folder.meta.note) {
-          this.note = folder.meta.note;
-        }
-        if (folder.meta.rating) {
-          this.rating = folder.meta.rating;
-        }
-        if (folder.meta.reviewer) {
-          this.reviewer = folder.meta.reviewer;
-        }
+        meta.note = folder.meta.note;
+        meta.rating = folder.meta.rating;
+        meta.reviewer = folder.meta.reviewer;
       }
+      this.note = meta.note;
+      this.rating = meta.rating;
+      this.reviewer = meta.reviewer;
+      this.$set(this.currentSession, "meta", meta);
     },
     async save() {
       let user = this.girderRest.user;
-      let reviewer = user.firstName + " " + user.lastName;
+      var meta = {
+        note: this.note,
+        rating: this.rating !== undefined ? this.rating : null,
+        reviewer: user.firstName + " " + user.lastName
+      };
       await this.girderRest.put(
         `folder/${this.currentSession.folderId}/metadata`,
-        {
-          note: this.note,
-          rating: this.rating,
-          reviewer
-        }
+        meta
       );
-      this.reviewer = reviewer;
+      this.$set(this.currentSession, "meta", meta);
+      this.reviewer = meta.reviewer;
       this.reviewChanged = false;
     },
     async unsavedDialogYes() {
@@ -149,6 +151,10 @@ export default {
       }
     },
     async ratingChanged() {
+      if (!this.rating) {
+        this.reviewChanged = true;
+        return;
+      }
       await this.save();
       if (this.firstDatasetInNextSession) {
         var currentDatasetId = this.currentDataset._id;
@@ -195,7 +201,7 @@ export default {
       <UserButton
         @user="girderRest.logout()" />
     </v-toolbar>
-    <v-navigation-drawer app temporary :value="drawer" @input="setDrawer($event)">
+    <v-navigation-drawer app temporary width="350" :value="drawer" @input="setDrawer($event)">
       <div class="sessions-bar">
         <v-toolbar dense flat>
           <v-toolbar-title>Sessions</v-toolbar-title>
@@ -252,6 +258,7 @@ export default {
                       v-model="rating" @change="ratingChanged">
                       <v-btn flat value="bad"
                         color="red"
+                        :disabled="!note"
                         v-mousetrap="{bind:'b', handler: ()=>setRating('bad')}"
                         >Bad</v-btn>
                       <v-btn flat value="good"
