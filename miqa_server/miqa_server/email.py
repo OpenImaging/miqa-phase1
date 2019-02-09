@@ -44,19 +44,16 @@ class Email(Resource):
             mime = dataURL[dataURL.find(':')+1:dataURL.find(';')]
             image = MIMEImage(base64.b64decode(encoded), name=name)
             content_id = str(uuid.uuid4())
-            image.add_header('Content-ID', f'<{content_id}>')
+            image.add_header('Content-ID', '<%s>' % (content_id,))
             image.add_header('Content-Disposition',
-                             f'attachment; filename="{name}{getExtension(mime)}"')
-            images_html.append(f'<img src="cid:{content_id}" /><br /><div>{name}</div>')
+                             'attachment; filename="%s%s"' % (name, getExtension(mime)))
+            images_html.append('<img src="cid:%s" /><br /><div>%s</div>' % (content_id, name))
             msg.attach(image)
             image_content_ids.append(content_id)
 
         alternative.attach(MIMEText(body))
-        alternative.attach(MIMEText(f"""\
-{''.join([f'<p>{line}</p>' for line in body.splitlines()])}
-<br />
-{'<br />'.join(images_html)}
-""", 'html'))
+        alternative.attach(MIMEText(''.join(
+            [('<p>%s</p>' % line) for line in body.splitlines()])+'<br />'+'<br />'.join(images_html), 'html'))
 
         events.daemon.trigger('_sendmail', info={
             'message': msg,

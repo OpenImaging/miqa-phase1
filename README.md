@@ -5,8 +5,7 @@
 Miqa has server, client two components. They are located under *miqa_server* and *client* directory respectively.
 
 ### Prerequisite
-* Pyhton 3.6+ 
-(3.6+ required) 
+* Pyhton 3.5+
 * Mongodb running at the default port
 * Node 8
 
