@@ -6,9 +6,9 @@ RUN git clone https://github.com/girder/girder.git girder_repo \
     && pip install girder_repo/clients/python/ \
     && pip install ansible \
     && ansible-galaxy install -p /girder_repo/devops/ansible/roles girder.girder
-COPY devops/docker/provision.yml /provision.yml
-COPY devops/docker/provision_inventory /etc/ansible/hosts
+COPY devops/docker/provision/provision.yml /provision.yml
+COPY devops/docker/provision/inventory /etc/ansible/hosts
 ENV ANSIBLE_LIBRARY=/girder_repo/devops/ansible/roles/girder.girder/library
 
-COPY devops/docker/entrypoint.sh /entrypoint.sh
+COPY devops/docker/provision/entrypoint.sh /entrypoint.sh
 ENTRYPOINT ["bash", "/entrypoint.sh"]

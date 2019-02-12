@@ -31,37 +31,22 @@
         path: "user/me"
     register: admin
 
-  - name: Ensure Non-Privileged User
-    girder:
-      host: "{{ ghost }}"
-      port: "{{ gport }}"
-      scheme: "{{ gscheme }}"
-      token: "{{ admin['token'] }}"
-      user:
-        login: "{{ user_name }}"
-        password: "{{ user_pass }}"
-        firstName: Girder
-        lastName: User
-        email: "user@girder.girder"
-        admin: false
-      state: present
-
-  - name: Ensure Data Sharing Group
-    girder:
-      host: "{{ ghost }}"
-      port: "{{ gport }}"
-      scheme: "{{ gscheme }}"
-      token: "{{ admin['token'] }}"
-      group:
-        name: "dataset sharing"
-        description: "dataset sharing"
-        users:
-          - login: "{{ admin_name }}"
-            type: "admin"
-          - login: "{{ user_name }}"
-            type: "member"
-      state: present
-    register: dataSharingGroup
+  # - name: Ensure Reviewer 1 Group
+  #   girder:
+  #     host: "{{ ghost }}"
+  #     port: "{{ gport }}"
+  #     scheme: "{{ gscheme }}"
+  #     token: "{{ admin['token'] }}"
+  #     group:
+  #       name: "Reviewer 1"
+  #       description: ""
+  #       users:
+  #         - login: "{{ admin_name }}"
+  #           type: "admin"
+  #         - login: "{{ user_name }}"
+  #           type: "member"
+  #     state: present
+  #   register: dataSharingGroup
 
   - name: Ensure Default Assetstore
     girder:
@@ -72,6 +57,19 @@
       assetstore:
         name: "Local"
         type: "filesystem"
+        current: true
+        root: "{{ assetstore }}"
+      state: present
+
+  - name: Ensure Default Collection
+    girder:
+      host: "{{ ghost }}"
+      port: "{{ gport }}"
+      scheme: "{{ gscheme }}"
+      token: "{{ admin['token'] }}"
+      collection:
+        name: "miqa"
+        description: "Required root collection of miqa"
         current: true
         root: "{{ assetstore }}"
       state: present
@@ -100,6 +98,20 @@
     with_items:
       - key: "core.registration_policy"
         value: "approve"
+      - key: "core.smtp_host"
+        value: "{{ smtp_server }}"
+      - key: "core.smtp.port"
+        value: "{{ smtp_port }}"
+      - key: "core.smtp.encryption"
+        value: "{{ smtp_encryption }}"
+      - key: "core.smtp.username"
+        value: "{{ smtp_username }}"
+      - key: "core.smtp.password"
+        value: "{{ smtp_password }}"
+      - key: "core.email_host"
+        value: "{{ server_url_in_email }}"
+        
+    
 
   - name: Restart Girder Server
     girder:

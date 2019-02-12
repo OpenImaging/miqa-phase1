@@ -2,7 +2,7 @@
 
 ## Develop environment setup
 
-Miqa has server, client two components. They are located under *miqa_server* and *client* directory respectively.
+MIQA has server, client two components. They are located under *miqa_server* and *client* directory respectively.
 
 ### Prerequisite
 * Pyhton 3.5+
@@ -59,3 +59,6 @@ Miqa client is a [Vue CLI](https://cli.vuejs.org/) based application. All Vue-CL
 * `npm run serve`
 * Navigate to `localhost:8081`
 * After login, datasets should be available in the application
+
+## Deployment
+MIQA can be deploymented on any linux system. This repo provided a [solution](devops/docker/README.md) with Docker.

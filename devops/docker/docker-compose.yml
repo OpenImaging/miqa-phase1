@@ -11,22 +11,21 @@ services:
       context: ../..
       dockerfile: devops/docker/Dockerfile
     ports:
-      - "8080:8080"
+      - "${PORT}:8080"
     links:
       - "database"
     command: --host 0.0.0.0 --database mongodb://database:27017/girder
     volumes:
       - "./volumes/assetstore:/assetstore"
-      - "/fs/storage/XNAT/:/fs/storage/XNAT/"
+      - "${PATH_TO_MOUNT}"
 
   provision:
     build:
       context: ../..
-      dockerfile: devops/docker/Dockerfile.provision
+      dockerfile: devops/docker/provision/Dockerfile
     links:
       - database
       - web_server
     command:
       [
-        "ghost=web_server gport=8080 gscheme=http admin_name=${GIRDER_ADMIN_NAME} admin_pass=${GIRDER_ADMIN_PASS} user_name=${GIRDER_USER_NAME} user_pass=${GIRDER_USER_PASS} assetstore=/assetstore",
-      ]
+        "ghost=web_server gport=8080 gscheme=http assetstore=/assetstore admin_name=${GIRDER_ADMIN_NAME} admin_pass=${GIRDER_ADMIN_PASS} smtp_server=${SMTP_SERVER} smtp_port=${SMTP_PORT} smtp_encryption=${SMTP_ENCRYPTION} smtp_username=${SMTP_USERNAME} smtp_password=${SMTP_PASSWORD} server_url_in_email=${SERVER_URL_IN_EMAIL}"]
