@@ -1,0 +1,115 @@
+---
+
+- hosts: local
+  connection: local
+  become: false
+  gather_facts: false
+  tasks:
+
+  - name: Ensure Privileged User
+    girder:
+      host: "{{ ghost }}"
+      port: "{{ gport }}"
+      scheme: "{{ gscheme }}"
+      user:
+        login: "{{ admin_name }}"
+        password: "{{ admin_pass }}"
+        firstName: Girder
+        lastName: Admin
+        email: "admin@girder.girder"
+        admin: true
+      state: present
+
+  - name: Record Privileged User Token
+    girder:
+      host: "{{ ghost }}"
+      port: "{{ gport }}"
+      scheme: "{{ gscheme }}"
+      username: "{{ admin_name }}"
+      password: "{{ admin_pass }}"
+      get:
+        path: "user/me"
+    register: admin
+
+  - name: Ensure Non-Privileged User
+    girder:
+      host: "{{ ghost }}"
+      port: "{{ gport }}"
+      scheme: "{{ gscheme }}"
+      token: "{{ admin['token'] }}"
+      user:
+        login: "{{ user_name }}"
+        password: "{{ user_pass }}"
+        firstName: Girder
+        lastName: User
+        email: "user@girder.girder"
+        admin: false
+      state: present
+
+  - name: Ensure Data Sharing Group
+    girder:
+      host: "{{ ghost }}"
+      port: "{{ gport }}"
+      scheme: "{{ gscheme }}"
+      token: "{{ admin['token'] }}"
+      group:
+        name: "dataset sharing"
+        description: "dataset sharing"
+        users:
+          - login: "{{ admin_name }}"
+            type: "admin"
+          - login: "{{ user_name }}"
+            type: "member"
+      state: present
+    register: dataSharingGroup
+
+  - name: Ensure Default Assetstore
+    girder:
+      host: "{{ ghost }}"
+      port: "{{ gport }}"
+      scheme: "{{ gscheme }}"
+      token: "{{ admin['token'] }}"
+      assetstore:
+        name: "Local"
+        type: "filesystem"
+        current: true
+        root: "{{ assetstore }}"
+      state: present
+
+  - name: Activate Girder Plugins
+    girder:
+      host: "{{ ghost }}"
+      port: "{{ gport }}"
+      scheme: "{{ gscheme }}"
+      token: "{{ admin['token'] }}"
+      plugins:
+        - miqa_server
+      state: present
+
+  - name: Update Girder System Settings
+    girder:
+      host: "{{ ghost }}"
+      port: "{{ gport }}"
+      scheme: "{{ gscheme }}"
+      token: "{{ admin['token'] }}"
+      setting:
+        key: "{{ item.key }}"
+        value: "{{ item.value }}"
+      state: present
+
+    with_items:
+      - key: "core.registration_policy"
+        value: "approve"
+
+  - name: Restart Girder Server
+    girder:
+      host: "{{ ghost }}"
+      port: "{{ gport }}"
+      scheme: "{{ gscheme }}"
+      token: "{{ admin['token'] }}"
+      put:
+        path: "system/restart"
+
+  - name: Wait for Girder Server
+    local_action:
+      module: wait_for host="{{ ghost }}" port="{{ gport }}" delay=5

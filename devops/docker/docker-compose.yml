@@ -1,0 +1,32 @@
+version: "3"
+
+services:
+  database:
+    image: mongo:3.4
+    volumes:
+      - "./volumes/database:/data/db"
+
+  web_server:
+    build:
+      context: ../..
+      dockerfile: devops/docker/Dockerfile
+    ports:
+      - "8080:8080"
+    links:
+      - "database"
+    command: --host 0.0.0.0 --database mongodb://database:27017/girder
+    volumes:
+      - "./volumes/assetstore:/assetstore"
+      - "/fs/storage/XNAT/:/fs/storage/XNAT/"
+
+  provision:
+    build:
+      context: ../..
+      dockerfile: devops/docker/Dockerfile.provision
+    links:
+      - database
+      - web_server
+    command:
+      [
+        "ghost=web_server gport=8080 gscheme=http admin_name=${GIRDER_ADMIN_NAME} admin_pass=${GIRDER_ADMIN_PASS} user_name=${GIRDER_USER_NAME} user_pass=${GIRDER_USER_PASS} assetstore=/assetstore",
+      ]
