@@ -240,7 +240,7 @@ export default {
                     <v-textarea solo label="Note" rows="4" hide-details
                       v-model="note" @input="reviewChanged=true" ref="note"
                       v-mousetrap="{ bind:'n', handler: focusNote }"
-                      v-mousetrap.element="{ bind:'esc', handler: ()=>$refs.note.blur(), element: true }"></v-textarea>
+                      v-mousetrap.element="{ bind:'esc', handler: ()=>$refs.note.blur() }"></v-textarea>
                   </v-flex>
                 </v-layout>
                 <v-layout>

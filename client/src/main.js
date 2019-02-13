@@ -6,8 +6,8 @@ import store from "./store";
 import Girder, { RestClient } from "@girder/components/src";
 import { API_URL, STATIC_PATH } from "./constants";
 
-import vMousetrap from "./utils/vMousetrap";
-import snackbar from "./utils/snackbar";
+import vMousetrap from "vue-utilities/v-mousetrap";
+import snackbarService from "vue-utilities/snackbar-service";
 import girder from "./girder";
 
 import "vuetify/dist/vuetify.min.css";
@@ -16,8 +16,8 @@ import "vuetify/dist/vuetify.min.css";
 
 Vue.use(AsyncComputed);
 Vue.use(Girder);
-Vue.use(snackbar);
 Vue.use(vMousetrap);
+Vue.use(snackbarService);
 
 girder.rest = new RestClient({ apiRoot: API_URL });
 
