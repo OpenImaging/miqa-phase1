@@ -38,16 +38,22 @@ export default {
       "getDataset",
       "currentSession",
       "previousDataset",
-      "firstDatasetInNextSession"
+      "firstDatasetInNextSession",
+      "getSiteDisplayName"
     ])
   },
   async created() {
-    await this.loadBatches();
+    await Promise.all([this.loadBatches(), this.loadSites()]);
     var datasetId = this.$route.params.datasetId;
     if (datasetId) {
       await this.loadAndSetSessionsByDatasetId(datasetId);
       try {
         await this.swapToDataset(datasetId);
+        if (this.currentSession) {
+          this.note = this.currentSession.meta.note;
+          this.rating = this.currentSession.meta.rating;
+          this.reviewer = this.currentSession.meta.reviewer;
+        }
       } catch (ex) {
         this.$router.replace("/");
       }
@@ -74,10 +80,15 @@ export default {
       this.swapToDataset(to.params.datasetId);
     }
   },
+  async beforeRouteLeave(to, from, next) {
+    let result = await this.beforeLeaveSession();
+    next(result);
+  },
   methods: {
     ...mapMutations(["setDrawer", "selectSessionTreeByDataset"]),
     ...mapActions([
       "loadBatches",
+      "loadSites",
       "loadAndSetSessionsByDatasetId",
       "swapToDataset"
     ]),
@@ -97,37 +108,31 @@ export default {
     },
     // Load from the server again to get the latest
     async loadSessionMeta() {
+      this.reviewChanged = false;
       let { data: folder } = await this.girderRest.get(
         `folder/${this.currentSession.folderId}`
       );
-      this.reviewChanged = false;
-      var meta = {
-        note: "",
-        rating: null,
-        reviewer: ""
-      };
-      if (folder.meta) {
-        meta.note = folder.meta.note;
-        meta.rating = folder.meta.rating;
-        meta.reviewer = folder.meta.reviewer;
-      }
-      this.note = meta.note;
-      this.rating = meta.rating;
-      this.reviewer = meta.reviewer;
-      this.$set(this.currentSession, "meta", meta);
+      var { meta } = folder;
+      this.note = folder.meta.note;
+      this.rating = folder.meta.rating;
+      this.reviewer = folder.meta.reviewer;
+      this.currentSession.meta = meta;
     },
     async save() {
       let user = this.girderRest.user;
       var meta = {
-        note: this.note,
-        rating: this.rating !== undefined ? this.rating : null,
-        reviewer: user.firstName + " " + user.lastName
+        ...this.currentSession.meta,
+        ...{
+          note: this.note,
+          rating: this.rating !== undefined ? this.rating : null,
+          reviewer: user.firstName + " " + user.lastName
+        }
       };
       await this.girderRest.put(
-        `folder/${this.currentSession.folderId}/metadata`,
+        `folder/${this.currentSession.folderId}/metadata?allowNull=true`,
         meta
       );
-      this.$set(this.currentSession, "meta", meta);
+      this.currentSession.meta = meta;
       this.reviewer = meta.reviewer;
       this.reviewChanged = false;
     },
@@ -179,7 +184,7 @@ export default {
 </script>
 
 <template>
-  <div class="dataset">
+  <v-layout class="dataset" fill-height column>
     <v-toolbar app>
       <v-toolbar-side-icon @click.stop="setDrawer(!drawer)"></v-toolbar-side-icon>
       <v-toolbar-title class="ml-0 pl-3">
@@ -214,7 +219,7 @@ export default {
       </div>
     </v-navigation-drawer>
     <template v-if="currentDataset">
-      <div class="layout-container">
+      <v-flex class="layout-container">
         <Layout />
         <v-layout v-if="loadingDataset"
           class="loading-indicator-container"
@@ -226,15 +231,22 @@ export default {
             indeterminate
           ></v-progress-circular>
         </v-layout>
-      </div>
-      <div class="bottom">
-        <v-container fluid grid-list-md>
+      </v-flex>
+      <v-flex shrink class="bottom">
+        <v-container fluid grid-list-md class="pa-3">
           <v-layout>
             <v-flex xs6>
-              <WindowControl v-if="proxyManager" />
+              <WindowControl v-if="proxyManager" class="py-0" />
             </v-flex>
             <v-flex xs6>
-              <v-container fluid grid-list-sm>
+              <v-container fluid grid-list-sm class="py-0">
+                <v-layout align-center justify-center class="pb-1">
+                  <v-flex class="subheading">
+                    {{getSiteDisplayName(currentSession.meta.site)}},
+                    <a :href="`https://ncanda.sri.com/xnat/app/action/DisplayItemAction/search_value/${currentSession.meta.experimentId}/search_element/xnat:mrSessionData/search_field/xnat:mrSessionData.ID`">{{currentSession.meta.experimentId}}</a>
+                    (<a :href="`https://ncanda.sri.com/redcap/redcap_v8.4.0/DataEntry/record_home.php?pid=20&arm=1&id=${currentSession.meta.experimentId2}`">{{currentSession.meta.experimentId2}}</a>)
+                  </v-flex>
+                </v-layout>
                 <v-layout>
                   <v-flex>
                     <v-textarea solo label="Note" rows="4" hide-details
@@ -249,7 +261,7 @@ export default {
                       class="small"
                       label="Reviewer"
                       solo
-                      readonly
+                      disabled
                       hide-details
                       :value="reviewer"></v-text-field>
                   </v-flex>
@@ -273,68 +285,71 @@ export default {
                   </v-flex>
                 </v-layout>
                 <v-layout align-center justify-space-between>
-                  <v-tooltip top
-                    v-if="reviewChanged">
-                    <v-btn slot="activator"
-                      flat icon
-                      color="grey"
-                      @click="loadSessionMeta">
-                      <v-icon>undo</v-icon>
+                  <v-flex style="display:flex;">
+                    <v-btn fab small
+                      class="primary--text elevation-2"
+                      :disabled="!previousDataset"
+                      :to="previousDataset?previousDataset._id:''"
+                      v-mousetrap="{bind:'left',
+                        disabled:!previousDataset || unsavedDialog || loadingDataset,
+                        handler: ()=>$router.push(previousDataset?previousDataset._id:'')}">
+                      <v-icon>keyboard_arrow_left</v-icon>
                     </v-btn>
-                    <span>Revert</span>
-                  </v-tooltip>
-                  <v-spacer />
-                  <v-btn
-                    color="primary"
-                    :disabled="!reviewChanged"
-                    @click="save"
-                    v-mousetrap="{bind: 'alt+s', handler: save}">
-                    Save
-                    <v-icon right>save</v-icon>
-                  </v-btn>
-                  <v-menu v-if="currentSession && currentSession.datasets.length>1"
-                    offset-y>
+                    <v-btn fab small
+                      class="primary--text elevation-2"
+                      :disabled="!nextDataset"
+                      :to="nextDataset?nextDataset._id:''"
+                      v-mousetrap="{bind:'right',
+                        disabled:!nextDataset || unsavedDialog || loadingDataset,
+                        handler: ()=>$router.push(nextDataset?nextDataset._id:'')}">
+                      <v-icon>keyboard_arrow_right</v-icon>
+                    </v-btn>
+                    <v-menu v-if="currentSession && currentSession.datasets.length>1"
+                      offset-y>
+                      <v-btn
+                        slot="activator"
+                        flat
+                        icon
+                        color="primary">
+                        <v-icon>more_vert</v-icon>
+                      </v-btn>
+                      <v-list>
+                        <v-list-tile
+                          v-for="(dataset, index) in currentSession.datasets"
+                          :key="index"
+                          :to="dataset._id"
+                          :class="{'primary--text':dataset===currentDataset}">
+                          <v-list-tile-title>{{dataset.name}}</v-list-tile-title>
+                        </v-list-tile>
+                      </v-list>
+                    </v-menu>
+                    <v-spacer />
+                    <v-tooltip top
+                      v-if="reviewChanged">
+                      <v-btn slot="activator"
+                        flat icon
+                        color="grey"
+                        @click="loadSessionMeta">
+                        <v-icon>undo</v-icon>
+                      </v-btn>
+                      <span>Revert</span>
+                    </v-tooltip>
                     <v-btn
-                      slot="activator"
-                      flat
-                      icon
-                      color="primary">
-                      <v-icon>more_vert</v-icon>
+                      color="primary"
+                      class="mx-0"
+                      :disabled="!reviewChanged"
+                      @click="save"
+                      v-mousetrap="{bind: 'alt+s', handler: save}">
+                      Save
+                      <v-icon right>save</v-icon>
                     </v-btn>
-                    <v-list>
-                      <v-list-tile
-                        v-for="(dataset, index) in currentSession.datasets"
-                        :key="index"
-                        :to="dataset._id"
-                        :class="{'primary--text':dataset===currentDataset}">
-                        <v-list-tile-title>{{dataset.name}}</v-list-tile-title>
-                      </v-list-tile>
-                    </v-list>
-                  </v-menu>
-                  <v-btn fab small
-                    class="primary--text elevation-2"
-                    :disabled="!previousDataset"
-                    :to="previousDataset?previousDataset._id:''"
-                    v-mousetrap="{bind:'left',
-                      disabled:!previousDataset || unsavedDialog || loadingDataset,
-                      handler: ()=>$router.push(previousDataset?previousDataset._id:'')}">
-                    <v-icon>keyboard_arrow_left</v-icon>
-                  </v-btn>
-                  <v-btn fab small
-                    class="primary--text elevation-2"
-                    :disabled="!nextDataset"
-                    :to="nextDataset?nextDataset._id:''"
-                    v-mousetrap="{bind:'right',
-                      disabled:!nextDataset || unsavedDialog || loadingDataset,
-                      handler: ()=>$router.push(nextDataset?nextDataset._id:'')}">
-                    <v-icon>keyboard_arrow_right</v-icon>
-                  </v-btn>
+                  </v-flex>
                 </v-layout>
               </v-container>
             </v-flex>
           </v-layout>
         </v-container>
-      </div>
+      </v-flex>
     </template>
     <v-layout v-else align-center justify-center row fill-height>
       <div class="title" v-if="!loadingDataset">Select a dataset</div>
@@ -356,15 +371,11 @@ export default {
     </v-dialog>
     <ScreenshotDialog />
     <EmailDialog v-model='emailDialog' />
-  </div>
+  </v-layout>
 </template>
 
 <style lang="scss" scoped>
 .dataset {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-
   .sessions-bar {
     display: flex;
     flex-direction: column;
@@ -376,7 +387,6 @@ export default {
   }
 
   .layout-container {
-    flex: 1 1 0%;
     position: relative;
 
     .loading-indicator-container {

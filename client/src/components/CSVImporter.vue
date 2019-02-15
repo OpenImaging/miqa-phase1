@@ -23,22 +23,30 @@ export default {
       var reader = new FileReader();
       reader.onload = async e => {
         this.importing = true;
-        var { data: result } = await this.girderRest.post(
-          `miqa/batch/csv?filename=${this.csvFilename}`,
-          e.target.result,
-          {
-            headers: {
-              "Content-Type": "text/csv"
+        try {
+          var { data: result } = await this.girderRest.post(
+            `miqa/batch/csv?filename=${this.csvFilename}`,
+            e.target.result,
+            {
+              headers: {
+                "Content-Type": "text/csv"
+              }
             }
-          }
-        );
-        this.importing = false;
-        this.loadBatches();
-        this.$snackbar({
-          text: `Import finished. 
+          );
+          this.importing = false;
+          this.loadBatches();
+          this.$snackbar({
+            text: `Import finished. 
           With ${result.success} rows succeeded and ${result.failed} failed.`,
-          timeout: 6000
-        });
+            timeout: 6000
+          });
+        } catch (ex) {
+          this.importing = false;
+          this.$snackbar({
+            text: "Import failed. Refer console for detail."
+          });
+          console.error(ex.response);
+        }
       };
       reader.readAsText(this.csvFile);
     }

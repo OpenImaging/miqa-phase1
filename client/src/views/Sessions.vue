@@ -1,18 +1,16 @@
 <script>
 import { mapActions } from "vuex";
 
-import UserButton from "@/components/girder/UserButton";
-import SessionsView from "../components/SessionsView";
+import GenericNavigationBar from "@/components/GenericNavigationBar";
 import CSVImporter from "../components/CSVImporter";
-import NavigationTabs from "@/components/NavigationTabs";
+import SessionsView from "../components/SessionsView";
 
 export default {
-  name: "sessions",
+  name: "Sessions",
   components: {
-    UserButton,
+    GenericNavigationBar,
     CSVImporter,
-    SessionsView,
-    NavigationTabs
+    SessionsView
   },
   inject: ["girderRest"],
   computed: {},
@@ -27,15 +25,7 @@ export default {
 
 <template>
   <div class="sessions">
-    <v-toolbar app>
-      <v-toolbar-title class="ml-0 pl-3">
-        <span>MIQA</span>
-      </v-toolbar-title>
-      <NavigationTabs />
-      <v-spacer></v-spacer>
-      <UserButton
-        @user="girderRest.logout()" />
-    </v-toolbar>
+    <GenericNavigationBar />
     <v-container>
       <v-layout justify-center>
         <v-flex xl7 lg11>

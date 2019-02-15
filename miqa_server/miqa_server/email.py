@@ -23,8 +23,7 @@ class Email(Resource):
     @access.user
     @autoDescribeRoute(
         Description('')
-        .jsonParam('message', 'A JSON object containing the metadata keys to add',
-                   paramType='body', requireObject=True)
+        .jsonParam('message', '', paramType='body', requireObject=True)
         .errorResponse())
     def sendEmail(self, message, params):
         msg = MIMEMultipart('related')

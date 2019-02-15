@@ -30,7 +30,8 @@ const store = new Vuex.Store({
     currentDatasetId: null,
     loadingDataset: false,
     currentScreenshot: null,
-    screenshots: []
+    screenshots: [],
+    sites: null
   },
   getters: {
     currentDataset(state) {
@@ -130,6 +131,27 @@ const store = new Vuex.Store({
           }
         }
       }
+    },
+    siteMap(state) {
+      if (!state.sites) {
+        return {};
+      } else {
+        return _.keyBy(state.sites, "name");
+      }
+    },
+    getSiteDisplayName(state, getters) {
+      return function(name) {
+        var siteMap = getters.siteMap;
+        if (
+          siteMap[name] &&
+          siteMap[name].meta &&
+          siteMap[name].meta.displayName
+        ) {
+          return siteMap[name].meta.displayName;
+        } else {
+          return name;
+        }
+      };
     }
   },
   mutations: {
@@ -258,6 +280,10 @@ const store = new Vuex.Store({
           change();
         }, 0);
       }
+    },
+    async loadSites({ state }) {
+      let { data: sites } = await girder.rest.get("miqa_site");
+      state.sites = sites;
     }
   }
 });

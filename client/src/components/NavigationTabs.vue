@@ -30,6 +30,11 @@ export default {
         batch
         <v-icon>list</v-icon>
       </v-tab>
+       <v-tab
+        to="/sites">
+        sites
+        <v-icon>place</v-icon>
+      </v-tab>
       <v-tab
         :href="GIRDER_URL"
         target="_blank">

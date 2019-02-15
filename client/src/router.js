@@ -3,6 +3,7 @@ import Router from "vue-router";
 
 import girder from "./girder";
 import Sessions from "./views/Sessions.vue";
+import Sites from "./views/Sites.vue";
 import Dataset from "./views/Dataset.vue";
 import Login from "./views/Login.vue";
 
@@ -29,6 +30,13 @@ export default new Router({
       component: Sessions,
       beforeEnter
     },
+    {
+      path: "/sites",
+      name: "sites",
+      component: Sites,
+      beforeEnter
+    },
+    // Order matters
     {
       path: "/:datasetId?",
       name: "dataset",

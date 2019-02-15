@@ -13,6 +13,7 @@ from girder.models.folder import Folder
 from girder.models.item import Item
 from girder.models.assetstore import Assetstore
 from girder.utility.progress import noProgress
+from .site import tryAddSites
 
 
 class Session(Resource):
@@ -36,7 +37,7 @@ class Session(Resource):
         collection = Collection().findOne({'name': 'miqa'})
         if not collection:
             return result
-        return [{'name': folder['name'], '_id':folder['_id']} for folder in Folder().childFolders(collection, 'collection', user=user)]
+        return [{'name': folder['name'], '_id':folder['_id']} for folder in Folder().childFolders(collection, 'collection', user=user) if folder['name'] != 'sites']
 
     @access.user
     @autoDescribeRoute(
@@ -93,28 +94,49 @@ class Session(Resource):
         user = self.getCurrentUser()
         csv_content = body.read().decode("utf-8")
         collection = Collection().findOne({'name': 'miqa'})
-        batchFolder = Folder().createFolder(collection, filename,
-                                            parentType='collection', creator=user, allowRename=True)
+        batchFolder = Folder().createFolder(
+            collection, filename,
+            parentType='collection', creator=user, allowRename=True)
         Item().createItem('csv', user, batchFolder, description=csv_content)
         reader = csv.DictReader(io.StringIO(csv_content))
         successCount = 0
         failedCount = 0
+        sites = set()
         for row in reader:
-            scan = row['scan_id']+'_'+row['scan_type']
-            if not os.path.isdir(row['nifti_folder']+'/'+scan):
+            experimentId = row['xnat_experiment_id']
+            niftiPath = row['nifti_folder']
+            splits = niftiPath.split('/')
+            site = splits[5].split('_')[0]
+            sites.add(site)
+            experimentId2 = '-'.join(splits[7].split('-')[0:-1])
+            date = splits[7].split('-')[-1]
+            scanId = row['scan_id']
+            scanType = row['scan_type']
+            scan = scanId+'_'+scanType
+            niftiFolder = os.path.join(niftiPath, scan)
+            if not os.path.isdir(niftiFolder):
                 failedCount += 1
                 continue
             experimentFolder = Folder().createFolder(
-                batchFolder, row['xnat_experiment_id'], parentType='folder', reuseExisting=True)
+                batchFolder, experimentId, parentType='folder', reuseExisting=True)
             scanFolder = Folder().createFolder(
                 experimentFolder, scan, parentType='folder', reuseExisting=True)
-
+            Folder().setMetadata(scanFolder, {
+                'experimentId': experimentId,
+                'experimentId2': experimentId2,
+                'site': site,
+                'date': date,
+                'scanId': scanId,
+                'scanType': scanType
+            })
             currentAssetstore = Assetstore().getCurrent()
             Assetstore().importData(
                 currentAssetstore, parent=scanFolder, parentType='folder', params={
-                    'importPath': row['nifti_folder']+'/'+scan,
+                    'fileIncludeRegex': '.+[.]nii[.]gz$',
+                    'importPath': niftiFolder,
                 }, progress=noProgress, user=user, leafFoldersAsItems=False)
             successCount += 1
+        tryAddSites(sites, self.getCurrentUser())
         return {
             "success": successCount,
             "failed": failedCount

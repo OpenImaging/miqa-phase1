@@ -83,7 +83,7 @@ export default {
 </script>
 
 <template>
-  <v-container fluid grid-list-md>
+  <v-container fluid grid-list-md class="py-0">
     <v-layout>
       <v-flex>
         <div class="subheading">Window setup</div>
