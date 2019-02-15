@@ -305,7 +305,9 @@ export default {
                       <v-icon>keyboard_arrow_right</v-icon>
                     </v-btn>
                     <v-menu v-if="currentSession && currentSession.datasets.length>1"
-                      offset-y>
+                      offset-y
+                      max-height="70vh"
+                      >
                       <v-btn
                         slot="activator"
                         flat

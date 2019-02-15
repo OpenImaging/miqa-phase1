@@ -57,7 +57,7 @@ export default {
       </div>
       <v-form @submit.prevent="save" ref="form">
         <v-card>
-          <v-container grid-list-md>
+          <v-container grid-list-md class="pb-0">
             <v-layout v-if="!contacts.length">
               <v-flex>
                 No contacts
@@ -69,7 +69,7 @@ export default {
                 <v-select
                   :items="['to', 'cc', 'bcc']"
                   v-model="contact.mode"
-                  style="width:40px"
+                  style="width:50px"
                 ></v-select>
               </v-flex>
               <v-flex shrink>
