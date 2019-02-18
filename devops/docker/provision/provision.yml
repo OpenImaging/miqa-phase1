@@ -6,6 +6,10 @@
   gather_facts: false
   tasks:
 
+  - name: Wait for Girder Server
+    local_action:
+      module: wait_for host="{{ ghost }}" port="{{ gport }}" delay=10
+
   - name: Ensure Privileged User
     girder:
       host: "{{ ghost }}"
@@ -110,8 +114,6 @@
         value: "{{ smtp_password }}"
       - key: "core.email_host"
         value: "{{ server_url_in_email }}"
-        
-    
 
   - name: Restart Girder Server
     girder:
