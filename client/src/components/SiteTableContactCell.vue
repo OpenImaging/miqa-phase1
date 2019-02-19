@@ -50,8 +50,9 @@ export default {
       :close-on-content-click="false"
       :min-width="614"
       max-height="70vh"
-      class="v-small-dialog"
-      lazy>
+      offset-x
+      left
+      class="v-small-dialog">
       <div slot="activator">
         <div v-for="(contact, i) in value" :key="i">{{contact.mode}}: {{contact.name}} ({{contact.email}})</div>
       </div>

@@ -28,7 +28,8 @@ class Email(Resource):
     def sendEmail(self, message, params):
         msg = MIMEMultipart('related')
         msg['From'] = Setting().get(SettingKey.EMAIL_FROM_ADDRESS, 'Girder <no-reply@girder.org>')
-        msg['To'] = message['to']
+        msg['To'] = ', '.join(message['to'])
+        msg['Cc'] = ', '.join(message['cc'])
         msg['Subject'] = message['subject']
         body = message['body']
         image_content_ids = []
@@ -56,7 +57,7 @@ class Email(Resource):
 
         events.daemon.trigger('_sendmail', info={
             'message': msg,
-            'recipients': [message['to']]
+            'recipients': list(set(message['to']) | set(message['cc']) | set(message['bcc']))
         })
 
 
