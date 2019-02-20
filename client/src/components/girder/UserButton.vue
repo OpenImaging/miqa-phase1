@@ -20,15 +20,13 @@ export default {
     icon
     color="grey lighten-1"
     class="user-avatar-btn"
-    @click="$emit('user', girderRest.user)">
+    @click="$emit('user', girderRest.user)"
+  >
     <v-avatar>
       {{ initials }}
     </v-avatar>
   </v-btn>
-  <v-btn
-    v-else
-    flat
-    @click="$emit('login')">
+  <v-btn v-else flat @click="$emit('login')">
     Login
   </v-btn>
 </template>

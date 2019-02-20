@@ -34,33 +34,34 @@ export default {
 <template>
   <td>
     <v-menu
-        v-model="showMenu"
-        :close-on-content-click="false"
-        class="v-small-dialog"
-        lazy>
-        <div slot="activator">{{ value }}</div>
-        <v-form @submit.prevent="save" ref="form">
+      v-model="showMenu"
+      :close-on-content-click="false"
+      class="v-small-dialog"
+      lazy
+    >
+      <div slot="activator">{{ value }}</div>
+      <v-form @submit.prevent="save" ref="form">
         <v-card>
-            <v-container grid-list-md class="py-2">
+          <v-container grid-list-md class="py-2">
             <v-layout>
-                <v-flex>
+              <v-flex>
                 <v-text-field
-                    v-model="displayName"
-                    label="Display Name"
-                    name="miqa_site_name"
-                    :rules="nameRules"
-                    style="width:220px"
+                  v-model="displayName"
+                  label="Display Name"
+                  name="miqa_site_name"
+                  :rules="nameRules"
+                  style="width:220px"
                 />
-                </v-flex>
+              </v-flex>
             </v-layout>
-            </v-container>
-            <v-card-actions>
+          </v-container>
+          <v-card-actions>
             <v-spacer />
             <v-btn flat @click="cancel">Cancel</v-btn>
             <v-btn color="primary" flat type="submit">Save</v-btn>
-            </v-card-actions>
+          </v-card-actions>
         </v-card>
-        </v-form>
+      </v-form>
     </v-menu>
-    </td>
+  </td>
 </template>

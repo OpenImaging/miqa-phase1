@@ -136,14 +136,10 @@ ${location.href}
 </script>
 
 <template>
-  <v-dialog
-    :value="value"
-    @input="$emit('input', $event)"
-    max-width="60%">
+  <v-dialog :value="value" @input="$emit('input', $event)" max-width="60%">
     <v-form @submit.prevent="send" ref="form">
       <v-card>
-        <v-card-title
-          class="headline grey lighten-4">
+        <v-card-title class="headline grey lighten-4">
           Send email
           <v-spacer />
           <v-btn small icon class="ma-0" @click="$emit('input', false)">
@@ -161,8 +157,8 @@ ${location.href}
               />
             </v-flex>
             <v-flex shrink>
-              <a class="px-2" v-if="!showCC" @click="showCC=true">cc</a>
-              <a class="px-2"  v-if="!showBCC" @click="showBCC=true">bcc</a>
+              <a class="px-2" v-if="!showCC" @click="showCC = true">cc</a>
+              <a class="px-2" v-if="!showBCC" @click="showBCC = true">bcc</a>
             </v-flex>
           </v-layout>
           <v-layout v-if="showCC">
@@ -200,24 +196,32 @@ ${location.href}
           </v-layout>
           <v-layout>
             <v-flex>
-              <v-textarea label="Body" rows="6"
-                v-model="body"></v-textarea>
+              <v-textarea label="Body" rows="6" v-model="body"></v-textarea>
             </v-flex>
           </v-layout>
           <template v-if="screenshots.length">
             <div class="caption">Include screenshots</div>
             <v-layout class="screenshot-row" d-block>
-              <v-flex d-inline-block v-for="(screenshot, index) of screenshots" :key="index">
-                <v-card class="screenshot"
+              <v-flex
+                d-inline-block
+                v-for="(screenshot, index) of screenshots"
+                :key="index"
+              >
+                <v-card
+                  class="screenshot"
                   @click="toggleScreenshotSelection(screenshot)"
-                  :style="{ borderColor: selectedScreenshots.indexOf(screenshot) === -1?'transparent': $vuetify.theme.primary }">
-                  <v-img
-                    :src="screenshot.dataURL"
-                    aspect-ratio="1"></v-img>
+                  :style="{
+                    borderColor:
+                      selectedScreenshots.indexOf(screenshot) === -1
+                        ? 'transparent'
+                        : $vuetify.theme.primary
+                  }"
+                >
+                  <v-img :src="screenshot.dataURL" aspect-ratio="1"></v-img>
                   <v-card-text class="text-truncate">
                     <v-tooltip top>
-                      <span slot="activator">{{screenshot.name}}</span>
-                      <span>{{screenshot.name}}</span>
+                      <span slot="activator">{{ screenshot.name }}</span>
+                      <span>{{ screenshot.name }}</span>
                     </v-tooltip>
                   </v-card-text>
                 </v-card>
@@ -227,15 +231,11 @@ ${location.href}
         </v-container>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn
-            color="primary"
-            flat
-            :loading="sending"
-            type="submit">
+          <v-btn color="primary" flat :loading="sending" type="submit">
             Send
           </v-btn>
         </v-card-actions>
-    </v-card>
+      </v-card>
     </v-form>
   </v-dialog>
 </template>

@@ -109,24 +109,24 @@ export default {
   <div class="vtk-viewer">
     <div class="header" :class="name">
       <v-layout align-center>
-      <v-slider
-        class="slice-slider mt-0 mx-4"
-        hide-details
-        :min="sliceDomain.min"
-        :max="sliceDomain.max"
-        :step="sliceDomain.step"
-        v-model="slice"
-        v-mousetrap="[
-          {bind:keyboardBindings[1], handler:increaseSlice},
-          {bind:keyboardBindings[0], handler:decreaseSlice}
-        ]"
-      ></v-slider>
-      <div class="slice caption px-2">{{slice | roundSlice}} mm</div>
+        <v-slider
+          class="slice-slider mt-0 mx-4"
+          hide-details
+          :min="sliceDomain.min"
+          :max="sliceDomain.max"
+          :step="sliceDomain.step"
+          v-model="slice"
+          v-mousetrap="[
+            { bind: keyboardBindings[1], handler: increaseSlice },
+            { bind: keyboardBindings[0], handler: decreaseSlice }
+          ]"
+        ></v-slider>
+        <div class="slice caption px-2">{{ slice | roundSlice }} mm</div>
       </v-layout>
     </div>
     <div ref="viewer" class="viewer"></div>
     <v-toolbar class="toolbar elevation-0" dark color="black" dense>
-      <div class="indicator body-2" :class="name">{{displayName}}</div>
+      <div class="indicator body-2" :class="name">{{ displayName }}</div>
       <v-spacer></v-spacer>
       <v-btn icon @click="takeScreenshot">
         <v-icon>add_a_photo</v-icon>

@@ -61,11 +61,11 @@ export default {
       label="CSV file"
       accept=".csv"
       v-model="csvFilename"
-      @file="csvFile=$event"/>
-    <v-btn
-      color="primary"
-      @click="importCSV"
-      :loading="importing">Import</v-btn>
+      @file="csvFile = $event"
+    />
+    <v-btn color="primary" @click="importCSV" :loading="importing"
+      >Import</v-btn
+    >
   </v-flex>
 </template>
 

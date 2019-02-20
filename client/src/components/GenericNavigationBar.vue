@@ -19,7 +19,6 @@ export default {
     </v-toolbar-title>
     <NavigationTabs />
     <v-spacer></v-spacer>
-    <UserButton
-      @user="girderRest.logout()" />
+    <UserButton @user="girderRest.logout()" />
   </v-toolbar>
 </template>

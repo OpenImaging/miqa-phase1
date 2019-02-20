@@ -72,21 +72,16 @@ export default {
 </script>
 
 <template>
-  <v-dialog
-    v-model="show"
-    max-width="500px">
+  <v-dialog v-model="show" max-width="500px">
     <v-card v-if="currentScreenshot">
-      <v-card-title
-        class="headline grey lighten-4">
+      <v-card-title class="headline grey lighten-4">
         Save screenshot
       </v-card-title>
       <v-container grid-list-sm class="pb-0">
         <v-layout>
           <v-flex>
             <v-card flat tile>
-              <v-img
-                :aspect-ratio="1"
-                :src="currentScreenshot.dataURL" />
+              <v-img :aspect-ratio="1" :src="currentScreenshot.dataURL" />
             </v-card>
           </v-flex>
         </v-layout>
@@ -95,7 +90,10 @@ export default {
             <v-text-field
               v-model="filename"
               label="Filename"
-              v-on:keyup.enter="save(); close()"
+              v-on:keyup.enter="
+                save();
+                close();
+              "
             />
           </v-flex>
           <v-flex xs2>
@@ -116,14 +114,19 @@ export default {
           flat
           :disabled="!output"
           :download="`${filename}.${fileType}`"
-          :href="output">
+          :href="output"
+        >
           Download
         </v-btn>
         <v-btn
           color="primary"
           flat
           :disabled="!output"
-          @click="save(); close();">
+          @click="
+            save();
+            close();
+          "
+        >
           Save
         </v-btn>
       </v-card-actions>

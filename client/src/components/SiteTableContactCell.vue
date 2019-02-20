@@ -52,9 +52,12 @@ export default {
       max-height="70vh"
       offset-x
       left
-      class="v-small-dialog">
+      class="v-small-dialog"
+    >
       <div slot="activator">
-        <div v-for="(contact, i) in value" :key="i">{{contact.mode}}: {{contact.name}} ({{contact.email}})</div>
+        <div v-for="(contact, i) in value" :key="i">
+          {{ contact.mode }}: {{ contact.name }} ({{ contact.email }})
+        </div>
       </div>
       <v-form @submit.prevent="save" ref="form">
         <v-card>
@@ -64,8 +67,7 @@ export default {
                 No contacts
               </v-flex>
             </v-layout>
-            <v-layout v-for="(contact, i) in contacts" :key="i"
-              align-center>
+            <v-layout v-for="(contact, i) in contacts" :key="i" align-center>
               <v-flex shrink>
                 <v-select
                   :items="['to', 'cc', 'bcc']"

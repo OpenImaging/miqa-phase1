@@ -100,14 +100,12 @@ export default {
           :step="windowWidthDomain.step"
           v-model="windowWidth"
           v-mousetrap="[
-            {bind:'=', handler:increaseWindowWidth},
-            {bind:'-', handler:decreaseWindowWidth}
+            { bind: '=', handler: increaseWindowWidth },
+            { bind: '-', handler: decreaseWindowWidth }
           ]"
         ></v-slider>
       </v-flex>
-      <v-flex
-        shrink
-        style="width: 60px">
+      <v-flex shrink style="width: 60px">
         <v-text-field
           class="mt-0"
           hide-details
@@ -128,14 +126,12 @@ export default {
           :step="windowLevelDomain.step"
           v-model="windowLevel"
           v-mousetrap="[
-            {bind:']', handler:increaseWindowLevel},
-            {bind:'[', handler:decreaseWindowLevel}
+            { bind: ']', handler: increaseWindowLevel },
+            { bind: '[', handler: decreaseWindowLevel }
           ]"
         ></v-slider>
       </v-flex>
-      <v-flex
-        shrink
-        style="width: 60px">
+      <v-flex shrink style="width: 60px">
         <v-text-field
           class="mt-0"
           hide-details

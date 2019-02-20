@@ -60,24 +60,35 @@ export default {
     <v-container>
       <v-layout justify-center>
         <v-flex>
-          <v-data-table
-            :headers="headers"
-            :items="items"
-            hide-actions>
-            <template slot="items" slot-scope="{item}">
+          <v-data-table :headers="headers" :items="items" hide-actions>
+            <template slot="items" slot-scope="{ item }">
               <td>{{ item.name }}</td>
-              <SiteTableDisplayNameCell :value="item.displayName" @input="update(item.site, 'displayName', $event)"/>
-              <SiteTableContactCell :value="item.pi" @input="update(item.site, 'pi', $event)" />
-              <SiteTableContactCell :value="item.mriPhysicist" @input="update(item.site, 'mriPhysicist', $event)" />
-              <SiteTableContactCell :value="item.technician" @input="update(item.site, 'technician', $event)" />
-              <SiteTableContactCell :value="item.leadRA" @input="update(item.site, 'leadRA', $event)" />
+              <SiteTableDisplayNameCell
+                :value="item.displayName"
+                @input="update(item.site, 'displayName', $event)"
+              />
+              <SiteTableContactCell
+                :value="item.pi"
+                @input="update(item.site, 'pi', $event)"
+              />
+              <SiteTableContactCell
+                :value="item.mriPhysicist"
+                @input="update(item.site, 'mriPhysicist', $event)"
+              />
+              <SiteTableContactCell
+                :value="item.technician"
+                @input="update(item.site, 'technician', $event)"
+              />
+              <SiteTableContactCell
+                :value="item.leadRA"
+                @input="update(item.site, 'leadRA', $event)"
+              />
             </template>
-        </v-data-table>
+          </v-data-table>
         </v-flex>
       </v-layout>
     </v-container>
   </div>
 </template>
 
-<style lang="scss" scoped>
-</style>
+<style lang="scss" scoped></style>

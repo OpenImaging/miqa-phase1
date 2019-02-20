@@ -186,27 +186,29 @@ export default {
 <template>
   <v-layout class="dataset" fill-height column>
     <v-toolbar app>
-      <v-toolbar-side-icon @click.stop="setDrawer(!drawer)"></v-toolbar-side-icon>
+      <v-toolbar-side-icon
+        @click.stop="setDrawer(!drawer)"
+      ></v-toolbar-side-icon>
       <v-toolbar-title class="ml-0 pl-3">
         <span>MIQA</span>
       </v-toolbar-title>
       <NavigationTabs />
       <v-spacer></v-spacer>
-      <v-btn icon class="mr-4"
-        @click="emailDialog=true">
-        <v-badge
-          :value="screenshots.length"
-          right>
-          <span
-            slot="badge"
-            dark>{{screenshots.length}}</span>
+      <v-btn icon class="mr-4" @click="emailDialog = true">
+        <v-badge :value="screenshots.length" right>
+          <span slot="badge" dark>{{ screenshots.length }}</span>
           <v-icon>email</v-icon>
         </v-badge>
       </v-btn>
-      <UserButton
-        @user="girderRest.logout()" />
+      <UserButton @user="girderRest.logout()" />
     </v-toolbar>
-    <v-navigation-drawer app temporary width="350" :value="drawer" @input="setDrawer($event)">
+    <v-navigation-drawer
+      app
+      temporary
+      width="350"
+      :value="drawer"
+      @input="setDrawer($event)"
+    >
       <div class="sessions-bar">
         <v-toolbar dense flat>
           <v-toolbar-title>Sessions</v-toolbar-title>
@@ -215,15 +217,20 @@ export default {
             <v-icon>open_in_new</v-icon>
           </v-btn>
         </v-toolbar>
-        <SessionsView class='mt-1' minimal />
+        <SessionsView class="mt-1" minimal />
       </div>
     </v-navigation-drawer>
     <template v-if="currentDataset">
       <v-flex class="layout-container">
         <Layout />
-        <v-layout v-if="loadingDataset"
+        <v-layout
+          v-if="loadingDataset"
           class="loading-indicator-container"
-          align-center justify-center row fill-height>
+          align-center
+          justify-center
+          row
+          fill-height
+        >
           <v-progress-circular
             color="primary"
             :width="4"
@@ -242,17 +249,41 @@ export default {
               <v-container fluid grid-list-sm class="py-0">
                 <v-layout align-center justify-center class="pb-1">
                   <v-flex class="subheading">
-                    {{getSiteDisplayName(currentSession.meta.site)}},
-                    <a :href="`https://ncanda.sri.com/xnat/app/action/DisplayItemAction/search_value/${currentSession.meta.experimentId}/search_element/xnat:mrSessionData/search_field/xnat:mrSessionData.ID`">{{currentSession.meta.experimentId}}</a>
-                    (<a :href="`https://ncanda.sri.com/redcap/redcap_v8.4.0/DataEntry/record_home.php?pid=20&arm=1&id=${currentSession.meta.experimentId2}`">{{currentSession.meta.experimentId2}}</a>)
+                    {{ getSiteDisplayName(currentSession.meta.site) }},
+                    <a
+                      :href="
+                        `https://ncanda.sri.com/xnat/app/action/DisplayItemAction/search_value/${
+                          currentSession.meta.experimentId
+                        }/search_element/xnat:mrSessionData/search_field/xnat:mrSessionData.ID`
+                      "
+                      >{{ currentSession.meta.experimentId }}</a
+                    >
+                    (<a
+                      :href="
+                        `https://ncanda.sri.com/redcap/redcap_v8.4.0/DataEntry/record_home.php?pid=20&arm=1&id=${
+                          currentSession.meta.experimentId2
+                        }`
+                      "
+                      >{{ currentSession.meta.experimentId2 }}</a
+                    >)
                   </v-flex>
                 </v-layout>
                 <v-layout>
                   <v-flex>
-                    <v-textarea solo label="Note" rows="4" hide-details
-                      v-model="note" @input="reviewChanged=true" ref="note"
-                      v-mousetrap="{ bind:'n', handler: focusNote }"
-                      v-mousetrap.element="{ bind:'esc', handler: ()=>$refs.note.blur() }"></v-textarea>
+                    <v-textarea
+                      solo
+                      label="Note"
+                      rows="4"
+                      hide-details
+                      v-model="note"
+                      @input="reviewChanged = true"
+                      ref="note"
+                      v-mousetrap="{ bind: 'n', handler: focusNote }"
+                      v-mousetrap.element="{
+                        bind: 'esc',
+                        handler: () => $refs.note.blur()
+                      }"
+                    ></v-textarea>
                   </v-flex>
                 </v-layout>
                 <v-layout>
@@ -263,56 +294,93 @@ export default {
                       solo
                       disabled
                       hide-details
-                      :value="reviewer"></v-text-field>
+                      :value="reviewer"
+                    ></v-text-field>
                   </v-flex>
                   <v-flex xs7>
-                    <v-btn-toggle class="buttons elevation-2"
-                      v-model="rating" @change="ratingChanged">
-                      <v-btn flat value="bad"
+                    <v-btn-toggle
+                      class="buttons elevation-2"
+                      v-model="rating"
+                      @change="ratingChanged"
+                    >
+                      <v-btn
+                        flat
+                        value="bad"
                         color="red"
                         :disabled="!note"
-                        v-mousetrap="{bind:'b', handler: ()=>setRating('bad')}"
-                        >Bad</v-btn>
-                      <v-btn flat value="good"
+                        v-mousetrap="{
+                          bind: 'b',
+                          handler: () => setRating('bad')
+                        }"
+                        >Bad</v-btn
+                      >
+                      <v-btn
+                        flat
+                        value="good"
                         color="green"
-                        v-mousetrap="{bind:'g', handler: ()=>setRating('good')}"
-                        >Good</v-btn>
-                      <v-btn flat value="usableExtra"
+                        v-mousetrap="{
+                          bind: 'g',
+                          handler: () => setRating('good')
+                        }"
+                        >Good</v-btn
+                      >
+                      <v-btn
+                        flat
+                        value="usableExtra"
                         color="light-green"
-                        v-mousetrap="{bind:'e', handler: ()=>setRating('usableExtra')}"
-                        >Usable extra</v-btn>
+                        v-mousetrap="{
+                          bind: 'e',
+                          handler: () => setRating('usableExtra')
+                        }"
+                        >Usable extra</v-btn
+                      >
                     </v-btn-toggle>
                   </v-flex>
                 </v-layout>
                 <v-layout align-center justify-space-between>
                   <v-flex style="display:flex;">
-                    <v-btn fab small
+                    <v-btn
+                      fab
+                      small
                       class="primary--text elevation-2"
                       :disabled="!previousDataset"
-                      :to="previousDataset?previousDataset._id:''"
-                      v-mousetrap="{bind:'left',
-                        disabled:!previousDataset || unsavedDialog || loadingDataset,
-                        handler: ()=>$router.push(previousDataset?previousDataset._id:'')}">
+                      :to="previousDataset ? previousDataset._id : ''"
+                      v-mousetrap="{
+                        bind: 'left',
+                        disabled:
+                          !previousDataset || unsavedDialog || loadingDataset,
+                        handler: () =>
+                          $router.push(
+                            previousDataset ? previousDataset._id : ''
+                          )
+                      }"
+                    >
                       <v-icon>keyboard_arrow_left</v-icon>
                     </v-btn>
-                    <v-btn fab small
+                    <v-btn
+                      fab
+                      small
                       class="primary--text elevation-2"
                       :disabled="!nextDataset"
-                      :to="nextDataset?nextDataset._id:''"
-                      v-mousetrap="{bind:'right',
-                        disabled:!nextDataset || unsavedDialog || loadingDataset,
-                        handler: ()=>$router.push(nextDataset?nextDataset._id:'')}">
+                      :to="nextDataset ? nextDataset._id : ''"
+                      v-mousetrap="{
+                        bind: 'right',
+                        disabled:
+                          !nextDataset || unsavedDialog || loadingDataset,
+                        handler: () =>
+                          $router.push(nextDataset ? nextDataset._id : '')
+                      }"
+                    >
                       <v-icon>keyboard_arrow_right</v-icon>
                     </v-btn>
-                    <v-menu v-if="currentSession && currentSession.datasets.length>1"
+                    <v-menu
+                      v-if="
+                        currentSession && currentSession.datasets.length > 1
+                      "
                       offset-y
                       max-height="70vh"
-                      >
-                      <v-btn
-                        slot="activator"
-                        flat
-                        icon
-                        color="primary">
+                    >
+                      <v-btn slot="activator" flat icon color="primary">
                         <v-icon>more_vert</v-icon>
                       </v-btn>
                       <v-list>
@@ -320,18 +388,25 @@ export default {
                           v-for="(dataset, index) in currentSession.datasets"
                           :key="index"
                           :to="dataset._id"
-                          :class="{'primary--text':dataset===currentDataset}">
-                          <v-list-tile-title>{{dataset.name}}</v-list-tile-title>
+                          :class="{
+                            'primary--text': dataset === currentDataset
+                          }"
+                        >
+                          <v-list-tile-title>{{
+                            dataset.name
+                          }}</v-list-tile-title>
                         </v-list-tile>
                       </v-list>
                     </v-menu>
                     <v-spacer />
-                    <v-tooltip top
-                      v-if="reviewChanged">
-                      <v-btn slot="activator"
-                        flat icon
+                    <v-tooltip top v-if="reviewChanged">
+                      <v-btn
+                        slot="activator"
+                        flat
+                        icon
                         color="grey"
-                        @click="loadSessionMeta">
+                        @click="loadSessionMeta"
+                      >
                         <v-icon>undo</v-icon>
                       </v-btn>
                       <span>Revert</span>
@@ -341,7 +416,8 @@ export default {
                       class="mx-0"
                       :disabled="!reviewChanged"
                       @click="save"
-                      v-mousetrap="{bind: 'alt+s', handler: save}">
+                      v-mousetrap="{ bind: 'alt+s', handler: save }"
+                    >
                       Save
                       <v-icon right>save</v-icon>
                     </v-btn>
@@ -362,17 +438,31 @@ export default {
         <v-card-text>Do you want save before continue?</v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn flat color="primary" @click="unsavedDialogYes"
-            v-mousetrap="{bind:'y', handler: (el)=>el.focus()}">Yes</v-btn>
-          <v-btn flat color="primary" @click="unsavedDialogNo"
-            v-mousetrap="{bind:'n', handler: (el)=>el.focus()}">no</v-btn>
-          <v-btn flat @click="unsavedDialogCancel"
-            v-mousetrap="{bind:'esc', handler: unsavedDialogCancel}">Cancel</v-btn>
+          <v-btn
+            flat
+            color="primary"
+            @click="unsavedDialogYes"
+            v-mousetrap="{ bind: 'y', handler: el => el.focus() }"
+            >Yes</v-btn
+          >
+          <v-btn
+            flat
+            color="primary"
+            @click="unsavedDialogNo"
+            v-mousetrap="{ bind: 'n', handler: el => el.focus() }"
+            >no</v-btn
+          >
+          <v-btn
+            flat
+            @click="unsavedDialogCancel"
+            v-mousetrap="{ bind: 'esc', handler: unsavedDialogCancel }"
+            >Cancel</v-btn
+          >
         </v-card-actions>
       </v-card>
     </v-dialog>
     <ScreenshotDialog />
-    <EmailDialog v-model='emailDialog' />
+    <EmailDialog v-model="emailDialog" />
   </v-layout>
 </template>
 

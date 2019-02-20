@@ -16,8 +16,12 @@ export default {
 
 <template>
   <div class="my-layout">
-    <div class="view" v-for="(vtkView, index) in vtkViews" :key="Math.random(index)">
-      <VtkViewer :view="vtkView"/>
+    <div
+      class="view"
+      v-for="(vtkView, index) in vtkViews"
+      :key="Math.random(index)"
+    >
+      <VtkViewer :view="vtkView" />
     </div>
   </div>
 </template>

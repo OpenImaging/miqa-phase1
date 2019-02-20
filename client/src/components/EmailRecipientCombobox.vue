@@ -37,24 +37,29 @@ export default {
 
 <template>
   <v-combobox
-    :value="value" @input="$emit('input', $event)"
+    :value="value"
+    @input="$emit('input', $event)"
     :items="candidates"
     :label="label"
     multiple
     deletable-chips
     small-chips
-    :rules="[allValid, v=>!!v.length || (required ? `at least one recipient is required` : true)]"
-    hide-selected>
-    <template
-      slot="selection"
-      slot-scope="{ item, parent, selected }">
+    :rules="[
+      allValid,
+      v =>
+        !!v.length || (required ? `at least one recipient is required` : true)
+    ]"
+    hide-selected
+  >
+    <template slot="selection" slot-scope="{ item, parent, selected }">
       <v-chip
-        :color="isValid(item)?'':'error'"
+        :color="isValid(item) ? '' : 'error'"
         :selected="selected"
         small
         close
         @input="parent.selectItem(item)"
-        >{{ item }}</v-chip>
+        >{{ item }}</v-chip
+      >
     </template>
   </v-combobox>
 </template>
