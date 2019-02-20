@@ -4,7 +4,7 @@ services:
   database:
     image: mongo:3.4
     volumes:
-      - "./volumes/database:/data/db"
+      - "${DATA_PERSISTENCE_DIRECTORY}/database:/data/db"
 
   web_server:
     build:
@@ -16,7 +16,7 @@ services:
       - "database"
     command: --host 0.0.0.0 --database mongodb://database:27017/girder
     volumes:
-      - "./volumes/assetstore:/assetstore"
+      - "${DATA_PERSISTENCE_DIRECTORY}/assetstore:/assetstore"
       - "${PATH_TO_MOUNT}"
 
   provision:
