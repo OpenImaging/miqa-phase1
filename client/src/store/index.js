@@ -390,13 +390,15 @@ function prepareProxyManager(proxyManager) {
       proxyManager.renderAllViews();
       // proxyManager.autoAnimateViews();
     };
-    ["View2D_Z:z", "View2D_X:x", "View2D_Y:y"].forEach(type => {
-      let view = getView(proxyManager, type);
-      view.setOrientationAxesVisibility(false);
-      view.getRepresentations().forEach(representation => {
-        representation.onModified(update);
-      });
-    });
+    ["View3D:default", "View2D_Z:z", "View2D_X:x", "View2D_Y:y"].forEach(
+      type => {
+        let view = getView(proxyManager, type);
+        view.setOrientationAxesVisibility(false);
+        view.getRepresentations().forEach(representation => {
+          representation.onModified(update);
+        });
+      }
+    );
   }
 }
 

@@ -60,13 +60,17 @@ export default {
     }
   },
   created() {
-    this.slice = this.representation.getSlice();
-    this.modifiedSubscription = this.representation.onModified(() => {
+    if (this.name !== "default") {
       this.slice = this.representation.getSlice();
-    });
+      this.modifiedSubscription = this.representation.onModified(() => {
+        this.slice = this.representation.getSlice();
+      });
+    }
   },
   beforeDestroy() {
-    this.modifiedSubscription.unsubscribe();
+    if (this.modifiedSubscription) {
+      this.modifiedSubscription.unsubscribe();
+    }
   },
   mounted() {
     this.view.setContainer(this.$refs.viewer);
@@ -109,7 +113,9 @@ export default {
 
 <template>
   <div class="vtk-viewer">
-    <div class="header" :class="name">
+    <div class="header"
+      :class="name"
+      v-if="name !== 'default'">
       <v-layout align-center>
         <v-slider
           class="slice-slider mt-0 mx-4"

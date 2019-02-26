@@ -12,6 +12,8 @@ import girder from "./girder";
 
 import "vuetify/dist/vuetify.min.css";
 
+import './vtk/ColorMaps';
+
 // import proxyConfigGenerator from './store/proxyConfigGenerator';
 
 Vue.use(AsyncComputed);
