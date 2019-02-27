@@ -114,6 +114,8 @@
         value: "{{ smtp_password }}"
       - key: "core.email_host"
         value: "{{ server_url_in_email }}"
+      - key: "core.email_from_address"
+        value: "{{ sender_address }}"
 
   - name: Restart Girder Server
     girder:

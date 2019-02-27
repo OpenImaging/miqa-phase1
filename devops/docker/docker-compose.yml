@@ -1,4 +1,4 @@
-version: "3"
+version: "2"
 
 services:
   database:
@@ -13,7 +13,7 @@ services:
     ports:
       - "${PORT}:8080"
     links:
-      - "database"
+      - database
     command: --host 0.0.0.0 --database mongodb://database:27017/girder
     volumes:
       - "${DATA_PERSISTENCE_DIRECTORY}/assetstore:/assetstore"
@@ -28,4 +28,11 @@ services:
       - web_server
     command:
       [
-        "ghost=web_server gport=8080 gscheme=http assetstore=/assetstore admin_name=${GIRDER_ADMIN_NAME} admin_pass=${GIRDER_ADMIN_PASS} smtp_server=${SMTP_SERVER} smtp_port=${SMTP_PORT} smtp_encryption=${SMTP_ENCRYPTION} smtp_username=${SMTP_USERNAME} smtp_password=${SMTP_PASSWORD} server_url_in_email=${SERVER_URL_IN_EMAIL}"]
+        "ghost=web_server gport=8080 gscheme=http assetstore=/assetstore admin_name=${GIRDER_ADMIN_NAME} admin_pass=${GIRDER_ADMIN_PASS} smtp_server=smtp-relay smtp_port=587 smtp_encryption=none smtp_username= smtp_password= server_url_in_email=${SERVER_URL_IN_EMAIL} sender_address=${SENDER_ADDRESS}"]
+
+  smtp-relay:
+    image: hongkongkiwi/postfix-smtp-relay:latest
+    links:
+      - web_server
+    environment:
+      - ALLOWED_SENDER_DOMAINS=${ALLOWED_SENDER_DOMAINS}
