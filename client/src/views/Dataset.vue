@@ -8,6 +8,7 @@ import WindowControl from "@/components/WindowControl";
 import ScreenshotDialog from "@/components/ScreenshotDialog";
 import EmailDialog from "@/components/EmailDialog";
 import NavigationTabs from "@/components/NavigationTabs";
+import { cleanDatasetName } from "@/utils/helper";
 
 export default {
   name: "dataset",
@@ -92,6 +93,7 @@ export default {
       "loadAndSetSessionsByDatasetId",
       "swapToDataset"
     ]),
+    cleanDatasetName,
     async beforeLeaveSession(toDataset) {
       let currentDataset = this.currentDataset;
       if (
@@ -267,6 +269,10 @@ export default {
                       >{{ currentSession.meta.experimentId2 }}</a
                     >)
                   </v-flex>
+                  <v-spacer />
+                  <v-flex shrink v-if="currentSession.datasets.length > 1">
+                    {{cleanDatasetName(currentDataset.name)}}
+                  </v-flex>
                 </v-layout>
                 <v-layout>
                   <v-flex>
@@ -374,9 +380,7 @@ export default {
                       <v-icon>keyboard_arrow_right</v-icon>
                     </v-btn>
                     <v-menu
-                      v-if="
-                        currentSession && currentSession.datasets.length > 1
-                      "
+                      v-if="currentSession.datasets.length > 1"
                       offset-y
                       max-height="70vh"
                     >
@@ -393,7 +397,7 @@ export default {
                           }"
                         >
                           <v-list-tile-title>{{
-                            dataset.name
+                            cleanDatasetName(dataset.name)
                           }}</v-list-tile-title>
                         </v-list-tile>
                       </v-list>

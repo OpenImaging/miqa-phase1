@@ -2,6 +2,7 @@
 import { mapState, mapGetters, mapMutations } from "vuex";
 
 import fill2DView from "../utils/fill2DView";
+import { cleanDatasetName } from "@/utils/helper";
 
 export default {
   name: "vtkViewer",
@@ -91,7 +92,8 @@ export default {
     async takeScreenshot() {
       var dataURL = await this.view.captureImage();
       this.setCurrentScreenshot({
-        name: this.currentDataset.name + " " + this.displayName,
+        name:
+          cleanDatasetName(this.currentDataset.name) + " " + this.displayName,
         dataURL
       });
     }
