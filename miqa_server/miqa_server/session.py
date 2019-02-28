@@ -68,8 +68,8 @@ class Session(Resource):
                 'sessions': sessions
             })
             for sessionFolder in Folder().childFolders(batchFolder, 'folder', user=user):
-                datasets = list(Item().find({'folderId': sessionFolder['_id'],
-                                             'name': {'$regex': 'nii.gz$'}}))
+                datasets = list(Item().find({'$query': {'folderId': sessionFolder['_id'],
+                                             'name': {'$regex': 'nii.gz$'}}, '$orderby': {'name': 1}}))
                 sessions.append({
                     'folderId': sessionFolder['_id'],
                     'name': sessionFolder['name'],
@@ -165,6 +165,7 @@ class Session(Resource):
         reader = csv.DictReader(io.StringIO(csvItem['description']))
         output = io.StringIO()
         writer = csv.DictWriter(output, fieldnames=reader.fieldnames)
+        writer.writeheader()
         for row in reader:
             experience = Folder().findOne({
                 'name': row['xnat_experiment_id'],

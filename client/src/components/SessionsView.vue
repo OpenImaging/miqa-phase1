@@ -47,6 +47,7 @@ export default {
             icon
             small
             :href="`${API_URL}/miqa/batch/${batch._id}/export`"
+            @click.stop
           >
             <v-icon>attachment</v-icon>
           </v-btn>
