@@ -5,6 +5,7 @@ from girder.models.user import User
 from .client_webroot import ClientWebroot
 from .session import Session
 from .email import Email
+from .site import Site
 
 
 class GirderPlugin(plugin.GirderPlugin):
@@ -18,3 +19,4 @@ class GirderPlugin(plugin.GirderPlugin):
 
         info['apiRoot'].miqa = Session()
         info['apiRoot'].miqa_email = Email()
+        info['apiRoot'].miqa_site = Site()

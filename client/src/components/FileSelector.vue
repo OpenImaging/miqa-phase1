@@ -82,8 +82,16 @@ export default {
       :messages="messages"
       :required="required"
       @click.native="onFocus"
-      ref="fileTextField"></v-text-field>
-    <input type="file" :accept="accept" :multiple="multiple" :disabled="disabled" ref="fileInput" @change="onFileChange">
+      ref="fileTextField"
+    ></v-text-field>
+    <input
+      type="file"
+      :accept="accept"
+      :multiple="multiple"
+      :disabled="disabled"
+      ref="fileInput"
+      @change="onFileChange"
+    />
   </div>
 </template>
 

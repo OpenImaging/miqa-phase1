@@ -18,24 +18,25 @@ export default {
   <v-tabs
     class="navigation-tabs ml-3"
     icons-and-text
-    :height='64'
-    color="transparent">
-      <v-tab
-        :to="`/${currentDatasetId?currentDatasetId:''}`">
-        Dataset
-        <v-icon>explore</v-icon>
-      </v-tab>
-      <v-tab
-        to="/sessions">
-        batch
-        <v-icon>list</v-icon>
-      </v-tab>
-      <v-tab
-        :href="GIRDER_URL"
-        target="_blank">
-        Girder
-        <v-icon>open_in_new</v-icon>
-      </v-tab>
+    :height="64"
+    color="transparent"
+  >
+    <v-tab :to="`/${currentDatasetId ? currentDatasetId : ''}`">
+      Dataset
+      <v-icon>explore</v-icon>
+    </v-tab>
+    <v-tab to="/sessions">
+      batch
+      <v-icon>list</v-icon>
+    </v-tab>
+    <v-tab to="/sites">
+      sites
+      <v-icon>place</v-icon>
+    </v-tab>
+    <v-tab :href="GIRDER_URL" target="_blank">
+      Girder
+      <v-icon>open_in_new</v-icon>
+    </v-tab>
   </v-tabs>
 </template>
 
