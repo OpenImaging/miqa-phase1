@@ -51,7 +51,7 @@ export default {
     ]"
     hide-selected
   >
-    <template slot="selection" slot-scope="{ item, parent, selected }">
+    <template #selection="{ item, parent, selected }">
       <v-chip
         :color="isValid(item) ? '' : 'error'"
         :selected="selected"

@@ -61,7 +61,7 @@ export default {
       <v-layout justify-center>
         <v-flex>
           <v-data-table :headers="headers" :items="items" hide-actions>
-            <template slot="items" slot-scope="{ item }">
+            <template #items="{ item }">
               <td>{{ item.name }}</td>
               <SiteTableDisplayNameCell
                 :value="item.displayName"

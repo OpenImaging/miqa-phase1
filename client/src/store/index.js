@@ -164,6 +164,9 @@ const store = new Vuex.Store({
     addScreenshot(state, screenshot) {
       state.screenshots.push(screenshot);
     },
+    removeScreenshot(state, screenshot) {
+      state.screenshots.splice(state.screenshots.indexOf(screenshot), 1);
+    },
     selectSessionTreeByDataset(state, datasetId) {
       var sessionTree = tryFindSessionTreeByDatasetId(state, datasetId);
       state.sessionTree = sessionTree;

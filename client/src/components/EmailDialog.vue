@@ -49,7 +49,7 @@ export default {
     }
   },
   methods: {
-    ...mapMutations([]),
+    ...mapMutations(["removeScreenshot"]),
     initialize() {
       if (this.$refs.form) {
         this.$refs.form.resetValidation();
@@ -206,30 +206,37 @@ ${location.href}
           </v-layout>
           <template v-if="screenshots.length">
             <div class="caption">Include screenshots</div>
-            <v-layout class="screenshot-row" d-block>
+            <v-layout class="screenshot-row">
               <v-flex
-                d-inline-block
                 v-for="(screenshot, index) of screenshots"
                 :key="index"
+                shrink
               >
-                <v-card
-                  class="screenshot"
-                  @click="toggleScreenshotSelection(screenshot)"
-                  :style="{
-                    borderColor:
-                      selectedScreenshots.indexOf(screenshot) === -1
-                        ? 'transparent'
-                        : $vuetify.theme.primary
-                  }"
-                >
-                  <v-img :src="screenshot.dataURL" aspect-ratio="1"></v-img>
-                  <v-card-text class="text-truncate">
-                    <v-tooltip top>
-                      <span slot="activator">{{ screenshot.name }}</span>
-                      <span>{{ screenshot.name }}</span>
-                    </v-tooltip>
-                  </v-card-text>
-                </v-card>
+                <v-hover #default="{ hover }">
+                  <v-card
+                    class="screenshot"
+                    @click="toggleScreenshotSelection(screenshot)"
+                    :style="{
+                      borderColor:
+                        selectedScreenshots.indexOf(screenshot) === -1
+                          ? 'transparent'
+                          : $vuetify.theme.primary
+                    }"
+                  >
+                    <v-img :src="screenshot.dataURL" aspect-ratio="1"></v-img>
+                    <v-card-text class="text-truncate">
+                      <v-tooltip top>
+                        <span slot="activator">{{ screenshot.name }}</span>
+                        <span>{{ screenshot.name }}</span>
+                      </v-tooltip>
+                    </v-card-text>
+                    <v-fade-transition>
+                      <v-btn v-if="hover" @click.stop="removeScreenshot(screenshot)" fab small color="primary" class="close">
+                        <v-icon>close</v-icon>
+                      </v-btn>
+                    </v-fade-transition>
+                  </v-card>
+                </v-hover>
               </v-flex>
             </v-layout>
           </template>
@@ -256,6 +263,18 @@ ${location.href}
   .screenshot {
     width: 160px;
     border: 2px solid transparent;
+
+    .v-btn.close {
+      height: 25px;
+      width: 25px;
+      position: absolute;
+      top: 0;
+      right: 0;
+
+      .v-icon {
+        font-size: 14px;
+      }
+    }
   }
 }
 </style>
