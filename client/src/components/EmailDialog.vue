@@ -17,6 +17,7 @@ export default {
     }
   },
   data: () => ({
+    initialized: false,
     to: [],
     cc: [],
     bcc: [],
@@ -40,10 +41,12 @@ export default {
       if (value) {
         this.initialize();
       }
+    },
+    value(value) {
+      if (value && !this.initialized) {
+        this.initialize();
+      }
     }
-  },
-  created() {
-    this.initialize();
   },
   methods: {
     ...mapMutations([]),
@@ -92,6 +95,7 @@ export default {
 ${location.href}
 
 `;
+      this.initialized = true;
     },
     toggleScreenshotSelection(screenshot) {
       let index;
@@ -130,6 +134,7 @@ ${location.href}
       });
       this.sending = false;
       this.$emit("input", false);
+      this.initialized = false;
     }
   }
 };
