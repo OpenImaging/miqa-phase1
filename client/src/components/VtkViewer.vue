@@ -57,28 +57,37 @@ export default {
   watch: {
     slice(value) {
       this.representation.setSlice(value);
-    }
-  },
-  created() {
-    if (this.name !== "default") {
-      this.slice = this.representation.getSlice();
-      this.modifiedSubscription = this.representation.onModified(() => {
-        this.slice = this.representation.getSlice();
-      });
+    },
+    view(view, oldView) {
+      this.cleanup();
+      oldView.setContainer(null);
+      this.initialize();
     }
   },
   beforeDestroy() {
-    if (this.modifiedSubscription) {
-      this.modifiedSubscription.unsubscribe();
-    }
+    this.cleanup();
   },
   mounted() {
-    this.view.setContainer(this.$refs.viewer);
-    this.view.resize();
-    fill2DView(this.view);
+    this.initialize();
   },
   methods: {
     ...mapMutations(["setCurrentScreenshot"]),
+    initialize() {
+      this.view.setContainer(this.$refs.viewer);
+      this.view.resize();
+      fill2DView(this.view);
+      if (this.name !== "default") {
+        this.slice = this.representation.getSlice();
+        this.modifiedSubscription = this.representation.onModified(() => {
+          this.slice = this.representation.getSlice();
+        });
+      }
+    },
+    cleanup() {
+      if (this.modifiedSubscription) {
+        this.modifiedSubscription.unsubscribe();
+      }
+    },
     increaseSlice() {
       var slice = Math.min(
         (this.slice += this.sliceDomain.step),

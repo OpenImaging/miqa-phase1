@@ -19,7 +19,7 @@ export default {
     <div
       class="view"
       v-for="(vtkView, index) in vtkViews"
-      :key="Math.random(index)"
+      :key="index"
     >
       <VtkViewer :view="vtkView" />
     </div>

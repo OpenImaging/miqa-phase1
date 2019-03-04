@@ -32,7 +32,7 @@ export default {
     emailDialog: false
   }),
   computed: {
-    ...mapState(["proxyManager", "loadingDataset", "drawer", "screenshots"]),
+    ...mapState(["vtkViews", "loadingDataset", "drawer", "screenshots"]),
     ...mapGetters([
       "nextDataset",
       "currentDataset",
@@ -245,7 +245,7 @@ export default {
         <v-container fluid grid-list-md class="pa-3">
           <v-layout>
             <v-flex xs6>
-              <WindowControl v-if="proxyManager" class="py-0" />
+              <WindowControl v-if="vtkViews.length" class="py-0" />
             </v-flex>
             <v-flex xs6>
               <v-container fluid grid-list-sm class="py-0">

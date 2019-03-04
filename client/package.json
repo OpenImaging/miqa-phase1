@@ -10,7 +10,7 @@
   "dependencies": {
     "@girder/components": "git+https://github.com/girder/girder_web_components.git",
     "itk": "^9.1.1",
-    "vtk.js": "^8.1.0",
+    "vtk.js": "^8.3.15",
     "vue": "^2.6.7",
     "vue-async-computed": "^3.5.1",
     "vue-router": "^3.0.2",
