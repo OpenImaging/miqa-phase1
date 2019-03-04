@@ -1,6 +1,9 @@
 <script>
+import _ from "lodash";
 import Vue from "vue";
 import { mapState, mapGetters, mapMutations } from "vuex";
+import vtkWidgetManager from "vtk.js/Sources/Widgets/Core/WidgetManager";
+import vtkImageCroppingWidget from "vtk.js/Sources/Widgets/Widgets3D/ImageCroppingWidget";
 
 import fill2DView from "../utils/fill2DView";
 import { cleanDatasetName } from "@/utils/helper";
@@ -8,6 +11,7 @@ import { cleanDatasetName } from "@/utils/helper";
 export default {
   name: "vtkViewer",
   components: {},
+  inject: ["girderRest"],
   props: {
     view: {
       required: true
@@ -17,7 +21,14 @@ export default {
     slice: null,
     // helper to avoid size flickering
     resized: false,
-    fullscreen: false
+    fullscreen: false,
+    annotation: {
+      drawing: false,
+      widget: null,
+      widgetManager: null,
+      renderWindow: null,
+      selectedAnnotation: null
+    }
   }),
   computed: {
     ...mapState(["proxyManager", "sliceCache"]),
@@ -54,6 +65,16 @@ export default {
         default:
           return "";
       }
+    },
+    annotations() {
+      if (
+        !this.currentDataset ||
+        !this.currentDataset.meta ||
+        !this.currentDataset.meta.annotations
+      ) {
+        return [];
+      }
+      return this.currentDataset.meta.annotations;
     }
   },
   watch: {
@@ -68,6 +89,24 @@ export default {
       oldView.setContainer(null);
       this.initializeSlice();
       this.initializeView();
+    },
+    annotations(value) {
+      if (
+        this.annotation.selectedAnnotation &&
+        value.indexOf(this.annotation.selectedAnnotation) === -1
+      ) {
+        this.annotation.selectedAnnotation = null;
+        this.tryCleanAnnotation();
+      }
+    },
+    "annotation.selectedAnnotation": {
+      deep: true,
+      handler(value) {
+        if (this.annotation.widget) {
+          this.setResizedPlanes(this.annotation.widget, value.planes);
+          this.annotation.renderWindow.render();
+        }
+      }
     }
   },
   created() {
@@ -88,6 +127,11 @@ export default {
         this.modifiedSubscription = this.representation.onModified(() => {
           this.slice = this.representation.getSlice();
         });
+      } else {
+        this.representation.setXSliceVisibility(true);
+        this.representation.setYSliceVisibility(true);
+        this.representation.setZSliceVisibility(true);
+        this.representation.setVolumeVisibility(false);
       }
     },
     initializeView() {
@@ -98,6 +142,7 @@ export default {
       });
     },
     cleanup() {
+      this.tryCleanAnnotation();
       if (this.modifiedSubscription) {
         this.modifiedSubscription.unsubscribe();
       }
@@ -139,6 +184,268 @@ export default {
       if (this.resized) {
         fill2DView(this.view);
       }
+    },
+    createAnnotationWidget(callback) {
+      this.tryCleanAnnotation();
+
+      var widget = vtkImageCroppingWidget.newInstance();
+      widget.copyImageDataDescription(
+        this.proxyManager.getActiveSource().getDataset()
+      );
+      widget.setFaceHandlesEnabled(false);
+      widget.setEdgeHandlesEnabled(false);
+      widget.setCornerHandlesEnabled(false);
+
+      var renderer = this.view.getRenderer();
+      var renderWindow = this.view.getRenderWindow();
+
+      var widgetManager;
+      // Currently, WidgetManager can not be removed from view. So, keeping the same instance
+      if (!this.annotation.widgetManager) {
+        widgetManager = vtkWidgetManager.newInstance();
+        widgetManager.setRenderer(renderer);
+        this.annotation.widgetManager = widgetManager;
+      } else {
+        widgetManager = this.annotation.widgetManager;
+      }
+
+      widgetManager.addWidget(widget);
+      callback({ widget, widgetManager, renderer, renderWindow });
+
+      renderWindow.render();
+
+      this.annotation.widget = widget;
+      this.annotation.renderWindow = renderWindow;
+    },
+    addAnnotation() {
+      this.annotation.drawing = true;
+      this.createAnnotationWidget(({ widget, widgetManager }) => {
+        this.setResizedPlanes(widget);
+        widgetManager.enablePicking();
+        widget.setCornerHandlesEnabled(true);
+      });
+    },
+    selectAnnotationHelper(e, annotation) {
+      if (
+        [
+          "v-list__tile__title",
+          "v-list__tile__content",
+          "v-list__tile"
+        ].indexOf(e.target.className) !== -1
+      ) {
+        this.selectAnnotation(annotation);
+      }
+    },
+    selectAnnotation(annotation) {
+      if (this.annotation.selectedAnnotation !== annotation) {
+        this.createAnnotationWidget(({ widget, widgetManager }) => {
+          this.setResizedPlanes(widget, annotation.planes);
+
+          widgetManager.disablePicking();
+        });
+        this.annotation.selectedAnnotation = annotation;
+      } else {
+        this.tryCleanAnnotation();
+      }
+    },
+    editAnnotation(annotation) {
+      this.annotation.drawing = true;
+      if (this.annotation.selectedAnnotation !== annotation) {
+        this.annotation.selectedAnnotation = annotation;
+        this.createAnnotationWidget(({ widget, widgetManager }) => {
+          this.setResizedPlanes(widget, annotation.planes);
+
+          widgetManager.enablePicking();
+          widget.setCornerHandlesEnabled(true);
+        });
+      } else {
+        this.annotation.widget.setCornerHandlesEnabled(true);
+        this.annotation.widgetManager.enablePicking();
+        this.annotation.renderWindow.render();
+      }
+    },
+    deleteAnnotation(annotation) {
+      this.annotations.splice(this.annotations.indexOf(annotation), 1);
+      this.$snackbar({
+        text: "Annotation deleted",
+        button: "Undo",
+        timeout: 8000,
+        callback: () => {
+          this.annotations.push(annotation);
+          this.saveAnnotation();
+        }
+      });
+      this.saveAnnotation();
+    },
+    tryCleanAnnotation() {
+      if (this.annotation.widget) {
+        this.annotation.widgetManager.removeWidget(this.annotation.widget);
+        this.annotation.widgetManager.disablePicking();
+        this.annotation.widget = null;
+        this.annotation.renderWindow.render();
+        this.annotation.renderWindow = null;
+        this.annotation.selectedAnnotation = null;
+      }
+    },
+    setResizedPlanes(widget, planes) {
+      var initialPlanes = widget
+        .getWidgetState()
+        .getCroppingPlanes()
+        .getPlanes();
+      var newPlanes = (() => {
+        if (!planes) {
+          switch (this.name) {
+            case "z":
+              return [
+                initialPlanes[1] / 10,
+                initialPlanes[1] - initialPlanes[1] / 10,
+                initialPlanes[3] / 10,
+                initialPlanes[3] - initialPlanes[3] / 10,
+                initialPlanes[4],
+                initialPlanes[5]
+              ];
+            case "x":
+              return [
+                initialPlanes[0],
+                initialPlanes[1],
+                initialPlanes[3] / 10,
+                initialPlanes[3] - initialPlanes[3] / 10,
+                initialPlanes[5] / 10,
+                initialPlanes[5] - initialPlanes[5] / 10
+              ];
+            case "y":
+              return [
+                initialPlanes[1] / 10,
+                initialPlanes[1] - initialPlanes[1] / 10,
+                initialPlanes[3],
+                initialPlanes[4],
+                initialPlanes[5] / 10,
+                initialPlanes[5] - initialPlanes[5] / 10
+              ];
+            default:
+              return initialPlanes;
+          }
+        } else {
+          switch (this.name) {
+            case "z":
+              return [
+                planes[0],
+                planes[1],
+                planes[2],
+                planes[3],
+                initialPlanes[4],
+                initialPlanes[5]
+              ];
+            case "x":
+              return [
+                initialPlanes[0],
+                initialPlanes[1],
+                planes[2],
+                planes[3],
+                planes[4],
+                planes[5]
+              ];
+            case "y":
+              return [
+                planes[0],
+                planes[1],
+                initialPlanes[2],
+                initialPlanes[3],
+                planes[4],
+                planes[5]
+              ];
+            default:
+              return planes;
+          }
+        }
+      })();
+      widget
+        .getWidgetState()
+        .getCroppingPlanes()
+        .setPlanes(newPlanes);
+    },
+    updateSelectedAnnotation() {
+      var planes = this.annotation.widget
+        .getWidgetState()
+        .getCroppingPlanes()
+        .getPlanes();
+      var existingPlanes = this.annotation.selectedAnnotation.planes;
+      switch (this.name) {
+        case "z":
+          this.annotation.selectedAnnotation.planes = [
+            planes[0],
+            planes[1],
+            planes[2],
+            planes[3],
+            existingPlanes[4],
+            existingPlanes[5]
+          ];
+          break;
+        case "x":
+          this.annotation.selectedAnnotation.planes = [
+            existingPlanes[0],
+            existingPlanes[1],
+            planes[2],
+            planes[3],
+            planes[4],
+            planes[5]
+          ];
+          break;
+        case "y":
+          this.annotation.selectedAnnotation.planes = [
+            planes[0],
+            planes[1],
+            existingPlanes[2],
+            existingPlanes[3],
+            planes[4],
+            planes[5]
+          ];
+          break;
+        case "default":
+          this.annotation.selectedAnnotation.planes = planes;
+      }
+    },
+    confirmAnnotationEditing() {
+      this.annotation.drawing = false;
+      this.annotation.widget.setCornerHandlesEnabled(false);
+      this.annotation.widgetManager.disablePicking();
+      this.annotation.renderWindow.render();
+
+      if (!this.annotation.selectedAnnotation) {
+        if (!this.currentDataset.meta) {
+          this.$set(this.currentDataset, "meta", {});
+        }
+        if (!this.currentDataset.meta.annotations) {
+          this.$set(this.currentDataset.meta, "annotations", []);
+        }
+        var max = _.max(
+          this.currentDataset.meta.annotations.map(
+            annotation => annotation.index
+          )
+        );
+        var annotation = {
+          index: max ? max + 1 : 1,
+          planes: this.annotation.widget
+            .getWidgetState()
+            .getCroppingPlanes()
+            .getPlanes()
+        };
+        this.currentDataset.meta.annotations.push(annotation);
+        this.annotation.selectedAnnotation = annotation;
+      } else {
+        this.updateSelectedAnnotation();
+      }
+      this.saveAnnotation();
+    },
+    cancelAnnotationEditing() {
+      this.annotation.drawing = false;
+      this.tryCleanAnnotation();
+    },
+    async saveAnnotation() {
+      await this.girderRest.put(
+        `item/${this.currentDataset._id}/metadata?allowNull=true`,
+        this.currentDataset.meta
+      );
     }
   },
   filters: {
@@ -177,6 +484,65 @@ export default {
     <v-toolbar class="toolbar" dark flat color="black" height="42">
       <div class="indicator body-2" :class="name">{{ displayName }}</div>
       <v-spacer></v-spacer>
+      <v-menu offset-y top min-width="150">
+        <template #activator="{ on }">
+          <v-btn v-on="on" flat icon>
+            <v-icon>crop</v-icon>
+          </v-btn>
+        </template>
+        <v-list dense class="annotation-menu">
+          <template v-if="!annotation.drawing">
+            <v-hover
+              #default="{hover}"
+              v-for="annotationData of annotations"
+              :key="annotationData.index"
+            >
+              <v-list-tile
+                :class="{
+                  'primary--text':
+                    annotationData === annotation.selectedAnnotation
+                }"
+                @click="selectAnnotationHelper($event, annotationData)"
+              >
+                <v-list-tile-content>
+                  <v-list-tile-title>{{
+                    annotationData.index
+                  }}</v-list-tile-title>
+                </v-list-tile-content>
+                <v-fade-transition>
+                  <v-list-tile-action v-if="hover">
+                    <v-btn icon @click.prevent="editAnnotation(annotationData)">
+                      <v-icon color="grey">edit</v-icon>
+                    </v-btn>
+                  </v-list-tile-action>
+                </v-fade-transition>
+                <v-fade-transition>
+                  <v-list-tile-action v-if="hover">
+                    <v-btn
+                      icon
+                      @click.prevent="deleteAnnotation(annotationData)"
+                    >
+                      <v-icon color="grey">delete</v-icon>
+                    </v-btn>
+                  </v-list-tile-action>
+                </v-fade-transition>
+              </v-list-tile>
+            </v-hover>
+            <v-divider v-if="annotations.length" />
+            <v-list-tile @click="addAnnotation">
+              <v-list-tile-title>Add</v-list-tile-title>
+            </v-list-tile>
+          </template>
+          <template v-else>
+            <v-list-tile @click="confirmAnnotationEditing">
+              <v-list-tile-title>Confirm</v-list-tile-title>
+            </v-list-tile>
+            <v-list-tile @click="cancelAnnotationEditing">
+              <v-list-tile-title>Cancel</v-list-tile-title>
+            </v-list-tile>
+          </template>
+        </v-list>
+      </v-menu>
       <v-btn
         icon
         @click="toggleFullscreen"
@@ -283,19 +649,16 @@ export default {
     overflow-y: hidden;
   }
 }
+
+.annotation-menu {
+  .v-list__tile__action {
+    min-width: 35px;
+  }
+}
 </style>
 
 <style lang="scss">
 .vtk-viewer {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
-
-  display: flex;
-  flex-direction: column;
-
   .slice-slider .v-slider {
     height: 23px;
   }
