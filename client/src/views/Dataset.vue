@@ -249,8 +249,8 @@ export default {
             </v-flex>
             <v-flex xs6>
               <v-container fluid grid-list-sm class="py-0">
-                <v-layout align-center justify-center class="pb-1">
-                  <v-flex class="subheading">
+                <v-layout align-center justify-center class="pb-1 subheading">
+                  <v-flex>
                     {{ getSiteDisplayName(currentSession.meta.site) }},
                     <a
                       :href="
@@ -270,8 +270,8 @@ export default {
                     >)
                   </v-flex>
                   <v-spacer />
-                  <v-flex shrink v-if="currentSession.datasets.length > 1">
-                    {{cleanDatasetName(currentDataset.name)}}
+                  <v-flex shrink>
+                    {{ currentSession.meta.scanType }}
                   </v-flex>
                 </v-layout>
                 <v-layout>
@@ -344,7 +344,7 @@ export default {
                   </v-flex>
                 </v-layout>
                 <v-layout align-center justify-space-between>
-                  <v-flex style="display:flex;">
+                  <v-flex align-center>
                     <v-btn
                       fab
                       small
@@ -379,30 +379,34 @@ export default {
                     >
                       <v-icon>keyboard_arrow_right</v-icon>
                     </v-btn>
-                    <v-menu
-                      v-if="currentSession.datasets.length > 1"
-                      offset-y
-                      max-height="70vh"
-                    >
-                      <v-btn slot="activator" flat icon color="primary">
-                        <v-icon>more_vert</v-icon>
-                      </v-btn>
-                      <v-list>
-                        <v-list-tile
-                          v-for="(dataset, index) in currentSession.datasets"
-                          :key="index"
-                          :to="dataset._id"
-                          :class="{
-                            'primary--text': dataset === currentDataset
-                          }"
-                        >
-                          <v-list-tile-title>{{
-                            cleanDatasetName(dataset.name)
-                          }}</v-list-tile-title>
-                        </v-list-tile>
-                      </v-list>
-                    </v-menu>
-                    <v-spacer />
+                    <template v-if="currentSession.datasets.length > 1">
+                      <v-menu offset-y max-height="70vh">
+                        <v-btn slot="activator" flat icon color="primary">
+                          <v-icon>more_vert</v-icon>
+                        </v-btn>
+                        <v-list>
+                          <v-list-tile
+                            v-for="(dataset, index) in currentSession.datasets"
+                            :key="index"
+                            :to="dataset._id"
+                            :class="{
+                              'primary--text': dataset === currentDataset
+                            }"
+                          >
+                            <v-list-tile-title>{{
+                              cleanDatasetName(dataset.name)
+                            }}</v-list-tile-title>
+                          </v-list-tile>
+                        </v-list>
+                      </v-menu>
+                      <span
+                        >{{ cleanDatasetName(currentDataset.name) }} of
+                        {{ currentSession.datasets.length }}</span
+                      >
+                    </template>
+                  </v-flex>
+                  <v-spacer />
+                  <v-flex shrink>
                     <v-tooltip top v-if="reviewChanged">
                       <v-btn
                         slot="activator"
