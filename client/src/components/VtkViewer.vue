@@ -122,9 +122,7 @@ export default {
 
 <template>
   <div class="vtk-viewer">
-    <div class="header"
-      :class="name"
-      v-if="name !== 'default'">
+    <div class="header" :class="name" v-if="name !== 'default'">
       <v-layout align-center>
         <v-slider
           class="slice-slider mt-0 mx-4"

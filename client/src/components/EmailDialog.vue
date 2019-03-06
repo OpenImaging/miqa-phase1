@@ -231,7 +231,14 @@ ${location.href}
                       </v-tooltip>
                     </v-card-text>
                     <v-fade-transition>
-                      <v-btn v-if="hover" @click.stop="removeScreenshot(screenshot)" fab small color="primary" class="close">
+                      <v-btn
+                        v-if="hover"
+                        @click.stop="removeScreenshot(screenshot)"
+                        fab
+                        small
+                        color="primary"
+                        class="close"
+                      >
                         <v-icon>close</v-icon>
                       </v-btn>
                     </v-fade-transition>

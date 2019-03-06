@@ -16,11 +16,7 @@ export default {
 
 <template>
   <div class="my-layout">
-    <div
-      class="view"
-      v-for="(vtkView, index) in vtkViews"
-      :key="index"
-    >
+    <div class="view" v-for="(vtkView, index) in vtkViews" :key="index">
       <VtkViewer :view="vtkView" />
     </div>
   </div>
