@@ -157,6 +157,9 @@ export default {
         this.ratingChanged();
       }
     },
+    setNote(e) {
+      this.note = e.target.value;
+    },
     async ratingChanged() {
       if (!this.rating) {
         this.reviewChanged = true;
@@ -283,8 +286,9 @@ export default {
                       label="Note"
                       rows="4"
                       hide-details
-                      v-model="note"
+                      @blur="setNote($event)"
                       @input="reviewChanged = true"
+                      :value="this.note"
                       ref="note"
                       v-mousetrap="{ bind: 'n', handler: focusNote }"
                       v-mousetrap.element="{
