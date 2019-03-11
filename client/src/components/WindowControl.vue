@@ -105,7 +105,7 @@ export default {
           ]"
         ></v-slider>
       </v-flex>
-      <v-flex shrink style="width: 60px">
+      <v-flex shrink style="width: 80px">
         <v-text-field
           class="mt-0"
           hide-details
@@ -131,7 +131,7 @@ export default {
           ]"
         ></v-slider>
       </v-flex>
-      <v-flex shrink style="width: 60px">
+      <v-flex shrink style="width: 80px">
         <v-text-field
           class="mt-0"
           hide-details

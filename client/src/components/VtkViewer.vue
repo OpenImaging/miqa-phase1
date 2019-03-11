@@ -18,7 +18,7 @@ export default {
   }),
   computed: {
     ...mapState(["proxyManager"]),
-    ...mapGetters(["currentDataset"]),
+    ...mapGetters(["currentSession", "currentDataset"]),
     representation() {
       return this.proxyManager.getRepresentation(null, this.view);
     },
@@ -63,11 +63,11 @@ export default {
       this.initialize();
     }
   },
-  beforeDestroy() {
-    this.cleanup();
-  },
   mounted() {
     this.initialize();
+  },
+  beforeDestroy() {
+    this.cleanup();
   },
   methods: {
     ...mapMutations(["setCurrentScreenshot"]),
@@ -106,8 +106,9 @@ export default {
     async takeScreenshot() {
       var dataURL = await this.view.captureImage();
       this.setCurrentScreenshot({
-        name:
-          cleanDatasetName(this.currentDataset.name) + " " + this.displayName,
+        name: `${this.currentSession.meta.experimentId}/${
+          this.currentSession.meta.experimentId2
+        }/${cleanDatasetName(this.currentDataset.name)}/${this.displayName}`,
         dataURL
       });
     }

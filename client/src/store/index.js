@@ -34,19 +34,13 @@ const store = new Vuex.Store({
     sites: null
   },
   getters: {
-    currentDataset(state) {
-      if (!state.currentDatasetId || !state.sessionTree) {
+    currentDataset(state, getters) {
+      if (!state.currentDatasetId || !getters.allDatasets) {
         return;
       }
-      for (let experiment of state.sessionTree.experiments) {
-        for (let session of experiment.sessions) {
-          for (let dataset of session.datasets) {
-            if (dataset._id === state.currentDatasetId) {
-              return dataset;
-            }
-          }
-        }
-      }
+      return getters.allDatasets.find(
+        dataset => dataset._id === state.currentDatasetId
+      );
     },
     allDatasets(state) {
       if (!state.sessionTree) {
@@ -76,27 +70,19 @@ const store = new Vuex.Store({
       var index = getters.allDatasets.indexOf(getters.currentDataset);
       return getters.allDatasets.slice(index + 1, index + 2)[0];
     },
-    nextNextDataset(state, getters) {
-      if (!getters.currentDataset || !getters.allDatasets) {
-        return;
-      }
-      var index = getters.allDatasets.indexOf(getters.currentDataset);
-      return getters.allDatasets.slice(index + 2, index + 3)[0];
-    },
-    getDataset(state) {
+    // nextNextDataset(state, getters) {
+    //   if (!getters.currentDataset || !getters.allDatasets) {
+    //     return;
+    //   }
+    //   var index = getters.allDatasets.indexOf(getters.currentDataset);
+    //   return getters.allDatasets.slice(index + 2, index + 3)[0];
+    // },
+    getDataset(state, getters) {
       return function(datasetId) {
-        if (!datasetId || !state.sessionTree) {
+        if (!datasetId || !getters.allDatasets) {
           return;
         }
-        for (let experiment of state.sessionTree.experiments) {
-          for (let session of experiment.sessions) {
-            for (let dataset of session.datasets) {
-              if (dataset._id === datasetId) {
-                return dataset;
-              }
-            }
-          }
-        }
+        return getters.allDatasets.find(dataset => dataset._id === datasetId);
       };
     },
     currentSession(state, getters) {
@@ -108,6 +94,27 @@ const store = new Vuex.Store({
           for (let dataset of session.datasets) {
             if (dataset === getters.currentDataset) {
               return session;
+            }
+          }
+        }
+      }
+    },
+    firstDatasetInPreviousSession(state, getters) {
+      if (!getters.currentDataset || !state.sessionTree) {
+        return;
+      }
+      let takeNext = false;
+      for (let i = state.sessionTree.experiments.length - 1; i >= 0; i--) {
+        let experiment = state.sessionTree.experiments[i];
+        for (let j = experiment.sessions.length - 1; j >= 0; j--) {
+          let session = experiment.sessions[j];
+          for (let dataset of session.datasets) {
+            if (takeNext) {
+              return dataset;
+            }
+            if (dataset === getters.currentDataset) {
+              takeNext = true;
+              break;
             }
           }
         }

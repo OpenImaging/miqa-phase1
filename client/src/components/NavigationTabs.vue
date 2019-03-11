@@ -5,6 +5,7 @@ import { GIRDER_URL } from "../constants";
 
 export default {
   name: "NavigationTabs",
+  inject: ["girderRest"],
   data: () => ({
     GIRDER_URL
   }),
@@ -25,11 +26,11 @@ export default {
       Dataset
       <v-icon>explore</v-icon>
     </v-tab>
-    <v-tab to="/sessions">
+    <v-tab to="/sessions" v-if="girderRest.user && girderRest.user.admin">
       batch
       <v-icon>list</v-icon>
     </v-tab>
-    <v-tab to="/sites">
+    <v-tab to="/sites" v-if="girderRest.user && girderRest.user.admin">
       sites
       <v-icon>place</v-icon>
     </v-tab>

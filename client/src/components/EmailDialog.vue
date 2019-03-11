@@ -14,6 +14,10 @@ export default {
     value: {
       type: Boolean,
       required: true
+    },
+    note: {
+      type: String,
+      default: ""
     }
   },
   data: () => ({
@@ -44,6 +48,11 @@ export default {
     },
     value(value) {
       if (value && !this.initialized) {
+        this.initialize();
+      }
+    },
+    note(value) {
+      if (value) {
         this.initialize();
       }
     }
@@ -94,6 +103,7 @@ export default {
 
 ${location.href}
 
+${this.note}
 `;
       this.initialized = true;
     },

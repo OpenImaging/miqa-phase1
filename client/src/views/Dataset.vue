@@ -7,6 +7,7 @@ import SessionsView from "@/components/SessionsView";
 import WindowControl from "@/components/WindowControl";
 import ScreenshotDialog from "@/components/ScreenshotDialog";
 import EmailDialog from "@/components/EmailDialog";
+import KeyboardShortcutDialog from "@/components/KeyboardShortcutDialog";
 import NavigationTabs from "@/components/NavigationTabs";
 import { cleanDatasetName } from "@/utils/helper";
 
@@ -19,6 +20,7 @@ export default {
     WindowControl,
     ScreenshotDialog,
     EmailDialog,
+    KeyboardShortcutDialog,
     NavigationTabs
   },
   inject: ["girderRest"],
@@ -29,7 +31,8 @@ export default {
     reviewChanged: false,
     unsavedDialog: false,
     unsavedDialogResolve: null,
-    emailDialog: false
+    emailDialog: false,
+    keyboardShortcutDialog: false
   }),
   computed: {
     ...mapState(["vtkViews", "loadingDataset", "drawer", "screenshots"]),
@@ -39,6 +42,7 @@ export default {
       "getDataset",
       "currentSession",
       "previousDataset",
+      "firstDatasetInPreviousSession",
       "firstDatasetInNextSession",
       "getSiteDisplayName"
     ])
@@ -199,6 +203,9 @@ export default {
       </v-toolbar-title>
       <NavigationTabs />
       <v-spacer></v-spacer>
+      <v-btn icon class="mr-4" @click="keyboardShortcutDialog = true">
+        <v-icon>keyboard</v-icon>
+      </v-btn>
       <v-btn icon class="mr-4" @click="emailDialog = true">
         <v-badge :value="screenshots.length" right>
           <span slot="badge" dark>{{ screenshots.length }}</span>
@@ -245,12 +252,12 @@ export default {
         </v-layout>
       </v-flex>
       <v-flex shrink class="bottom">
-        <v-container fluid grid-list-md class="pa-3">
+        <v-container fluid grid-list-md class="pa-2 pt-3">
           <v-layout>
-            <v-flex xs6>
+            <v-flex xs5>
               <WindowControl v-if="vtkViews.length" class="py-0" />
             </v-flex>
-            <v-flex xs6>
+            <v-flex xs7>
               <v-container fluid grid-list-sm class="py-0">
                 <v-layout align-center justify-center class="pb-1 subheading">
                   <v-flex>
@@ -284,7 +291,7 @@ export default {
                     <v-textarea
                       solo
                       label="Note"
-                      rows="4"
+                      rows="2"
                       hide-details
                       @blur="setNote($event)"
                       @input="reviewChanged = true"
@@ -299,17 +306,7 @@ export default {
                   </v-flex>
                 </v-layout>
                 <v-layout>
-                  <v-flex xs5>
-                    <v-text-field
-                      class="small"
-                      label="Reviewer"
-                      solo
-                      disabled
-                      hide-details
-                      :value="reviewer"
-                    ></v-text-field>
-                  </v-flex>
-                  <v-flex xs7>
+                  <v-flex shrink style="min-width: 450px">
                     <v-btn-toggle
                       class="buttons elevation-2"
                       v-model="rating"
@@ -348,6 +345,16 @@ export default {
                       >
                     </v-btn-toggle>
                   </v-flex>
+                  <v-flex shrink>
+                    <v-text-field
+                      class="small"
+                      label="Reviewer"
+                      solo
+                      disabled
+                      hide-details
+                      :value="reviewer"
+                    ></v-text-field>
+                  </v-flex>
                 </v-layout>
                 <v-layout align-center justify-space-between>
                   <v-flex align-center>
@@ -383,10 +390,10 @@ export default {
                           $router.push(nextDataset ? nextDataset._id : '')
                       }"
                     >
-                      <v-icon>keyboard_arrow_right</v-icon>
+                      <v-icon>chevron_right</v-icon>
                     </v-btn>
                     <template v-if="currentSession.datasets.length > 1">
-                      <v-menu offset-y max-height="70vh">
+                      <v-menu offset-y max-height="500" min-width="100" auto>
                         <v-btn slot="activator" flat icon color="primary">
                           <v-icon>more_vert</v-icon>
                         </v-btn>
@@ -425,6 +432,34 @@ export default {
                       </v-btn>
                       <span>Revert</span>
                     </v-tooltip>
+                    <v-btn
+                      fab
+                      small
+                      class="primary--text elevation-2"
+                      :disabled="!firstDatasetInPreviousSession"
+                      :to="
+                        firstDatasetInPreviousSession
+                          ? firstDatasetInPreviousSession._id
+                          : ''
+                      "
+                    >
+                      <v-icon>first_page</v-icon>
+                    </v-btn>
+                    <v-btn
+                      fab
+                      small
+                      class="primary--text elevation-2"
+                      :disabled="!firstDatasetInNextSession"
+                      :to="
+                        firstDatasetInNextSession
+                          ? firstDatasetInNextSession._id
+                          : ''
+                      "
+                    >
+                      <v-icon>last_page</v-icon>
+                    </v-btn>
+                  </v-flex>
+                  <v-flex shrink>
                     <v-btn
                       color="primary"
                       class="mx-0"
@@ -476,7 +511,8 @@ export default {
       </v-card>
     </v-dialog>
     <ScreenshotDialog />
-    <EmailDialog v-model="emailDialog" />
+    <EmailDialog v-model="emailDialog" :note="note" />
+    <KeyboardShortcutDialog v-model="keyboardShortcutDialog" />
   </v-layout>
 </template>
 
@@ -511,7 +547,7 @@ export default {
         top: 1px;
         bottom: 0;
         left: 0;
-        right: 50%;
+        right: 58.3%;
         background: white;
       }
     }
