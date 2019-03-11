@@ -12,11 +12,10 @@ export default {
       required: true
     }
   },
-  data() {
-    return {
-      slice: null
-    };
-  },
+  data: () => ({
+    slice: null,
+    resized: false
+  }),
   computed: {
     ...mapState(["proxyManager"]),
     ...mapGetters(["currentDataset"]),
@@ -74,7 +73,6 @@ export default {
     ...mapMutations(["setCurrentScreenshot"]),
     initialize() {
       this.view.setContainer(this.$refs.viewer);
-      this.view.resize();
       fill2DView(this.view);
       if (this.name !== "default") {
         this.slice = this.representation.getSlice();
@@ -82,6 +80,9 @@ export default {
           this.slice = this.representation.getSlice();
         });
       }
+      setTimeout(() => {
+        this.resized = true;
+      });
     },
     cleanup() {
       if (this.modifiedSubscription) {
@@ -139,7 +140,11 @@ export default {
         <div class="slice caption px-2">{{ slice | roundSlice }} mm</div>
       </v-layout>
     </div>
-    <div ref="viewer" class="viewer"></div>
+    <div
+      ref="viewer"
+      class="viewer"
+      :style="{ visibility: resized ? 'unset' : 'hidden' }"
+    ></div>
     <v-toolbar class="toolbar elevation-0" dark color="black" dense>
       <div class="indicator body-2" :class="name">{{ displayName }}</div>
       <v-spacer></v-spacer>
@@ -157,6 +162,7 @@ export default {
   bottom: 0;
   left: 0;
   right: 0;
+  background: linear-gradient(#3a3a3a, #1d1d1d);
 
   display: flex;
   flex-direction: column;
@@ -227,7 +233,6 @@ export default {
   .viewer {
     flex: 1 1 0px;
     position: relative;
-    background: linear-gradient(#3a3a3a, #1d1d1d);
     overflow-y: hidden;
   }
 }
