@@ -1,4 +1,4 @@
-FROM girder/girder:latest-py3
+FROM girder/girder@sha256:bf3120735964da3801da2117800579119c7f2a4a271b86a5d91aea36123a32b6
 
 WORKDIR /
 # Install ansible girder-client for provisioning

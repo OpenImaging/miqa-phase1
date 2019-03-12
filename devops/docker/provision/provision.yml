@@ -35,22 +35,20 @@
         path: "user/me"
     register: admin
 
-  # - name: Ensure Reviewer 1 Group
-  #   girder:
-  #     host: "{{ ghost }}"
-  #     port: "{{ gport }}"
-  #     scheme: "{{ gscheme }}"
-  #     token: "{{ admin['token'] }}"
-  #     group:
-  #       name: "Reviewer 1"
-  #       description: ""
-  #       users:
-  #         - login: "{{ admin_name }}"
-  #           type: "admin"
-  #         - login: "{{ user_name }}"
-  #           type: "member"
-  #     state: present
-  #   register: dataSharingGroup
+  - name: Ensure the Reviewer Group
+    girder:
+      host: "{{ ghost }}"
+      port: "{{ gport }}"
+      scheme: "{{ gscheme }}"
+      token: "{{ admin['token'] }}"
+      group:
+        name: "reviewer"
+        description: "The user group for Reviewer"
+        users:
+          - login: "{{ admin_name }}"
+            type: "admin"
+      state: present
+    register: reviewerGroup
 
   - name: Ensure Default Assetstore
     girder:
@@ -73,9 +71,17 @@
       token: "{{ admin['token'] }}"
       collection:
         name: "miqa"
-        description: "Required root collection of miqa"
+        description: "Required collection for MIQA"
+        public: false
         current: true
         root: "{{ assetstore }}"
+        access:
+          users:
+            - login: "{{ admin_name }}"
+              type: admin
+          groups:
+            - name: reviewer
+              type: moderator
       state: present
 
   - name: Activate Girder Plugins
@@ -86,6 +92,7 @@
       token: "{{ admin['token'] }}"
       plugins:
         - miqa_server
+        - autojoin
       state: present
 
   - name: Update Girder System Settings
@@ -116,6 +123,11 @@
         value: "{{ server_url_in_email }}"
       - key: "core.email_from_address"
         value: "{{ sender_address }}"
+      - key: "autojoin"
+        value:
+          - groupId: "{{ reviewerGroup['gc_return']['_id'] }}"
+            level: 0
+            pattern: "@"
 
   - name: Restart Girder Server
     girder:
