@@ -1,5 +1,5 @@
 <script>
-import { mapActions } from "vuex";
+import { mapState, mapActions } from "vuex";
 
 import GenericNavigationBar from "@/components/GenericNavigationBar";
 import CSVImporter from "../components/CSVImporter";
@@ -13,7 +13,7 @@ export default {
     SessionsView
   },
   inject: ["girderRest"],
-  computed: {},
+  computed: { ...mapState(["batches"]) },
   async created() {
     await this.loadBatches();
   },
@@ -28,10 +28,16 @@ export default {
     <GenericNavigationBar />
     <v-container>
       <v-layout justify-center>
-        <v-flex xl7 lg11>
+        <v-flex xl6 lg10>
+          <div class="subheading font-weight-medium">Create</div>
           <v-layout>
-            <CSVImporter />
+            <v-flex lg7 md8>
+              <CSVImporter />
+            </v-flex>
           </v-layout>
+          <div class="subheading font-weight-medium mt-2" v-if="batches.length">
+            Batch
+          </div>
           <v-layout>
             <v-flex>
               <SessionsView class="mt-2" />

@@ -184,6 +184,24 @@ const store = new Vuex.Store({
       let { data: batches } = await girder.rest.get("miqa/batch");
       state.batches = batches;
     },
+    async deleteBatch({ state }, batch) {
+      var formData = new FormData();
+      formData.set(
+        "resources",
+        JSON.stringify({
+          folder: [batch._id]
+        })
+      );
+      await girder.rest.post("resource", formData, {
+        headers: { "X-HTTP-Method-Override": "DELETE" }
+      });
+      Vue.delete(state.sessionTreeCache, batch._id);
+      state.batches.splice(state.batches.indexOf(batch), 1);
+      if (!(state.sessionTree in state.sessionTreeCache)) {
+        state.sessionTree = null;
+        state.currentDatasetId = null;
+      }
+    },
     async loadSessionsByBatchId({ state }, batchId) {
       let { data: sessionTree } = await girder.rest.get(
         `miqa/batch/${batchId}/sessions`
