@@ -83,9 +83,9 @@ export default {
 </script>
 
 <template>
-  <v-container fluid grid-list-md class="py-0">
+  <div>
     <v-layout>
-      <v-flex>
+      <v-flex style="line-height: 36px">
         <div class="subheading">Window setup</div>
       </v-flex>
     </v-layout>
@@ -141,5 +141,5 @@ export default {
         ></v-text-field>
       </v-flex>
     </v-layout>
-  </v-container>
+  </div>
 </template>

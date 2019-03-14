@@ -252,227 +252,228 @@ export default {
         </v-layout>
       </v-flex>
       <v-flex shrink class="bottom">
-        <v-container fluid grid-list-md class="pa-2 pt-3">
+        <v-container fluid grid-list-md class="py-3 px-2">
           <v-layout>
-            <v-flex xs5>
-              <WindowControl v-if="vtkViews.length" class="py-0" />
+            <v-flex shrink style="flex-basis: 140px" class="mx-2">
+              <v-layout align-center fill-height column>
+                <v-flex class="pt-0">
+                  <v-btn
+                    fab
+                    small
+                    class="primary--text elevation-2 mt-0"
+                    :disabled="!previousDataset"
+                    :to="previousDataset ? previousDataset._id : ''"
+                    v-mousetrap="{
+                      bind: 'left',
+                      disabled:
+                        !previousDataset || unsavedDialog || loadingDataset,
+                      handler: () =>
+                        $router.push(previousDataset ? previousDataset._id : '')
+                    }"
+                  >
+                    <v-icon>keyboard_arrow_left</v-icon>
+                  </v-btn>
+                  <v-btn
+                    fab
+                    small
+                    class="primary--text elevation-2 mt-0"
+                    :disabled="!nextDataset"
+                    :to="nextDataset ? nextDataset._id : ''"
+                    v-mousetrap="{
+                      bind: 'right',
+                      disabled: !nextDataset || unsavedDialog || loadingDataset,
+                      handler: () =>
+                        $router.push(nextDataset ? nextDataset._id : '')
+                    }"
+                  >
+                    <v-icon>chevron_right</v-icon>
+                  </v-btn>
+                </v-flex>
+                <v-flex shrink class="pb-0">
+                  <v-btn
+                    fab
+                    small
+                    class="primary--text elevation-2 mb-0"
+                    :disabled="!firstDatasetInPreviousSession"
+                    :to="
+                      firstDatasetInPreviousSession
+                        ? firstDatasetInPreviousSession._id
+                        : ''
+                    "
+                  >
+                    <v-icon>first_page</v-icon>
+                  </v-btn>
+                  <v-btn
+                    fab
+                    small
+                    class="primary--text elevation-2 mb-0"
+                    :disabled="!firstDatasetInNextSession"
+                    :to="
+                      firstDatasetInNextSession
+                        ? firstDatasetInNextSession._id
+                        : ''
+                    "
+                  >
+                    <v-icon>last_page</v-icon>
+                  </v-btn>
+                </v-flex>
+              </v-layout>
             </v-flex>
-            <v-flex xs7>
-              <v-container fluid grid-list-sm class="py-0">
-                <v-layout align-center justify-center class="pb-1 subheading">
-                  <v-flex>
-                    {{ getSiteDisplayName(currentSession.meta.site) }},
-                    <a
-                      :href="
-                        `/xnat/app/action/DisplayItemAction/search_value/${
-                          currentSession.meta.experimentId
-                        }/search_element/xnat:mrSessionData/search_field/xnat:mrSessionData.ID`
-                      "
-                      target="_blank"
-                      >{{ currentSession.meta.experimentId }}</a
-                    >
-                    (<a
-                      :href="
-                        `/redcap/redcap_v8.4.0/DataEntry/record_home.php?pid=20&arm=1&id=${
-                          currentSession.meta.experimentId2
-                        }`
-                      "
-                      target="_blank"
-                      >{{ currentSession.meta.experimentId2 }}</a
-                    >)
-                  </v-flex>
-                  <v-spacer />
-                  <v-flex shrink>
-                    {{ currentSession.meta.scanType }}
-                  </v-flex>
-                </v-layout>
-                <v-layout>
-                  <v-flex>
-                    <v-textarea
-                      solo
-                      label="Note"
-                      rows="2"
-                      hide-details
-                      @blur="setNote($event)"
-                      @input="reviewChanged = true"
-                      :value="this.note"
-                      ref="note"
-                      v-mousetrap="{ bind: 'n', handler: focusNote }"
-                      v-mousetrap.element="{
-                        bind: 'esc',
-                        handler: () => $refs.note.blur()
-                      }"
-                    ></v-textarea>
-                  </v-flex>
-                </v-layout>
-                <v-layout>
-                  <v-flex shrink style="min-width: 450px">
-                    <v-btn-toggle
-                      class="buttons elevation-2"
-                      v-model="rating"
-                      @change="ratingChanged"
-                    >
-                      <v-btn
-                        flat
-                        value="bad"
-                        color="red"
-                        :disabled="!note"
-                        v-mousetrap="{
-                          bind: 'b',
-                          handler: () => setRating('bad')
-                        }"
-                        >Bad</v-btn
-                      >
-                      <v-btn
-                        flat
-                        value="good"
-                        color="green"
-                        v-mousetrap="{
-                          bind: 'g',
-                          handler: () => setRating('good')
-                        }"
-                        >Good</v-btn
-                      >
-                      <v-btn
-                        flat
-                        value="usableExtra"
-                        color="light-green"
-                        v-mousetrap="{
-                          bind: 'e',
-                          handler: () => setRating('usableExtra')
-                        }"
-                        >Usable extra</v-btn
-                      >
-                    </v-btn-toggle>
-                  </v-flex>
-                  <v-flex shrink>
-                    <v-text-field
-                      class="small"
-                      label="Reviewer"
-                      solo
-                      disabled
-                      hide-details
-                      :value="reviewer"
-                    ></v-text-field>
-                  </v-flex>
-                </v-layout>
-                <v-layout align-center justify-space-between>
-                  <v-flex align-center>
+            <v-flex xs8 class="mx-2">
+              <v-layout align-center justify-center class="subheading">
+                <v-flex style="line-height: 36px">
+                  {{ getSiteDisplayName(currentSession.meta.site) }},
+                  <a
+                    :href="
+                      `/xnat/app/action/DisplayItemAction/search_value/${
+                        currentSession.meta.experimentId
+                      }/search_element/xnat:mrSessionData/search_field/xnat:mrSessionData.ID`
+                    "
+                    target="_blank"
+                    >{{ currentSession.meta.experimentId }}</a
+                  >
+                  (<a
+                    :href="
+                      `/redcap/redcap_v8.4.0/DataEntry/record_home.php?pid=20&arm=1&id=${
+                        currentSession.meta.experimentId2
+                      }`
+                    "
+                    target="_blank"
+                    >{{ currentSession.meta.experimentId2 }}</a
+                  >),
+                  {{ currentSession.meta.scanType }}
+                </v-flex>
+                <v-tooltip top v-if="reviewChanged">
+                  <v-btn
+                    slot="activator"
+                    flat
+                    icon
+                    color="grey"
+                    class="my-0"
+                    @click="loadSessionMeta"
+                  >
+                    <v-icon>undo</v-icon>
+                  </v-btn>
+                  <span>Revert</span>
+                </v-tooltip>
+                <v-flex shrink v-if="currentSession.datasets.length > 1">
+                  <span
+                    >{{ cleanDatasetName(currentDataset.name) }} of
+                    {{ currentSession.datasets.length }}</span
+                  >
+                  <v-menu offset-y top max-height="400" min-width="100" auto>
                     <v-btn
-                      fab
-                      small
-                      class="primary--text elevation-2"
-                      :disabled="!previousDataset"
-                      :to="previousDataset ? previousDataset._id : ''"
-                      v-mousetrap="{
-                        bind: 'left',
-                        disabled:
-                          !previousDataset || unsavedDialog || loadingDataset,
-                        handler: () =>
-                          $router.push(
-                            previousDataset ? previousDataset._id : ''
-                          )
-                      }"
-                    >
-                      <v-icon>keyboard_arrow_left</v-icon>
-                    </v-btn>
-                    <v-btn
-                      fab
-                      small
-                      class="primary--text elevation-2"
-                      :disabled="!nextDataset"
-                      :to="nextDataset ? nextDataset._id : ''"
-                      v-mousetrap="{
-                        bind: 'right',
-                        disabled:
-                          !nextDataset || unsavedDialog || loadingDataset,
-                        handler: () =>
-                          $router.push(nextDataset ? nextDataset._id : '')
-                      }"
-                    >
-                      <v-icon>chevron_right</v-icon>
-                    </v-btn>
-                    <template v-if="currentSession.datasets.length > 1">
-                      <v-menu offset-y max-height="500" min-width="100" auto>
-                        <v-btn slot="activator" flat icon color="primary">
-                          <v-icon>more_vert</v-icon>
-                        </v-btn>
-                        <v-list>
-                          <v-list-tile
-                            v-for="(dataset, index) in currentSession.datasets"
-                            :key="index"
-                            :to="dataset._id"
-                            :class="{
-                              'primary--text': dataset === currentDataset
-                            }"
-                          >
-                            <v-list-tile-title>{{
-                              cleanDatasetName(dataset.name)
-                            }}</v-list-tile-title>
-                          </v-list-tile>
-                        </v-list>
-                      </v-menu>
-                      <span
-                        >{{ cleanDatasetName(currentDataset.name) }} of
-                        {{ currentSession.datasets.length }}</span
-                      >
-                    </template>
-                  </v-flex>
-                  <v-spacer />
-                  <v-flex shrink>
-                    <v-tooltip top v-if="reviewChanged">
-                      <v-btn
-                        slot="activator"
-                        flat
-                        icon
-                        color="grey"
-                        @click="loadSessionMeta"
-                      >
-                        <v-icon>undo</v-icon>
-                      </v-btn>
-                      <span>Revert</span>
-                    </v-tooltip>
-                    <v-btn
-                      fab
-                      small
-                      class="primary--text elevation-2"
-                      :disabled="!firstDatasetInPreviousSession"
-                      :to="
-                        firstDatasetInPreviousSession
-                          ? firstDatasetInPreviousSession._id
-                          : ''
-                      "
-                    >
-                      <v-icon>first_page</v-icon>
-                    </v-btn>
-                    <v-btn
-                      fab
-                      small
-                      class="primary--text elevation-2"
-                      :disabled="!firstDatasetInNextSession"
-                      :to="
-                        firstDatasetInNextSession
-                          ? firstDatasetInNextSession._id
-                          : ''
-                      "
-                    >
-                      <v-icon>last_page</v-icon>
-                    </v-btn>
-                  </v-flex>
-                  <v-flex shrink>
-                    <v-btn
+                      slot="activator"
+                      flat
+                      icon
                       color="primary"
-                      class="mx-0"
-                      :disabled="!reviewChanged"
-                      @click="save"
-                      v-mousetrap="{ bind: 'alt+s', handler: save }"
+                      class="my-0"
                     >
-                      Save
-                      <v-icon right>save</v-icon>
+                      <v-icon>more_vert</v-icon>
                     </v-btn>
-                  </v-flex>
-                </v-layout>
-              </v-container>
+                    <v-list>
+                      <v-list-tile
+                        v-for="(dataset, index) in currentSession.datasets"
+                        :key="index"
+                        :to="dataset._id"
+                        :class="{
+                          'primary--text': dataset === currentDataset
+                        }"
+                      >
+                        <v-list-tile-title>{{
+                          cleanDatasetName(dataset.name)
+                        }}</v-list-tile-title>
+                      </v-list-tile>
+                    </v-list>
+                  </v-menu>
+                </v-flex>
+              </v-layout>
+              <v-layout>
+                <v-flex>
+                  <v-textarea
+                    solo
+                    label="Note"
+                    rows="3"
+                    hide-details
+                    @blur="setNote($event)"
+                    @input="reviewChanged = true"
+                    :value="this.note"
+                    ref="note"
+                    v-mousetrap="{ bind: 'n', handler: focusNote }"
+                    v-mousetrap.element="{
+                      bind: 'esc',
+                      handler: () => $refs.note.blur()
+                    }"
+                  ></v-textarea>
+                </v-flex>
+              </v-layout>
+              <v-layout>
+                <v-flex>
+                  <v-btn-toggle
+                    class="buttons elevation-2"
+                    v-model="rating"
+                    @change="ratingChanged"
+                  >
+                    <v-btn
+                      flat
+                      value="bad"
+                      color="red"
+                      :disabled="!note"
+                      v-mousetrap="{
+                        bind: 'b',
+                        handler: () => setRating('bad')
+                      }"
+                      >Bad</v-btn
+                    >
+                    <v-btn
+                      flat
+                      value="good"
+                      color="green"
+                      v-mousetrap="{
+                        bind: 'g',
+                        handler: () => setRating('good')
+                      }"
+                      >Good</v-btn
+                    >
+                    <v-btn
+                      flat
+                      value="usableExtra"
+                      color="light-green"
+                      v-mousetrap="{
+                        bind: 'e',
+                        handler: () => setRating('usableExtra')
+                      }"
+                      >Usable extra</v-btn
+                    >
+                  </v-btn-toggle>
+                </v-flex>
+                <v-flex shrink>
+                  <v-text-field
+                    class="small"
+                    label="Reviewer"
+                    solo
+                    disabled
+                    hide-details
+                    :value="reviewer"
+                  ></v-text-field>
+                </v-flex>
+                <v-flex shrink>
+                  <v-btn
+                    color="primary"
+                    class="ma-0"
+                    style="height: 40px"
+                    :disabled="!reviewChanged"
+                    @click="save"
+                    v-mousetrap="{ bind: 'alt+s', handler: save }"
+                  >
+                    Save
+                    <v-icon right>save</v-icon>
+                  </v-btn>
+                </v-flex>
+              </v-layout>
+            </v-flex>
+            <v-flex xs4 class="mx-2 ml-3">
+              <WindowControl v-if="vtkViews.length" class="py-0" />
             </v-flex>
           </v-layout>
         </v-container>
@@ -540,24 +541,13 @@ export default {
   .bottom {
     > .container {
       position: relative;
-
-      &::before {
-        content: " ";
-        position: absolute;
-        top: 1px;
-        bottom: 0;
-        left: 0;
-        right: 58.3%;
-        background: white;
-      }
     }
 
     .buttons {
       width: 100%;
-      height: 40px;
 
       .v-btn {
-        height: 100%;
+        height: 40px;
         width: 33.333%;
       }
     }
