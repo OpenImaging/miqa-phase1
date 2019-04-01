@@ -13,12 +13,12 @@ export default {
     SessionsView
   },
   inject: ["girderRest"],
-  computed: { ...mapState(["batches"]) },
+  computed: { ...mapState([]) },
   async created() {
-    await this.loadBatches();
+    await this.loadSessions();
   },
   methods: {
-    ...mapActions(["loadBatches"])
+    ...mapActions(["loadSessions"])
   }
 };
 </script>
@@ -35,8 +35,8 @@ export default {
               <CSVImporter />
             </v-flex>
           </v-layout>
-          <div class="subheading font-weight-medium mt-2" v-if="batches.length">
-            Batch
+          <div class="subheading font-weight-medium mt-2">
+            Sessions
           </div>
           <v-layout>
             <v-flex>

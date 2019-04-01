@@ -48,21 +48,18 @@ export default {
     ])
   },
   async created() {
-    await Promise.all([this.loadBatches(), this.loadSites()]);
+    await Promise.all([this.loadSessions(), this.loadSites()]);
     var datasetId = this.$route.params.datasetId;
-    if (datasetId) {
-      await this.loadAndSetSessionsByDatasetId(datasetId);
-      try {
-        await this.swapToDataset(datasetId);
-        if (this.currentSession) {
-          this.note = this.currentSession.meta.note;
-          this.rating = this.currentSession.meta.rating;
-          this.reviewer = this.currentSession.meta.reviewer;
-        }
-      } catch (ex) {
-        this.$router.replace("/");
+    var dataset = this.getDataset(datasetId);
+    if (dataset) {
+      await this.swapToDataset(dataset);
+      if (this.currentSession) {
+        this.note = this.currentSession.meta.note;
+        this.rating = this.currentSession.meta.rating;
+        this.reviewer = this.currentSession.meta.reviewer;
       }
     } else {
+      this.$router.replace("/");
       this.setDrawer(true);
     }
   },
@@ -77,12 +74,11 @@ export default {
     }
   },
   async beforeRouteUpdate(to, from, next) {
-    this.selectSessionTreeByDataset(to.params.datasetId);
     let toDataset = this.getDataset(to.params.datasetId);
     let result = await this.beforeLeaveSession(toDataset);
     next(result);
-    if (result) {
-      this.swapToDataset(to.params.datasetId);
+    if (result && toDataset) {
+      this.swapToDataset(toDataset);
     }
   },
   async beforeRouteLeave(to, from, next) {
@@ -90,13 +86,8 @@ export default {
     next(result);
   },
   methods: {
-    ...mapMutations(["setDrawer", "selectSessionTreeByDataset"]),
-    ...mapActions([
-      "loadBatches",
-      "loadSites",
-      "loadAndSetSessionsByDatasetId",
-      "swapToDataset"
-    ]),
+    ...mapMutations(["setDrawer"]),
+    ...mapActions(["loadSessions", "loadSites", "swapToDataset"]),
     cleanDatasetName,
     async beforeLeaveSession(toDataset) {
       let currentDataset = this.currentDataset;

@@ -15,7 +15,6 @@ export default {
     importing: false
   }),
   methods: {
-    ...mapActions(["loadBatches"]),
     importCSV() {
       if (!this.csvFile) {
         return;
@@ -25,7 +24,7 @@ export default {
         this.importing = true;
         try {
           var { data: result } = await this.girderRest.post(
-            `miqa/batch/csv?filename=${this.csvFilename}`,
+            `miqa/csv?filename=${this.csvFilename}`,
             e.target.result,
             {
               headers: {
@@ -34,7 +33,6 @@ export default {
             }
           );
           this.importing = false;
-          this.loadBatches();
           this.$snackbar({
             text: `Import finished. 
           With ${result.success} rows succeeded and ${result.failed} failed.`,

@@ -14,7 +14,6 @@ class ClientWebroot(WebrootBase):
         }
 
     def GET(self, **params):
-        print(constants.STATIC_ROOT_DIR)
         file = open(os.path.join(constants.STATIC_ROOT_DIR, 'miqa', "index.html"), "r")
         return file.read()
 

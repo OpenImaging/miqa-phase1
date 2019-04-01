@@ -42,7 +42,7 @@ Now a running girder instance should be available at `localhost:8080`
 * Copy the collection ID from the URL or detail dialog
 * Navigate to *Admin Console*, *Assetstores*
 * Create a *Filesystem* assetstore
-* Navigate back to localhost:8080 and BATCH section
+* Navigate back to localhost:8080 and open the Sessions sidebar
 * Choose a CSV file. the CSV file needs to have the following fields
   * *xnat_experiment_id*, an id field of an experiment. Same id will be grouped
   * *nifti_folder*, *scan_id*, and *scan_type* these three columns will be concatenated into a directory path, which needs to be accessible by the server and each directory needs to contain numerous **.nii.gz* files

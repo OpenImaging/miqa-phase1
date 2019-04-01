@@ -1,5 +1,5 @@
 import csv
-import time
+import datetime
 import io
 import os
 
@@ -21,68 +21,40 @@ class Session(Resource):
         super(Session, self).__init__()
         self.resourceName = 'miqa'
 
-        self.route('POST', ('batch', 'csv',), self.csvImport)
-        self.route('GET', ('batch',), self.getAllbatch)
-        self.route('GET', ('batch', ':id', 'sessions',), self.getBatchSessions)
-        self.route('GET', ('batch', ':id', 'export',), self.getBatchCsvResult)
-        self.route('GET', ('dataset', ':id', 'sessions',), self.getDatasetSessions)
+        self.route('POST', ('csv',), self.csvImport)
+        self.route('GET', ('sessions',), self.getSessions)
+        self.route('GET', ('csv',), self.csvExport)
 
     @access.user
     @autoDescribeRoute(
-        Description('Retrieve all batches')
+        Description('Retrieve all sessions in a tree structure')
         .errorResponse())
-    def getAllbatch(self, params):
-        user = self.getCurrentUser()
-        result = []
-        collection = Collection().findOne({'name': 'miqa'})
-        if not collection:
-            return result
-        return [{'name': folder['name'], '_id':folder['_id']} for folder in Folder().childFolders(collection, 'collection', user=user) if folder['name'] != 'sites']
+    def getSessions(self, params):
+        return self._getSessions()
 
-    @access.user
-    @autoDescribeRoute(
-        Description('Retrieve all sessions of a batch in a tree structure')
-        .modelParam('id', model=Folder, level=AccessType.READ, destName='batch')
-        .errorResponse())
-    def getBatchSessions(self, batch, params):
-        return self.getSessions(batch)
-
-    @access.user
-    @autoDescribeRoute(
-        Description('Retrieve all sessions of a batch in a tree structure')
-        .modelParam('id', model=Item, level=AccessType.READ, destName='dataset')
-        .errorResponse())
-    def getDatasetSessions(self, dataset, params):
+    def _getSessions(self):
         user = self.getCurrentUser()
-        batch = Item().parentsToRoot(dataset, user=user)[1]['object']
-        return self.getSessions(batch)
-
-    def getSessions(self, batch):
-        user = self.getCurrentUser()
+        sessionsFolder = self.findSessionsFolder()
+        if not sessionsFolder:
+            return []
         experiments = []
-        for batchFolder in Folder().childFolders(batch, 'folder', user=user):
+        for experimentFolder in Folder().childFolders(sessionsFolder, 'folder', user=user):
             sessions = []
             experiments.append({
-                'folderId': batchFolder['_id'],
-                'name': batchFolder['name'],
+                'folderId': experimentFolder['_id'],
+                'name': experimentFolder['name'],
                 'sessions': sessions
             })
-            for sessionFolder in Folder().childFolders(batchFolder, 'folder', user=user):
+            for sessionFolder in Folder().childFolders(experimentFolder, 'folder', user=user):
                 datasets = list(Item().find({'$query': {'folderId': sessionFolder['_id'],
-                                             'name': {'$regex': 'nii.gz$'}}, '$orderby': {'name': 1}}))
+                                                        'name': {'$regex': 'nii.gz$'}}, '$orderby': {'name': 1}}))
                 sessions.append({
                     'folderId': sessionFolder['_id'],
                     'name': sessionFolder['name'],
                     'meta': sessionFolder.get('meta', {}),
                     'datasets': datasets
                 })
-        return {
-            'batch': {
-                '_id': batch['_id'],
-                'name': batch['name']
-            },
-            'experiments': experiments
-        }
+        return experiments
 
     @access.admin
     @autoDescribeRoute(
@@ -92,12 +64,14 @@ class Session(Resource):
         .errorResponse())
     def csvImport(self, filename, body, params):
         user = self.getCurrentUser()
+        existingSessionsFolder = self.findSessionsFolder(user)
+        if existingSessionsFolder:
+            existingSessionsFolder['name'] = 'sessions_' + \
+                datetime.datetime.now().strftime("%Y-%m-%d %I:%M:%S %p")
+            Folder().save(existingSessionsFolder)
+        sessionsFolder = self.findSessionsFolder(user, True)
         csv_content = body.read().decode("utf-8")
-        collection = Collection().findOne({'name': 'miqa'})
-        batchFolder = Folder().createFolder(
-            collection, filename,
-            parentType='collection', creator=user, allowRename=True)
-        Item().createItem('csv', user, batchFolder, description=csv_content)
+        Item().createItem('csv', user, sessionsFolder, description=csv_content)
         reader = csv.DictReader(io.StringIO(csv_content))
         successCount = 0
         failedCount = 0
@@ -118,17 +92,25 @@ class Session(Resource):
                 failedCount += 1
                 continue
             experimentFolder = Folder().createFolder(
-                batchFolder, experimentId, parentType='folder', reuseExisting=True)
+                sessionsFolder, experimentId, parentType='folder', reuseExisting=True)
             scanFolder = Folder().createFolder(
                 experimentFolder, scan, parentType='folder', reuseExisting=True)
-            Folder().setMetadata(scanFolder, {
+            meta = {
                 'experimentId': experimentId,
                 'experimentId2': experimentId2,
                 'site': site,
                 'date': date,
                 'scanId': scanId,
                 'scanType': scanType
-            })
+            }
+            # Merge note and rating if record exists
+            if existingSessionsFolder:
+                existingMeta = self.tryGetExistingSessionMeta(
+                    existingSessionsFolder, experimentId, scan)
+                if(existingMeta and (existingMeta.get('note', None) or existingMeta.get('rating', None))):
+                    meta['note'] = existingMeta.get('note', None)
+                    meta['rating'] = existingMeta.get('rating', None)
+            Folder().setMetadata(scanFolder, meta)
             currentAssetstore = Assetstore().getCurrent()
             Assetstore().importData(
                 currentAssetstore, parent=scanFolder, parentType='folder', params={
@@ -146,9 +128,8 @@ class Session(Resource):
     @access.cookie
     @autoDescribeRoute(
         Description('')
-        .modelParam('id', model=Folder, level=AccessType.READ, destName='batch')
         .errorResponse())
-    def getBatchCsvResult(self, batch, params):
+    def csvExport(self, params):
         def convertRatingToDecision(rating):
             return {
                 None: 0,
@@ -157,10 +138,11 @@ class Session(Resource):
                 'bad': -1
             }[rating]
         setResponseHeader('Content-Type', 'text/csv')
-        setContentDisposition(batch['name'] + '_output.csv')
-        items = list(Folder().childItems(batch, filters={'name': 'csv'}))
+        setContentDisposition('_output.csv')
+        sessionsFolder = self.findSessionsFolder()
+        items = list(Folder().childItems(sessionsFolder, filters={'name': 'csv'}))
         if not len(items):
-            raise RestException('Batch doesn\'t contain a csv item', code=404)
+            raise RestException('doesn\'t contain a csv item', code=404)
         csvItem = items[0]
         reader = csv.DictReader(io.StringIO(csvItem['description']))
         output = io.StringIO()
@@ -169,7 +151,7 @@ class Session(Resource):
         for row in reader:
             experience = Folder().findOne({
                 'name': row['xnat_experiment_id'],
-                'parentId': batch['_id']
+                'parentId': sessionsFolder['_id']
             })
             if not experience:
                 continue
@@ -183,3 +165,24 @@ class Session(Resource):
             row['scan_note'] = session.get('meta', {}).get('note', None)
             writer.writerow(row)
         return lambda: [(yield x) for x in output.getvalue()]
+
+    def findSessionsFolder(self, user=None, create=False):
+        collection = Collection().findOne({'name': 'miqa'})
+        sessionsFolder = Folder().findOne({'name': 'sessions', 'baseParentId': collection['_id']})
+        if not create:
+            return sessionsFolder
+        else:
+            if not sessionsFolder:
+                return Folder().createFolder(collection, 'sessions',
+                                             parentType='collection', creator=user)
+
+    def tryGetExistingSessionMeta(self, sessionsFolder, experimentId, scan):
+        experimentFolder = Folder().findOne(
+            {'name': experimentId, 'parentId': sessionsFolder['_id']})
+        if not experimentFolder:
+            return None
+        sessionFolder = Folder().findOne(
+            {'name': scan, 'parentId': experimentFolder['_id']})
+        if not sessionFolder:
+            return None
+        return sessionFolder.get('meta', {})
