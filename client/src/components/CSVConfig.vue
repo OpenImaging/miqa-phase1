@@ -48,6 +48,7 @@ export default {
       <v-flex lg6 sm8 xs12>
         <v-text-field
           label="Import path"
+          placeholder=" "
           v-model="importpath"
           @input="changed = true"
           browser-autocomplete="on"
@@ -61,6 +62,7 @@ export default {
       <v-flex lg6 sm8 xs12>
         <v-text-field
           label="Export path"
+          placeholder=" "
           v-model="exportpath"
           @input="changed = true"
           browser-autocomplete="on"

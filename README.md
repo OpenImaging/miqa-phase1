@@ -2,7 +2,7 @@
 
 ## Develop environment setup
 
-MIQA has server, client two components. They are located under *miqa_server* and *client* directory respectively.
+MIQA has server, client two components. They are located under *server* and *client* directory respectively.
 
 ### Prerequisite
 * Pyhton 3.5+
@@ -22,7 +22,7 @@ Now a running girder instance should be available at `localhost:8080`
 
 #### Install Miqa Server as a girder plugin
 * `git clone https://github.com/OpenImaging/miqa.git`
-* `pip install -e miqa/miqa_server/`
+* `pip install -e miqa/server/`
 
 #### Setup Girder with Miqa Server
 * `girder serve`

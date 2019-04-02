@@ -2,8 +2,8 @@ FROM girder/girder@sha256:bf3120735964da3801da2117800579119c7f2a4a271b86a5d91aea
 
 # Install girder
 RUN mkdir /miqa
-COPY miqa_server /miqa/miqa_server
-RUN pip install /miqa/miqa_server \
+COPY server /miqa/server
+RUN pip install /miqa/server \
     && girder build
 
 # This should be combined with above command when girder 3 fix plugin client build
