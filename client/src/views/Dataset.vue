@@ -3,6 +3,7 @@ import Layout from "@/components/Layout.vue";
 import { mapState, mapActions, mapGetters, mapMutations } from "vuex";
 
 import UserButton from "@/components/girder/UserButton";
+import CSVImportExport from "../components/CSVImportExport";
 import SessionsView from "@/components/SessionsView";
 import WindowControl from "@/components/WindowControl";
 import ScreenshotDialog from "@/components/ScreenshotDialog";
@@ -16,6 +17,7 @@ export default {
   components: {
     UserButton,
     Layout,
+    CSVImportExport,
     SessionsView,
     WindowControl,
     ScreenshotDialog,
@@ -197,7 +199,12 @@ export default {
       <v-btn icon class="mr-4" @click="keyboardShortcutDialog = true">
         <v-icon>keyboard</v-icon>
       </v-btn>
-      <v-btn icon class="mr-4" @click="emailDialog = true">
+      <v-btn
+        icon
+        class="mr-4"
+        @click="emailDialog = true"
+        :disabled="!currentDataset"
+      >
         <v-badge :value="screenshots.length" right>
           <span slot="badge" dark>{{ screenshots.length }}</span>
           <v-icon>email</v-icon>
@@ -215,11 +222,8 @@ export default {
       <div class="sessions-bar">
         <v-toolbar dense flat>
           <v-toolbar-title>Sessions</v-toolbar-title>
-          <v-spacer></v-spacer>
-          <v-btn icon to="sessions">
-            <v-icon>open_in_new</v-icon>
-          </v-btn>
         </v-toolbar>
+        <CSVImportExport />
         <SessionsView class="mt-1" minimal />
       </div>
     </v-navigation-drawer>

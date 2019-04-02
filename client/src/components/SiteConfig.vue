@@ -1,14 +1,12 @@
 <script>
 import { mapState, mapActions } from "vuex";
 
-import GenericNavigationBar from "@/components/GenericNavigationBar";
 import SiteTableContactCell from "@/components/SiteTableContactCell";
 import SiteTableDisplayNameCell from "@/components/SiteTableDisplayNameCell";
 
 export default {
-  name: "Sites",
+  name: "SiteConfig",
   components: {
-    GenericNavigationBar,
     SiteTableContactCell,
     SiteTableDisplayNameCell
   },
@@ -55,40 +53,34 @@ export default {
 </script>
 
 <template>
-  <div class="sites">
-    <GenericNavigationBar />
-    <v-container>
-      <v-layout justify-center>
-        <v-flex>
-          <v-data-table :headers="headers" :items="items" hide-actions>
-            <template #items="{ item }">
-              <td>{{ item.name }}</td>
-              <SiteTableDisplayNameCell
-                :value="item.displayName"
-                @input="update(item.site, 'displayName', $event)"
-              />
-              <SiteTableContactCell
-                :value="item.pi"
-                @input="update(item.site, 'pi', $event)"
-              />
-              <SiteTableContactCell
-                :value="item.mriPhysicist"
-                @input="update(item.site, 'mriPhysicist', $event)"
-              />
-              <SiteTableContactCell
-                :value="item.technician"
-                @input="update(item.site, 'technician', $event)"
-              />
-              <SiteTableContactCell
-                :value="item.leadRA"
-                @input="update(item.site, 'leadRA', $event)"
-              />
-            </template>
-          </v-data-table>
-        </v-flex>
-      </v-layout>
-    </v-container>
-  </div>
+  <v-data-table
+    class="site-config"
+    :headers="headers"
+    :items="items"
+    hide-actions
+  >
+    <template #items="{ item }">
+      <td>{{ item.name }}</td>
+      <SiteTableDisplayNameCell
+        :value="item.displayName"
+        @input="update(item.site, 'displayName', $event)"
+      />
+      <SiteTableContactCell
+        :value="item.pi"
+        @input="update(item.site, 'pi', $event)"
+      />
+      <SiteTableContactCell
+        :value="item.mriPhysicist"
+        @input="update(item.site, 'mriPhysicist', $event)"
+      />
+      <SiteTableContactCell
+        :value="item.technician"
+        @input="update(item.site, 'technician', $event)"
+      />
+      <SiteTableContactCell
+        :value="item.leadRA"
+        @input="update(item.site, 'leadRA', $event)"
+      />
+    </template>
+  </v-data-table>
 </template>
-
-<style lang="scss" scoped></style>

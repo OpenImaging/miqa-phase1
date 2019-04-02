@@ -26,11 +26,15 @@ export default {
       Dataset
       <v-icon>explore</v-icon>
     </v-tab>
-    <v-tab to="/sites" v-if="girderRest.user && girderRest.user.admin">
-      sites
+    <v-tab to="/settings" v-if="girderRest.user && girderRest.user.admin">
+      Settings
       <v-icon>place</v-icon>
     </v-tab>
-    <v-tab :href="GIRDER_URL" target="_blank">
+    <v-tab
+      v-if="girderRest.user && girderRest.user.admin"
+      :href="GIRDER_URL"
+      target="_blank"
+    >
       Girder
       <v-icon>open_in_new</v-icon>
     </v-tab>

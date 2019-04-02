@@ -8,6 +8,7 @@ import { API_URL, STATIC_PATH } from "./constants";
 
 import vMousetrap from "vue-utilities/v-mousetrap";
 import snackbarService from "vue-utilities/snackbar-service";
+import promptService from "vue-utilities/prompt-service";
 import girder from "./girder";
 
 import "vuetify/dist/vuetify.min.css";
@@ -20,6 +21,7 @@ Vue.use(AsyncComputed);
 Vue.use(Girder);
 Vue.use(vMousetrap);
 Vue.use(snackbarService);
+Vue.use(promptService);
 
 girder.rest = new RestClient({ apiRoot: API_URL });
 
@@ -39,5 +41,6 @@ girder.rest.fetchUser().then(() => {
     provide: { girderRest: girder.rest }
   })
     .$mount("#app")
-    .$snackbarAttach();
+    .$snackbarAttach()
+    .$promptAttach();
 });

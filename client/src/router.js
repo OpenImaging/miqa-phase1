@@ -2,8 +2,7 @@ import Vue from "vue";
 import Router from "vue-router";
 
 import girder from "./girder";
-import Sessions from "./views/Sessions.vue";
-import Sites from "./views/Sites.vue";
+import Settings from "./views/Settings.vue";
 import Dataset from "./views/Dataset.vue";
 import Login from "./views/Login.vue";
 
@@ -17,6 +16,18 @@ function beforeEnter(to, from, next) {
   }
 }
 
+function beforeEnterAdmin(to, from, next) {
+  if (!girder.rest.user) {
+    next("/login");
+  } else {
+    if (!girder.rest.user.admin) {
+      next("/");
+    } else {
+      next();
+    }
+  }
+}
+
 export default new Router({
   routes: [
     {
@@ -25,16 +36,10 @@ export default new Router({
       component: Login
     },
     {
-      path: "/sessions",
-      name: "sessions",
-      component: Sessions,
-      beforeEnter
-    },
-    {
-      path: "/sites",
-      name: "sites",
-      component: Sites,
-      beforeEnter
+      path: "/settings",
+      name: "settings",
+      component: Settings,
+      beforeEnter: beforeEnterAdmin
     },
     // Order matters
     {

@@ -9,11 +9,14 @@ from girder.constants import AccessType
 from girder.exceptions import RestException
 from girder.api.describe import Description, autoDescribeRoute
 from girder.models.collection import Collection
+from girder.models.assetstore import Assetstore
 from girder.models.folder import Folder
 from girder.models.item import Item
-from girder.models.assetstore import Assetstore
+from girder.models.setting import Setting
 from girder.utility.progress import noProgress
-from .site import tryAddSites
+
+from .setting import fileWritable, tryAddSites
+from .constants import exportpathKey, importpathKey
 
 
 class Session(Resource):
@@ -21,9 +24,10 @@ class Session(Resource):
         super(Session, self).__init__()
         self.resourceName = 'miqa'
 
-        self.route('POST', ('csv',), self.csvImport)
+        self.route('POST', ('csv', 'import',), self.csvImport)
         self.route('GET', ('sessions',), self.getSessions)
-        self.route('GET', ('csv',), self.csvExport)
+        self.route('GET', ('csv', 'export',), self.csvExport)
+        self.route('GET', ('csv', 'export', 'download',), self.csvExportDownload)
 
     @access.user
     @autoDescribeRoute(
@@ -56,80 +60,100 @@ class Session(Resource):
                 })
         return experiments
 
-    @access.admin
+    @access.user
     @autoDescribeRoute(
         Description('')
-        .param('filename', '', required=True, dataType='string', paramType='query')
-        .param('body', '', required=True, dataType='string', paramType='body')
         .errorResponse())
-    def csvImport(self, filename, body, params):
+    def csvImport(self, params):
         user = self.getCurrentUser()
-        existingSessionsFolder = self.findSessionsFolder(user)
-        if existingSessionsFolder:
-            existingSessionsFolder['name'] = 'sessions_' + \
-                datetime.datetime.now().strftime("%Y-%m-%d %I:%M:%S %p")
-            Folder().save(existingSessionsFolder)
-        sessionsFolder = self.findSessionsFolder(user, True)
-        csv_content = body.read().decode("utf-8")
-        Item().createItem('csv', user, sessionsFolder, description=csv_content)
-        reader = csv.DictReader(io.StringIO(csv_content))
-        successCount = 0
-        failedCount = 0
-        sites = set()
-        for row in reader:
-            experimentId = row['xnat_experiment_id']
-            niftiPath = row['nifti_folder']
-            splits = niftiPath.split('/')
-            site = splits[5].split('_')[0]
-            sites.add(site)
-            experimentId2 = '-'.join(splits[7].split('-')[0:-1])
-            date = splits[7].split('-')[-1]
-            scanId = row['scan_id']
-            scanType = row['scan_type']
-            scan = scanId+'_'+scanType
-            niftiFolder = os.path.join(niftiPath, scan)
-            if not os.path.isdir(niftiFolder):
-                failedCount += 1
-                continue
-            experimentFolder = Folder().createFolder(
-                sessionsFolder, experimentId, parentType='folder', reuseExisting=True)
-            scanFolder = Folder().createFolder(
-                experimentFolder, scan, parentType='folder', reuseExisting=True)
-            meta = {
-                'experimentId': experimentId,
-                'experimentId2': experimentId2,
-                'site': site,
-                'date': date,
-                'scanId': scanId,
-                'scanType': scanType
-            }
-            # Merge note and rating if record exists
+        importpath = Setting().get(importpathKey)
+        if not os.path.isfile(importpath):
+            raise RestException('import csv file doesn\'t exists', code=404)
+        with open(importpath) as csv_file:
+            existingSessionsFolder = self.findSessionsFolder(user)
             if existingSessionsFolder:
-                existingMeta = self.tryGetExistingSessionMeta(
-                    existingSessionsFolder, experimentId, scan)
-                if(existingMeta and (existingMeta.get('note', None) or existingMeta.get('rating', None))):
-                    meta['note'] = existingMeta.get('note', None)
-                    meta['rating'] = existingMeta.get('rating', None)
-            Folder().setMetadata(scanFolder, meta)
-            currentAssetstore = Assetstore().getCurrent()
-            Assetstore().importData(
-                currentAssetstore, parent=scanFolder, parentType='folder', params={
-                    'fileIncludeRegex': '.+[.]nii[.]gz$',
-                    'importPath': niftiFolder,
-                }, progress=noProgress, user=user, leafFoldersAsItems=False)
-            successCount += 1
-        tryAddSites(sites, self.getCurrentUser())
-        return {
-            "success": successCount,
-            "failed": failedCount
-        }
+                existingSessionsFolder['name'] = 'sessions_' + \
+                    datetime.datetime.now().strftime("%Y-%m-%d %I:%M:%S %p")
+                Folder().save(existingSessionsFolder)
+            sessionsFolder = self.findSessionsFolder(user, True)
+            csv_content = csv_file.read()
+            Item().createItem('csv', user, sessionsFolder, description=csv_content)
+            reader = csv.DictReader(io.StringIO(csv_content))
+            successCount = 0
+            failedCount = 0
+            sites = set()
+            for row in reader:
+                experimentId = row['xnat_experiment_id']
+                niftiPath = row['nifti_folder']
+                splits = niftiPath.split('/')
+                site = splits[5].split('_')[0]
+                sites.add(site)
+                experimentId2 = '-'.join(splits[7].split('-')[0:-1])
+                date = splits[7].split('-')[-1]
+                scanId = row['scan_id']
+                scanType = row['scan_type']
+                scan = scanId+'_'+scanType
+                niftiFolder = os.path.join(niftiPath, scan)
+                if not os.path.isdir(niftiFolder):
+                    failedCount += 1
+                    continue
+                experimentFolder = Folder().createFolder(
+                    sessionsFolder, experimentId, parentType='folder', reuseExisting=True)
+                scanFolder = Folder().createFolder(
+                    experimentFolder, scan, parentType='folder', reuseExisting=True)
+                meta = {
+                    'experimentId': experimentId,
+                    'experimentId2': experimentId2,
+                    'site': site,
+                    'date': date,
+                    'scanId': scanId,
+                    'scanType': scanType
+                }
+                # Merge note and rating if record exists
+                if existingSessionsFolder:
+                    existingMeta = self.tryGetExistingSessionMeta(
+                        existingSessionsFolder, experimentId, scan)
+                    if(existingMeta and (existingMeta.get('note', None) or existingMeta.get('rating', None))):
+                        meta['note'] = existingMeta.get('note', None)
+                        meta['rating'] = existingMeta.get('rating', None)
+                Folder().setMetadata(scanFolder, meta)
+                currentAssetstore = Assetstore().getCurrent()
+                Assetstore().importData(
+                    currentAssetstore, parent=scanFolder, parentType='folder', params={
+                        'fileIncludeRegex': '.+[.]nii[.]gz$',
+                        'importPath': niftiFolder,
+                    }, progress=noProgress, user=user, leafFoldersAsItems=False)
+                successCount += 1
+            tryAddSites(sites, self.getCurrentUser())
+            return {
+                "success": successCount,
+                "failed": failedCount
+            }
+
+    @access.user
+    @autoDescribeRoute(
+        Description('')
+        .errorResponse())
+    def csvExport(self, params):
+        exportpath = Setting().get(exportpathKey)
+        if not fileWritable(exportpath):
+            raise RestException('export csv file is not writable', code=500)
+        output = self.getExportCSV()
+        with open(exportpath, 'w') as csv_file:
+            csv_file.write(output.getvalue())
 
     @access.admin
     @access.cookie
     @autoDescribeRoute(
         Description('')
         .errorResponse())
-    def csvExport(self, params):
+    def csvExportDownload(self, params):
+        setResponseHeader('Content-Type', 'text/csv')
+        setContentDisposition('_output.csv')
+        output = self.getExportCSV()
+        return lambda: [(yield x) for x in output.getvalue()]
+
+    def getExportCSV(self):
         def convertRatingToDecision(rating):
             return {
                 None: 0,
@@ -137,8 +161,6 @@ class Session(Resource):
                 'usableExtra': 2,
                 'bad': -1
             }[rating]
-        setResponseHeader('Content-Type', 'text/csv')
-        setContentDisposition('_output.csv')
         sessionsFolder = self.findSessionsFolder()
         items = list(Folder().childItems(sessionsFolder, filters={'name': 'csv'}))
         if not len(items):
@@ -164,7 +186,7 @@ class Session(Resource):
             row['decision'] = convertRatingToDecision(session.get('meta', {}).get('rating', None))
             row['scan_note'] = session.get('meta', {}).get('note', None)
             writer.writerow(row)
-        return lambda: [(yield x) for x in output.getvalue()]
+        return output
 
     def findSessionsFolder(self, user=None, create=False):
         collection = Collection().findOne({'name': 'miqa'})

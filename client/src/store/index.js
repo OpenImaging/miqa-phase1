@@ -256,7 +256,7 @@ const store = new Vuex.Store({
       }
     },
     async loadSites({ state }) {
-      let { data: sites } = await girder.rest.get("miqa_site");
+      let { data: sites } = await girder.rest.get("miqa_setting/site");
       state.sites = sites;
     }
   }
