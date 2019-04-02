@@ -22,30 +22,25 @@ export default {
 </script>
 
 <template>
-  <v-tabs
-    class="navigation-tabs ml-3"
-    icons-and-text
-    :height="64"
-    color="transparent"
-  >
+  <v-tabs class="navigation-tabs ml-3" color="transparent">
     <v-tab
       :to="`/${currentDatasetId ? currentDatasetId : ''}`"
       @click="datasetTabClick"
     >
-      Dataset
-      <v-icon>explore</v-icon>
+      <v-icon>view_column</v-icon>
+      Sessions
     </v-tab>
     <v-tab to="/settings" v-if="girderRest.user && girderRest.user.admin">
+      <v-icon>settings</v-icon>
       Settings
-      <v-icon>place</v-icon>
     </v-tab>
     <v-tab
       v-if="girderRest.user && girderRest.user.admin"
       :href="GIRDER_URL"
       target="_blank"
     >
-      Girder
       <v-icon>open_in_new</v-icon>
+      Girder
     </v-tab>
   </v-tabs>
 </template>

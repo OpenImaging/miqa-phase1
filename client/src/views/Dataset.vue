@@ -187,8 +187,8 @@ export default {
 
 <template>
   <v-layout class="dataset" fill-height column>
-    <v-toolbar app>
-      <v-toolbar-title class="ml-0 pl-3">
+    <v-toolbar app dense>
+      <v-toolbar-title>
         <span>MIQA</span>
       </v-toolbar-title>
       <NavigationTabs />
@@ -244,7 +244,7 @@ export default {
         </v-layout>
       </v-flex>
       <v-flex shrink class="bottom">
-        <v-container fluid grid-list-md class="py-3 px-2">
+        <v-container fluid grid-list-sm class="pa-2">
           <v-layout>
             <v-flex shrink style="flex-basis: 140px" class="mx-2">
               <v-layout align-center fill-height column>
@@ -312,8 +312,8 @@ export default {
               </v-layout>
             </v-flex>
             <v-flex xs8 class="mx-2">
-              <v-layout align-center justify-center class="subheading">
-                <v-flex style="line-height: 36px">
+              <v-layout align-center justify-center class="body-2">
+                <v-flex>
                   {{ getSiteDisplayName(currentSession.meta.site) }},
                   <a
                     :href="
@@ -358,6 +358,7 @@ export default {
                       slot="activator"
                       flat
                       icon
+                      small
                       color="primary"
                       class="my-0"
                     >
@@ -408,6 +409,7 @@ export default {
                   >
                     <v-btn
                       flat
+                      small
                       value="bad"
                       color="red"
                       :disabled="!note"
@@ -419,6 +421,7 @@ export default {
                     >
                     <v-btn
                       flat
+                      small
                       value="good"
                       color="green"
                       v-mousetrap="{
@@ -429,6 +432,7 @@ export default {
                     >
                     <v-btn
                       flat
+                      small
                       value="usableExtra"
                       color="light-green"
                       v-mousetrap="{
@@ -453,7 +457,8 @@ export default {
                   <v-btn
                     color="primary"
                     class="ma-0"
-                    style="height: 40px"
+                    style="height: 36px"
+                    small
                     :disabled="!reviewChanged"
                     @click="save"
                     v-mousetrap="{ bind: 'alt+s', handler: save }"
@@ -539,8 +544,20 @@ export default {
       width: 100%;
 
       .v-btn {
-        height: 40px;
-        width: 33.333%;
+        height: 36px;
+        opacity: 1;
+
+        &:nth-child(1) {
+          width: 30%;
+        }
+
+        &:nth-child(2) {
+          width: 30%;
+        }
+
+        &:nth-child(3) {
+          width: 40%;
+        }
       }
     }
   }
@@ -549,6 +566,6 @@ export default {
 
 <style lang="scss">
 .v-text-field.small .v-input__control {
-  min-height: 40px !important;
+  min-height: 36px !important;
 }
 </style>

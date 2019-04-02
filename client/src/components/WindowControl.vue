@@ -85,11 +85,6 @@ export default {
 <template>
   <div>
     <v-layout>
-      <v-flex style="line-height: 36px">
-        <div class="subheading">Window setup</div>
-      </v-flex>
-    </v-layout>
-    <v-layout>
       <v-flex>
         <v-slider
           class="mr-4"

@@ -13,8 +13,8 @@ export default {
 </script>
 
 <template>
-  <v-toolbar app>
-    <v-toolbar-title class="ml-0 pl-3">
+  <v-toolbar app dense>
+    <v-toolbar-title>
       <span>MIQA</span>
     </v-toolbar-title>
     <NavigationTabs />
