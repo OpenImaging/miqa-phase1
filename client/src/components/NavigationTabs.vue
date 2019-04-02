@@ -1,5 +1,5 @@
 <script>
-import { mapState } from "vuex";
+import { mapState, mapMutations } from "vuex";
 
 import { GIRDER_URL } from "../constants";
 
@@ -11,6 +11,12 @@ export default {
   }),
   computed: {
     ...mapState(["currentDatasetId"])
+  },
+  methods: {
+    ...mapMutations(["setDrawer"]),
+    datasetTabClick() {
+      this.setDrawer(true);
+    }
   }
 };
 </script>
@@ -22,7 +28,10 @@ export default {
     :height="64"
     color="transparent"
   >
-    <v-tab :to="`/${currentDatasetId ? currentDatasetId : ''}`">
+    <v-tab
+      :to="`/${currentDatasetId ? currentDatasetId : ''}`"
+      @click="datasetTabClick"
+    >
       Dataset
       <v-icon>explore</v-icon>
     </v-tab>

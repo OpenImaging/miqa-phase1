@@ -188,9 +188,6 @@ export default {
 <template>
   <v-layout class="dataset" fill-height column>
     <v-toolbar app>
-      <v-toolbar-side-icon
-        @click.stop="setDrawer(!drawer)"
-      ></v-toolbar-side-icon>
       <v-toolbar-title class="ml-0 pl-3">
         <span>MIQA</span>
       </v-toolbar-title>
