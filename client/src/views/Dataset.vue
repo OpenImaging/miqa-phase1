@@ -27,13 +27,16 @@ export default {
   },
   inject: ["girderRest"],
   data: () => ({
-    note: "",
+    newNote: "",
     rating: null,
     reviewer: "",
     reviewChanged: false,
     unsavedDialog: false,
     unsavedDialogResolve: null,
     emailDialog: false,
+    isEditingNote: false,
+    editingNote: "",
+    showNotePopup: false,
     keyboardShortcutDialog: false
   }),
   computed: {
@@ -47,7 +50,21 @@ export default {
       "firstDatasetInPreviousSession",
       "firstDatasetInNextSession",
       "getSiteDisplayName"
-    ])
+    ]),
+    note() {
+      if (this.currentSession && this.currentSession.meta) {
+        return this.currentSession.meta.note;
+      } else {
+        return "";
+      }
+    },
+    noteSegments() {
+      if (this.currentSession && this.note) {
+        return this.note.split(/[\r\n]+/g);
+      } else {
+        return [];
+      }
+    }
   },
   async created() {
     await Promise.all([this.loadSessions(), this.loadSites()]);
@@ -55,11 +72,6 @@ export default {
     var dataset = this.getDataset(datasetId);
     if (dataset) {
       await this.swapToDataset(dataset);
-      if (this.currentSession) {
-        this.note = this.currentSession.meta.note;
-        this.rating = this.currentSession.meta.rating;
-        this.reviewer = this.currentSession.meta.reviewer;
-      }
     } else {
       this.$router.replace("/");
       this.setDrawer(true);
@@ -72,6 +84,18 @@ export default {
       }
       if (session) {
         this.loadSessionMeta();
+      }
+    },
+    showNotePopup(value) {
+      if (!value) {
+        setTimeout(() => {
+          this.isEditingNote = false;
+        }, 300);
+      }
+    },
+    noteSegments(value) {
+      if (value.length < 2) {
+        this.showNotePopup = false;
       }
     }
   },
@@ -108,21 +132,32 @@ export default {
     // Load from the server again to get the latest
     async loadSessionMeta() {
       this.reviewChanged = false;
-      let { data: folder } = await this.girderRest.get(
+      var { data: folder } = await this.girderRest.get(
         `folder/${this.currentSession.folderId}`
       );
       var { meta } = folder;
-      this.note = folder.meta.note;
       this.rating = folder.meta.rating;
       this.reviewer = folder.meta.reviewer;
       this.currentSession.meta = meta;
     },
     async save() {
-      let user = this.girderRest.user;
+      var user = this.girderRest.user;
+      var initial =
+        user.firstName.charAt(0).toLocaleUpperCase() +
+        user.lastName.charAt(0).toLocaleUpperCase();
+      var date = new Date().toISOString().slice(0, 10);
+      var note = "";
+      if (this.newNote.trim()) {
+        note =
+          (this.note ? this.note + "\n" : "") +
+          `${initial}(${date}): ${this.newNote}`;
+      } else {
+        note = this.note;
+      }
       var meta = {
         ...this.currentSession.meta,
         ...{
-          note: this.note,
+          note,
           rating: this.rating !== undefined ? this.rating : null,
           reviewer: user.firstName + " " + user.lastName
         }
@@ -131,9 +166,28 @@ export default {
         `folder/${this.currentSession.folderId}/metadata?allowNull=true`,
         meta
       );
+      this.newNote = "";
       this.currentSession.meta = meta;
       this.reviewer = meta.reviewer;
       this.reviewChanged = false;
+    },
+    enableEditHistroy() {
+      this.isEditingNote = true;
+      this.editingNote = this.note;
+    },
+    async saveNoteHistory() {
+      var meta = {
+        ...this.currentSession.meta,
+        ...{
+          note: this.editingNote
+        }
+      };
+      await this.girderRest.put(
+        `folder/${this.currentSession.folderId}/metadata?allowNull=true`,
+        meta
+      );
+      this.currentSession.meta = meta;
+      this.isEditingNote = false;
     },
     async unsavedDialogYes() {
       await this.save();
@@ -155,7 +209,7 @@ export default {
       }
     },
     setNote(e) {
-      this.note = e.target.value;
+      this.newNote = e.target.value;
     },
     async ratingChanged() {
       if (!this.rating) {
@@ -340,6 +394,7 @@ export default {
                     slot="activator"
                     flat
                     icon
+                    small
                     color="grey"
                     class="my-0"
                     @click="loadSessionMeta"
@@ -381,23 +436,92 @@ export default {
                   </v-menu>
                 </v-flex>
               </v-layout>
+              <v-layout align-center v-if="noteSegments.length">
+                <v-flex shrink>
+                  Note history: {{ noteSegments.slice(-1)[0] }}
+                </v-flex>
+                <v-flex shrink class="pa-0" v-if="noteSegments.length > 1">
+                  <v-menu
+                    v-model="showNotePopup"
+                    open-on-hover
+                    :close-on-content-click="false"
+                    :nudge-top="18"
+                    :nudge-right="250"
+                    top
+                    left
+                  >
+                    <template v-slot:activator="{ on }">
+                      <v-btn
+                        flat
+                        small
+                        icon
+                        class="ma-0"
+                        v-on="on"
+                        v-mousetrap="{
+                          bind: 'h',
+                          handler: () => (showNotePopup = !showNotePopup)
+                        }"
+                        ><v-icon>arrow_drop_up</v-icon></v-btn
+                      >
+                    </template>
+                    <v-card>
+                      <v-card-text class="note-history">
+                        <pre v-if="!isEditingNote">{{ note }}</pre>
+                        <v-textarea
+                          v-else
+                          label="Edit note history"
+                          box
+                          hide-details
+                          no-resize
+                          v-model.lazy="editingNote"
+                          height="250"
+                        ></v-textarea>
+                      </v-card-text>
+                      <v-card-actions
+                        v-if="girderRest.user && girderRest.user.admin"
+                      >
+                        <v-btn
+                          v-if="!isEditingNote"
+                          flat
+                          small
+                          color="primary"
+                          @click="enableEditHistroy"
+                        >
+                          Edit
+                        </v-btn>
+                        <v-btn
+                          v-else
+                          flat
+                          small
+                          color="primary"
+                          @click="saveNoteHistory"
+                        >
+                          Save
+                        </v-btn>
+                      </v-card-actions>
+                    </v-card>
+                  </v-menu>
+                </v-flex>
+              </v-layout>
+              <div v-else style="height:28px;">
+              </div>
               <v-layout>
                 <v-flex>
-                  <v-textarea
-                    solo
+                  <v-text-field
+                    class="note-field"
                     label="Note"
-                    rows="3"
+                    solo
                     hide-details
                     @blur="setNote($event)"
                     @input="reviewChanged = true"
-                    :value="this.note"
+                    :value="this.newNote"
                     ref="note"
                     v-mousetrap="{ bind: 'n', handler: focusNote }"
                     v-mousetrap.element="{
                       bind: 'esc',
                       handler: () => $refs.note.blur()
                     }"
-                  ></v-textarea>
+                  ></v-text-field>
                 </v-flex>
               </v-layout>
               <v-layout>
@@ -412,7 +536,7 @@ export default {
                       small
                       value="bad"
                       color="red"
-                      :disabled="!note"
+                      :disabled="!newNote && !note"
                       v-mousetrap="{
                         bind: 'b',
                         handler: () => setRating('bad')
@@ -436,7 +560,7 @@ export default {
                       value="usableExtra"
                       color="light-green"
                       v-mousetrap="{
-                        bind: 'e',
+                        bind: 'u',
                         handler: () => setRating('usableExtra')
                       }"
                       >Usable extra</v-btn
@@ -565,7 +689,28 @@ export default {
 </style>
 
 <style lang="scss">
-.v-text-field.small .v-input__control {
-  min-height: 36px !important;
+.dataset {
+  .v-text-field.small .v-input__control {
+    min-height: 36px !important;
+  }
+
+  .note-field .v-input__control {
+    min-height: 36px !important;
+  }
+}
+
+.v-card__text.note-history {
+  width: 500px;
+
+  pre {
+    white-space: pre-wrap;
+    font-family: inherit;
+    height: 250px;
+    overflow-y: auto;
+  }
+
+  textarea {
+    font-size: 14px;
+  }
 }
 </style>

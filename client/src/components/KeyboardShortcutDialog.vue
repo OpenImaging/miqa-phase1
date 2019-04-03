@@ -15,6 +15,7 @@ export default {
       ["Increase/decrease window", "= / -"],
       ["Increase/decrease window level", "[ / ]"],
       ["Focus to note", "n"],
+      ["Show note history", "h"],
       ["Unfocus from note", "esc"],
       ["Mark as bad/good/usable extra", "b / g / e"],
       ["Save", "alt + s"],
