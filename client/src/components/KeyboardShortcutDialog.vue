@@ -9,19 +9,29 @@ export default {
   },
   data: () => ({
     shortcuts: [
-      ["Next dataset", "right arrow"],
-      ["Previous dataset", "left arrow"],
-      ["Change slices", "q / w, a / s, z / x"],
-      ["Increase/decrease window", "= / -"],
-      ["Increase/decrease window level", "[ / ]"],
-      ["Focus to note", "n"],
-      ["Show note history", "h"],
-      ["Unfocus from note", "esc"],
-      ["Mark as bad/good/usable extra", "b / g / e"],
-      ["Save", "alt + s"],
-      ["Save on confirm dialog", "y"],
-      ["Don't save on confirm dialog", "n"],
-      ["Cancel on confirm dialog", "esc"]
+      ["Next dataset", "<code>→</code>"],
+      ["Previous dataset", "<code>←</code>"],
+      [
+        "Change slices",
+        "<code>q</code> / <code>w</code>, <code>a</code> / <code>s</code>, <code>z</code> / <code>x</code>"
+      ],
+      ["Toggle fullscreen", "<code>e</code> / <code>d</code> / <code>c</code>"],
+      ["Zooming", "<code>right button + dragging</code>"],
+      ["Panning", "<code>shift + dragging</code>"],
+      ["Cancel on confirm dialog", "<code>esc</code>"],
+      ["Increase/decrease window", "<code>=</code> / <code>-</code>"],
+      ["Increase/decrease window level", "<code>[</code> / <code>]</code>"],
+      ["Focus to note", "<code>n</code>"],
+      ["Show note history", "<code>h</code>"],
+      ["Unfocus from note", "<code>esc</<code>"],
+      [
+        "Mark as bad/good/usable extra",
+        "<code>b</code> / <code>g</code> / <code>u</code>"
+      ],
+      ["Save", "<code>alt + s</code>"],
+      ["Save on confirm dialog", "<code>y</code>"],
+      ["Don't save on confirm dialog", "<code>n</code>"],
+      ["Cancel on confirm dialog", "<code>esc</code>"]
     ]
   })
 };
@@ -43,7 +53,7 @@ export default {
         <v-data-table :items="shortcuts" hide-actions hide-headers>
           <template #items="{ item }">
             <td>{{ item[0] }}</td>
-            <td>{{ item[1] }}</td>
+            <td v-html="item[1]"></td>
           </template>
         </v-data-table>
       </v-card-text>

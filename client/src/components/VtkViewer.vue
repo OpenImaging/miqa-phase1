@@ -1,4 +1,5 @@
 <script>
+import Vue from "vue";
 import { mapState, mapGetters, mapMutations } from "vuex";
 
 import fill2DView from "../utils/fill2DView";
@@ -14,7 +15,9 @@ export default {
   },
   data: () => ({
     slice: null,
-    resized: false
+    // helper to avoid size flickering
+    resized: false,
+    fullscreen: false
   }),
   computed: {
     ...mapState(["proxyManager"]),
@@ -43,11 +46,11 @@ export default {
     keyboardBindings() {
       switch (this.name) {
         case "z":
-          return ["q", "w"];
+          return ["q", "w", "e"];
         case "x":
-          return ["a", "s"];
+          return ["a", "s", "d"];
         case "y":
-          return ["z", "x"];
+          return ["z", "x", "c"];
         default:
           return "";
       }
@@ -111,6 +114,21 @@ export default {
         }/${cleanDatasetName(this.currentDataset.name)}/${this.displayName}`,
         dataURL
       });
+    },
+    toggleFullscreen() {
+      this.fullscreen = !this.fullscreen;
+      this.resized = false;
+      Vue.nextTick(() => {
+        fill2DView(this.view);
+        setTimeout(() => {
+          this.resized = true;
+        });
+      });
+    },
+    onWindowResize() {
+      if (this.resized) {
+        fill2DView(this.view);
+      }
     }
   },
   filters: {
@@ -123,7 +141,7 @@ export default {
 </script>
 
 <template>
-  <div class="vtk-viewer">
+  <div class="vtk-viewer" :class="{ fullscreen }" v-resize="onWindowResize">
     <div class="header" :class="name" v-if="name !== 'default'">
       <v-layout align-center>
         <v-slider
@@ -149,6 +167,14 @@ export default {
     <v-toolbar class="toolbar" dark flat color="black" height="42">
       <div class="indicator body-2" :class="name">{{ displayName }}</div>
       <v-spacer></v-spacer>
+      <v-btn
+        icon
+        @click="toggleFullscreen"
+        v-mousetrap="{ bind: keyboardBindings[2], handler: toggleFullscreen }"
+      >
+        <v-icon v-if="!fullscreen">fullscreen</v-icon>
+        <v-icon v-else>fullscreen_exit</v-icon>
+      </v-btn>
       <v-btn icon @click="takeScreenshot">
         <v-icon>add_a_photo</v-icon>
       </v-btn>
@@ -164,9 +190,19 @@ export default {
   left: 0;
   right: 0;
   background: linear-gradient(#3a3a3a, #1d1d1d);
+  z-index: 0;
 
   display: flex;
   flex-direction: column;
+
+  &.fullscreen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    z-index: 2;
+  }
 
   .header {
     .slice {

@@ -211,7 +211,7 @@ ${this.note}
           </v-layout>
           <v-layout>
             <v-flex>
-              <v-textarea label="Body" rows="6" v-model="body"></v-textarea>
+              <v-textarea label="Body" rows="8" v-model="body"></v-textarea>
             </v-flex>
           </v-layout>
           <template v-if="screenshots.length">

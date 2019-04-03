@@ -30,7 +30,6 @@ export default {
   left: 0;
   right: 0;
   display: flex;
-  z-index: 0;
 
   .view {
     position: relative;
