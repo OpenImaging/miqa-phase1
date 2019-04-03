@@ -34,7 +34,7 @@ export default {
     unsavedDialog: false,
     unsavedDialogResolve: null,
     emailDialog: false,
-    isEditingNote: false,
+    editingNoteDialog: false,
     editingNote: "",
     showNotePopup: false,
     keyboardShortcutDialog: false
@@ -85,18 +85,6 @@ export default {
       if (session) {
         this.loadSessionMeta();
       }
-    },
-    showNotePopup(value) {
-      if (!value) {
-        setTimeout(() => {
-          this.isEditingNote = false;
-        }, 300);
-      }
-    },
-    noteSegments(value) {
-      if (value.length < 2) {
-        this.showNotePopup = false;
-      }
     }
   },
   async beforeRouteUpdate(to, from, next) {
@@ -136,6 +124,7 @@ export default {
         `folder/${this.currentSession.folderId}`
       );
       var { meta } = folder;
+      this.newNote = "";
       this.rating = folder.meta.rating;
       this.reviewer = folder.meta.reviewer;
       this.currentSession.meta = meta;
@@ -172,7 +161,7 @@ export default {
       this.reviewChanged = false;
     },
     enableEditHistroy() {
-      this.isEditingNote = true;
+      this.editingNoteDialog = true;
       this.editingNote = this.note;
     },
     async saveNoteHistory() {
@@ -187,7 +176,7 @@ export default {
         meta
       );
       this.currentSession.meta = meta;
-      this.isEditingNote = false;
+      this.editingNoteDialog = false;
     },
     async unsavedDialogYes() {
       await this.save();
@@ -443,12 +432,13 @@ export default {
                 <v-flex shrink class="pa-0" v-if="noteSegments.length > 1">
                   <v-menu
                     v-model="showNotePopup"
-                    open-on-hover
                     :close-on-content-click="false"
-                    :nudge-top="18"
                     :nudge-right="250"
+                    offset-y
+                    open-on-hover
                     top
                     left
+                    ref="historyMenu"
                   >
                     <template v-slot:activator="{ on }">
                       <v-btn
@@ -466,41 +456,21 @@ export default {
                     </template>
                     <v-card>
                       <v-card-text class="note-history">
-                        <pre v-if="!isEditingNote">{{ note }}</pre>
-                        <v-textarea
-                          v-else
-                          label="Edit note history"
-                          box
-                          hide-details
-                          no-resize
-                          v-model.lazy="editingNote"
-                          height="250"
-                        ></v-textarea>
+                        <pre>{{ note }}</pre>
                       </v-card-text>
-                      <v-card-actions
-                        v-if="girderRest.user && girderRest.user.admin"
-                      >
-                        <v-btn
-                          v-if="!isEditingNote"
-                          flat
-                          small
-                          color="primary"
-                          @click="enableEditHistroy"
-                        >
-                          Edit
-                        </v-btn>
-                        <v-btn
-                          v-else
-                          flat
-                          small
-                          color="primary"
-                          @click="saveNoteHistory"
-                        >
-                          Save
-                        </v-btn>
-                      </v-card-actions>
                     </v-card>
                   </v-menu>
+                </v-flex>
+                <v-flex shrink class="pa-0" 
+          v-if="girderRest.user && girderRest.user.admin">
+                  <v-btn
+                    flat
+                    small
+                    icon
+                    class="ma-0"
+                    @click="enableEditHistroy"
+                    ><v-icon style="font-size: 18px;">edit</v-icon></v-btn
+                  >
                 </v-flex>
               </v-layout>
               <div v-else style="height:28px;">
@@ -632,6 +602,29 @@ export default {
         </v-card-actions>
       </v-card>
     </v-dialog>
+    <v-dialog v-model="editingNoteDialog" lazy max-width="600">
+      <v-card>
+        <v-card-text>
+        <v-textarea
+          label="Edit note history"
+          box
+          hide-details
+          no-resize
+          :rows="12"
+          v-model.lazy="editingNote"
+        ></v-textarea></v-card-text>
+        <v-card-actions>
+          <v-spacer />
+          <v-btn
+            flat
+            color="primary"
+            @click="saveNoteHistory"
+          >
+            Save
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
     <ScreenshotDialog />
     <EmailDialog v-model="emailDialog" :note="note" />
     <KeyboardShortcutDialog v-model="keyboardShortcutDialog" />
@@ -701,16 +694,13 @@ export default {
 
 .v-card__text.note-history {
   width: 500px;
+  max-height: 400px;
+  overflow-y: auto;
 
   pre {
     white-space: pre-wrap;
     font-family: inherit;
-    height: 250px;
     overflow-y: auto;
-  }
-
-  textarea {
-    font-size: 14px;
   }
 }
 </style>
