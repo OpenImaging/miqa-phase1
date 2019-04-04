@@ -1,4 +1,6 @@
 <script>
+import _ from "lodash";
+
 import Layout from "@/components/Layout.vue";
 import { mapState, mapActions, mapGetters, mapMutations } from "vuex";
 
@@ -37,7 +39,8 @@ export default {
     editingNoteDialog: false,
     editingNote: "",
     showNotePopup: false,
-    keyboardShortcutDialog: false
+    keyboardShortcutDialog: false,
+    sliderTempValue: 0
   }),
   computed: {
     ...mapState(["vtkViews", "loadingDataset", "drawer", "screenshots"]),
@@ -67,6 +70,11 @@ export default {
     }
   },
   async created() {
+    this.datasetSliderChange = _.throttle(this.datasetSliderChange, 50);
+    this.debouncedDatasetSliderChange = _.debounce(
+      this.debouncedDatasetSliderChange,
+      1000
+    );
     await Promise.all([this.loadSessions(), this.loadSites()]);
     var datasetId = this.$route.params.datasetId;
     var dataset = this.getDataset(datasetId);
@@ -223,6 +231,15 @@ export default {
     focusNote(el, e) {
       this.$refs.note.focus();
       e.preventDefault();
+    },
+    datasetSliderChange(index) {
+      this.sliderTempValue = index;
+      this.debouncedDatasetSliderChange(index);
+    },
+    debouncedDatasetSliderChange(index) {
+      this.sliderTempValue = null;
+      var dataset = this.currentSession.datasets[index];
+      this.$router.push(dataset._id);
     }
   }
 };
@@ -289,13 +306,13 @@ export default {
       <v-flex shrink class="bottom">
         <v-container fluid grid-list-sm class="pa-2">
           <v-layout>
-            <v-flex shrink style="flex-basis: 140px" class="mx-2">
-              <v-layout align-center fill-height column>
-                <v-flex class="pt-0">
+            <v-flex shrink class="mx-2 control-panel">
+              <v-layout align-center>
+                <v-flex shrink>
                   <v-btn
                     fab
                     small
-                    class="primary--text elevation-2 mt-0"
+                    class="primary--text my-0 elevation-2 smaller"
                     :disabled="!previousDataset"
                     :to="previousDataset ? previousDataset._id : ''"
                     v-mousetrap="{
@@ -308,10 +325,22 @@ export default {
                   >
                     <v-icon>keyboard_arrow_left</v-icon>
                   </v-btn>
+                </v-flex>
+                <v-flex style="width:140px; text-align: center;">
+                  <span
+                    >{{
+                      sliderTempValue
+                        ? sliderTempValue + 1
+                        : currentSession.datasets.indexOf(currentDataset) + 1
+                    }}
+                    of {{ currentSession.datasets.length }}</span
+                  >
+                </v-flex>
+                <v-flex shrink>
                   <v-btn
                     fab
                     small
-                    class="primary--text elevation-2 mt-0"
+                    class="primary--text my-0 elevation-2 smaller"
                     :disabled="!nextDataset"
                     :to="nextDataset ? nextDataset._id : ''"
                     v-mousetrap="{
@@ -324,11 +353,68 @@ export default {
                     <v-icon>chevron_right</v-icon>
                   </v-btn>
                 </v-flex>
-                <v-flex shrink class="pb-0">
+              </v-layout>
+              <v-layout>
+                <v-flex class="ml-4">
+                  <v-slider
+                    class="dataset-slider"
+                    hide-details
+                    always-dirty
+                    :min="0"
+                    :max="
+                      currentSession.datasets.length === 1
+                        ? 1
+                        : currentSession.datasets.length - 1
+                    "
+                    :disabled="currentSession.datasets.length === 1"
+                    :height="24"
+                    :value="currentSession.datasets.indexOf(currentDataset)"
+                    @input="datasetSliderChange"
+                  ></v-slider>
+                </v-flex>
+                <v-flex shrink>
+                  <v-menu
+                    offset-y
+                    top
+                    max-height="400"
+                    min-width="100"
+                    auto
+                    :disabled="currentSession.datasets.length === 1"
+                  >
+                    <v-btn
+                      slot="activator"
+                      flat
+                      icon
+                      small
+                      color="primary"
+                      class="my-0"
+                      :disabled="currentSession.datasets.length === 1"
+                    >
+                      <v-icon>more_vert</v-icon>
+                    </v-btn>
+                    <v-list>
+                      <v-list-tile
+                        v-for="(dataset, index) in currentSession.datasets"
+                        :key="index"
+                        :to="dataset._id"
+                        :class="{
+                          'primary--text': dataset === currentDataset
+                        }"
+                      >
+                        <v-list-tile-title>{{
+                          cleanDatasetName(dataset.name)
+                        }}</v-list-tile-title>
+                      </v-list-tile>
+                    </v-list>
+                  </v-menu>
+                </v-flex>
+              </v-layout>
+              <v-layout class="bottom-row">
+                <v-flex shrink>
                   <v-btn
                     fab
                     small
-                    class="primary--text elevation-2 mb-0"
+                    class="primary--text mb-0 elevation-2 smaller"
                     :disabled="!firstDatasetInPreviousSession"
                     :to="
                       firstDatasetInPreviousSession
@@ -338,10 +424,13 @@ export default {
                   >
                     <v-icon>first_page</v-icon>
                   </v-btn>
+                </v-flex>
+                <v-spacer />
+                <v-flex shrink>
                   <v-btn
                     fab
                     small
-                    class="primary--text elevation-2 mb-0"
+                    class="primary--text mb-0 elevation-2 smaller"
                     :disabled="!firstDatasetInNextSession"
                     :to="
                       firstDatasetInNextSession
@@ -392,38 +481,6 @@ export default {
                   </v-btn>
                   <span>Revert</span>
                 </v-tooltip>
-                <v-flex shrink v-if="currentSession.datasets.length > 1">
-                  <span
-                    >{{ cleanDatasetName(currentDataset.name) }} of
-                    {{ currentSession.datasets.length }}</span
-                  >
-                  <v-menu offset-y top max-height="400" min-width="100" auto>
-                    <v-btn
-                      slot="activator"
-                      flat
-                      icon
-                      small
-                      color="primary"
-                      class="my-0"
-                    >
-                      <v-icon>more_vert</v-icon>
-                    </v-btn>
-                    <v-list>
-                      <v-list-tile
-                        v-for="(dataset, index) in currentSession.datasets"
-                        :key="index"
-                        :to="dataset._id"
-                        :class="{
-                          'primary--text': dataset === currentDataset
-                        }"
-                      >
-                        <v-list-tile-title>{{
-                          cleanDatasetName(dataset.name)
-                        }}</v-list-tile-title>
-                      </v-list-tile>
-                    </v-list>
-                  </v-menu>
-                </v-flex>
               </v-layout>
               <v-layout align-center v-if="noteSegments.length">
                 <v-flex shrink>
@@ -461,20 +518,17 @@ export default {
                     </v-card>
                   </v-menu>
                 </v-flex>
-                <v-flex shrink class="pa-0" 
-          v-if="girderRest.user && girderRest.user.admin">
-                  <v-btn
-                    flat
-                    small
-                    icon
-                    class="ma-0"
-                    @click="enableEditHistroy"
+                <v-flex
+                  shrink
+                  class="pa-0"
+                  v-if="girderRest.user && girderRest.user.admin"
+                >
+                  <v-btn flat small icon class="ma-0" @click="enableEditHistroy"
                     ><v-icon style="font-size: 18px;">edit</v-icon></v-btn
                   >
                 </v-flex>
               </v-layout>
-              <div v-else style="height:28px;">
-              </div>
+              <div v-else style="height:28px;"></div>
               <v-layout>
                 <v-flex>
                   <v-text-field
@@ -497,7 +551,7 @@ export default {
               <v-layout>
                 <v-flex>
                   <v-btn-toggle
-                    class="buttons elevation-2"
+                    class="buttons"
                     v-model="rating"
                     @change="ratingChanged"
                   >
@@ -563,7 +617,7 @@ export default {
                 </v-flex>
               </v-layout>
             </v-flex>
-            <v-flex xs4 class="mx-2 ml-3">
+            <v-flex xs4 class="mx-2">
               <WindowControl v-if="vtkViews.length" class="py-0" />
             </v-flex>
           </v-layout>
@@ -605,21 +659,18 @@ export default {
     <v-dialog v-model="editingNoteDialog" lazy max-width="600">
       <v-card>
         <v-card-text>
-        <v-textarea
-          label="Edit note history"
-          box
-          hide-details
-          no-resize
-          :rows="12"
-          v-model.lazy="editingNote"
-        ></v-textarea></v-card-text>
+          <v-textarea
+            label="Edit note history"
+            box
+            hide-details
+            no-resize
+            :rows="12"
+            v-model.lazy="editingNote"
+          ></v-textarea
+        ></v-card-text>
         <v-card-actions>
           <v-spacer />
-          <v-btn
-            flat
-            color="primary"
-            @click="saveNoteHistory"
-          >
+          <v-btn flat color="primary" @click="saveNoteHistory">
             Save
           </v-btn>
         </v-card-actions>
@@ -650,6 +701,11 @@ export default {
       background: #ffffff57;
       position: relative;
     }
+  }
+
+  .v-btn.smaller {
+    height: 35px;
+    width: 35px;
   }
 
   .bottom {
@@ -689,6 +745,21 @@ export default {
 
   .note-field .v-input__control {
     min-height: 36px !important;
+  }
+
+  .v-input--slider.dataset-slider {
+    margin-top: 0;
+  }
+
+  .control-panel {
+    position: relative;
+
+    .bottom-row {
+      position: absolute;
+      bottom: 2px;
+      left: 2px;
+      right: 2px;
+    }
   }
 }
 
