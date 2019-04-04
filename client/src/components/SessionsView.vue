@@ -16,7 +16,28 @@ export default {
   }),
   computed: {
     ...mapState(["sessionTree"]),
-    ...mapGetters(["currentSession"])
+    ...mapGetters(["currentSession"]),
+    orderedSessionTree() {
+      if (!this.sessionTree) {
+        return [];
+      }
+      var finished = [];
+      var pending = [];
+      for (let experiment of this.sessionTree) {
+        let added = false;
+        for (let session of experiment.sessions) {
+          if (!session.meta || !session.meta.rating) {
+            pending.push(experiment);
+            added = true;
+            break;
+          }
+        }
+        if (!added) {
+          finished.push(experiment);
+        }
+      }
+      return [...pending, ...finished];
+    }
   },
   methods: {}
 };
@@ -24,9 +45,9 @@ export default {
 
 <template>
   <div class="sessions-view">
-    <ul class="experiment">
+    <ul class="experiment" v-if="orderedSessionTree.length">
       <li
-        v-for="experiment of sessionTree"
+        v-for="experiment of orderedSessionTree"
         class="body-2"
         :key="experiment.folderId"
       >
@@ -39,7 +60,7 @@ export default {
             :class="{ current: session === currentSession }"
           >
             <v-btn
-              class="ml-0 px-1"
+              class="ml-0 px-1 session-name"
               href
               flat
               small
@@ -54,6 +75,7 @@ export default {
         </ul>
       </li>
     </ul>
+    <div v-else class="text-xs-center body-2">No imported sessions</div>
   </div>
 </template>
 
@@ -68,5 +90,11 @@ ul.experiment {
 
 ul.sessions {
   padding-left: 15px;
+}
+</style>
+
+<style lang="scss">
+.sessions-view .session-name .v-btn__content {
+  text-transform: none;
 }
 </style>

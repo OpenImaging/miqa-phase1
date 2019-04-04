@@ -85,6 +85,7 @@ class Session(Resource):
             for row in reader:
                 experimentId = row['xnat_experiment_id']
                 niftiPath = row['nifti_folder']
+                experimentNote = row['experiment_note']
                 splits = niftiPath.split('/')
                 site = splits[5].split('_')[0]
                 sites.add(site)
@@ -104,6 +105,7 @@ class Session(Resource):
                 meta = {
                     'experimentId': experimentId,
                     'experimentId2': experimentId2,
+                    'experimentNote': experimentNote,
                     'site': site,
                     'date': date,
                     'scanId': scanId,

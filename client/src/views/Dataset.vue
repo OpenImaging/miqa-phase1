@@ -306,7 +306,7 @@ export default {
       <v-flex shrink class="bottom">
         <v-container fluid grid-list-sm class="pa-2">
           <v-layout>
-            <v-flex shrink class="mx-2 control-panel">
+            <v-flex shrink class="mx-2" style="display:flex;flex-direction:column;">
               <v-layout align-center>
                 <v-flex shrink>
                   <v-btn
@@ -354,7 +354,7 @@ export default {
                   </v-btn>
                 </v-flex>
               </v-layout>
-              <v-layout>
+              <v-layout align-center>
                 <v-flex class="ml-4">
                   <v-slider
                     class="dataset-slider"
@@ -422,7 +422,7 @@ export default {
                         : ''
                     "
                   >
-                    <v-icon>first_page</v-icon>
+                    <v-icon>fast_rewind</v-icon>
                   </v-btn>
                 </v-flex>
                 <v-spacer />
@@ -438,7 +438,7 @@ export default {
                         : ''
                     "
                   >
-                    <v-icon>last_page</v-icon>
+                    <v-icon>fast_forward</v-icon>
                   </v-btn>
                 </v-flex>
               </v-layout>
@@ -465,22 +465,21 @@ export default {
                     target="_blank"
                     >{{ currentSession.meta.experimentId2 }}</a
                   >),
-                  {{ currentSession.meta.scanType }}
+                  {{ currentSession.name }}
                 </v-flex>
-                <v-tooltip top v-if="reviewChanged">
-                  <v-btn
-                    slot="activator"
-                    flat
-                    icon
-                    small
-                    color="grey"
-                    class="my-0"
-                    @click="loadSessionMeta"
-                  >
-                    <v-icon>undo</v-icon>
-                  </v-btn>
-                  <span>Revert</span>
-                </v-tooltip>
+                <v-spacer />
+                <v-flex
+                  shrink
+                  class="experiment-note"
+                  v-if="currentSession.meta.experimentNote"
+                >
+                  <v-tooltip top>
+                    <span slot="activator">{{
+                      currentSession.meta.experimentNote
+                    }}</span>
+                    {{ currentSession.meta.experimentNote }}
+                  </v-tooltip>
+                </v-flex>
               </v-layout>
               <v-layout align-center v-if="noteSegments.length">
                 <v-flex shrink>
@@ -529,7 +528,7 @@ export default {
                 </v-flex>
               </v-layout>
               <div v-else style="height:28px;"></div>
-              <v-layout>
+              <v-layout align-center>
                 <v-flex>
                   <v-text-field
                     class="note-field"
@@ -546,6 +545,22 @@ export default {
                       handler: () => $refs.note.blur()
                     }"
                   ></v-text-field>
+                </v-flex>
+                <v-flex shrink v-if="reviewChanged">
+                  <v-tooltip top>
+                    <v-btn
+                      slot="activator"
+                      flat
+                      icon
+                      small
+                      color="grey"
+                      class="my-0"
+                      @click="loadSessionMeta"
+                    >
+                      <v-icon>undo</v-icon>
+                    </v-btn>
+                    <span>Revert</span>
+                  </v-tooltip>
                 </v-flex>
               </v-layout>
               <v-layout>
@@ -625,7 +640,7 @@ export default {
       </v-flex>
     </template>
     <v-layout v-else align-center justify-center row fill-height>
-      <div class="title" v-if="!loadingDataset">Select a dataset</div>
+      <div class="title" v-if="!loadingDataset">Select a session</div>
     </v-layout>
     <v-dialog v-model="unsavedDialog" lazy persistent max-width="400">
       <v-card>
@@ -694,6 +709,13 @@ export default {
     }
   }
 
+  .experiment-note {
+    max-width: 250px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
   .layout-container {
     position: relative;
 
@@ -749,17 +771,6 @@ export default {
 
   .v-input--slider.dataset-slider {
     margin-top: 0;
-  }
-
-  .control-panel {
-    position: relative;
-
-    .bottom-row {
-      position: absolute;
-      bottom: 2px;
-      left: 2px;
-      right: 2px;
-    }
   }
 }
 
