@@ -1,3 +1,4 @@
+const webpack = require("webpack");
 const CopyPlugin = require("copy-webpack-plugin");
 const path = require("path");
 
@@ -28,7 +29,12 @@ module.exports = {
           from: path.join(__dirname, "node_modules", "itk"),
           to: "itk"
         }
-      ])
+      ]),
+      new webpack.DefinePlugin({
+        "process.env": {
+          VERSION: JSON.stringify(require("./package.json").version)
+        }
+      })
     ]
   },
   chainWebpack: config => {

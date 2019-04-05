@@ -4,6 +4,7 @@ import _ from "lodash";
 import Layout from "@/components/Layout.vue";
 import { mapState, mapActions, mapGetters, mapMutations } from "vuex";
 
+import NavbarTitle from "@/components/NavbarTitle";
 import UserButton from "@/components/girder/UserButton";
 import CSVImportExport from "../components/CSVImportExport";
 import SessionsView from "@/components/SessionsView";
@@ -17,6 +18,7 @@ import { cleanDatasetName } from "@/utils/helper";
 export default {
   name: "dataset",
   components: {
+    NavbarTitle,
     UserButton,
     Layout,
     CSVImportExport,
@@ -248,9 +250,7 @@ export default {
 <template>
   <v-layout class="dataset" fill-height column>
     <v-toolbar app dense>
-      <v-toolbar-title>
-        <span>MIQA</span>
-      </v-toolbar-title>
+      <NavbarTitle />
       <NavigationTabs />
       <v-spacer></v-spacer>
       <v-btn icon class="mr-4" @click="keyboardShortcutDialog = true">
@@ -306,7 +306,11 @@ export default {
       <v-flex shrink class="bottom">
         <v-container fluid grid-list-sm class="pa-2">
           <v-layout>
-            <v-flex shrink class="mx-2" style="display:flex;flex-direction:column;">
+            <v-flex
+              shrink
+              class="mx-2"
+              style="display:flex;flex-direction:column;"
+            >
               <v-layout align-center>
                 <v-flex shrink>
                   <v-btn

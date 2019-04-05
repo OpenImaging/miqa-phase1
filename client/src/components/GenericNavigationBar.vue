@@ -1,10 +1,12 @@
 <script>
+import NavbarTitle from "@/components/NavbarTitle";
 import UserButton from "@/components/girder/UserButton";
 import NavigationTabs from "@/components/NavigationTabs";
 
 export default {
   name: "GenericNavigationBar",
   components: {
+    NavbarTitle,
     UserButton,
     NavigationTabs
   },
@@ -14,9 +16,7 @@ export default {
 
 <template>
   <v-toolbar app dense>
-    <v-toolbar-title>
-      <span>MIQA</span>
-    </v-toolbar-title>
+    <NavbarTitle />
     <NavigationTabs />
     <v-spacer></v-spacer>
     <UserButton @user="girderRest.logout()" />
