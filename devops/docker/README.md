@@ -12,3 +12,6 @@ Deploy MIQA system with Docker.
 * `docker-compose build`
 * `docker-compose up` should finish without error
 * MIQA should be available at localhost
+
+### Note
+The smtp-relay container is not required. Girder has the ability to send emails via any SMTP service.

@@ -9,7 +9,7 @@ services:
   web_server:
     build:
       context: ../..
-      dockerfile: devops/docker/Dockerfile
+      dockerfile: devops/docker/girder/Dockerfile
     ports:
       - "${PORT}:8080"
     links:

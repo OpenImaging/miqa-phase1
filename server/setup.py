@@ -4,7 +4,8 @@
 from setuptools import setup, find_packages
 
 requirements = [
-    'girder>=3.0.0a1',
+    'girder>=3.0.0a6.dev11',
+    'girder-autojoin'
 ]
 
 setup(
