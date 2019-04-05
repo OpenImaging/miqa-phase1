@@ -13,7 +13,7 @@ import girder from "../girder";
 
 const PRELOAD_SIZE = 6;
 const CACHE_SIZE = PRELOAD_SIZE + 6;
-const CACHE_DELAY_INTERVAL = 1500;
+const CACHE_DELAY_INTERVAL = 2500;
 
 Vue.use(Vuex);
 
@@ -262,57 +262,73 @@ const store = new Vuex.Store({
   }
 });
 
+// Cache following datasets
 store.watch(
-  (state, getters) => [getters.currentDataset, getters.allDatasets],
-  ([currentDataset, allDatasets]) => {
-    if (!currentDataset || !allDatasets) {
+  (state, getters) => getters.currentDataset,
+  currentDataset => {
+    if (!currentDataset) {
       return;
     }
-    var state = store.state;
-    var currentDatasetIndex = allDatasets.indexOf(currentDataset);
-    var datasetsToCache = allDatasets.slice(
-      currentDatasetIndex + 1,
-      currentDatasetIndex + 1 + PRELOAD_SIZE
-    );
-    state.pendingCaching.forEach(value => {
-      clearTimeout(value);
-    });
-    state.pendingCaching.clear();
+    var cache = store.state.proxyManagerCache[currentDataset._id];
+    if (!cache.then) {
+      cacheFollowingDatasets();
+    } else {
+      cache.then(() => {
+        setTimeout(() => {
+          cacheFollowingDatasets();
+        });
+      });
+    }
+  }
+);
 
-    shrinkUnnecessaryProxyManager();
+function cacheFollowingDatasets() {
+  var { currentDataset, allDatasets } = store.getters;
+  var state = store.state;
+  var currentDatasetIndex = allDatasets.indexOf(currentDataset);
+  var datasetsToCache = allDatasets.slice(
+    currentDatasetIndex + 1,
+    currentDatasetIndex + 1 + PRELOAD_SIZE
+  );
+  state.pendingCaching.forEach(value => {
+    clearTimeout(value);
+  });
+  state.pendingCaching.clear();
 
-    var queue = 0;
-    datasetsToCache.forEach(async dataset => {
-      if (dataset._id in state.proxyManagerCache) {
+  shrinkUnnecessaryProxyManager();
+
+  var queue = 0;
+  datasetsToCache.forEach(async dataset => {
+    if (dataset._id in state.proxyManagerCache) {
+      if (
+        dataset === store.getters.nextDataset ||
+        dataset === store.getters.nextNextDataset
+      ) {
+        if (state.proxyManagerCache[dataset._id].then) {
+          await state.proxyManagerCache[dataset._id];
+        }
+        prepareProxyManager(state.proxyManagerCache[dataset._id]);
+      }
+      return;
+    }
+    clearTimeout(state.pendingCaching.get(dataset._id));
+    state.pendingCaching.set(
+      dataset._id,
+      setTimeout(async () => {
+        state.pendingCaching.delete(dataset._id);
+        var proxyManger = await store.dispatch("cacheDataset", dataset);
         if (
           dataset === store.getters.nextDataset ||
           dataset === store.getters.nextNextDataset
         ) {
-          if (state.proxyManagerCache[dataset._id].then) {
-            await state.proxyManagerCache[dataset._id];
-          }
-          prepareProxyManager(state.proxyManagerCache[dataset._id]);
+          prepareProxyManager(proxyManger);
         }
-        return;
-      }
-      clearTimeout(state.pendingCaching.get(dataset._id));
-      state.pendingCaching.set(
-        dataset._id,
-        setTimeout(async () => {
-          state.pendingCaching.delete(dataset._id);
-          var proxyManger = await store.dispatch("cacheDataset", dataset);
-          if (
-            dataset === store.getters.nextDataset ||
-            dataset === store.getters.nextNextDataset
-          ) {
-            prepareProxyManager(proxyManger);
-          }
-        }, queue++ * CACHE_DELAY_INTERVAL)
-      );
-    });
-  }
-);
+      }, queue++ * CACHE_DELAY_INTERVAL)
+    );
+  });
+}
 
+// Cache previous one dataset
 store.watch(
   (state, getters) => getters.previousDataset,
   dataset => {
