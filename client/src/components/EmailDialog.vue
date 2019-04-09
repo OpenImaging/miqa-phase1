@@ -97,7 +97,7 @@ export default {
       this.showBCC = !!this.bcc.length;
       var experiment = `Regarding ${this.currentSession.meta.experimentId} (${
         this.currentSession.meta.experimentId2
-      })`;
+      }), ${this.currentSession.name}`;
       this.subject = experiment;
       this.body = `${experiment}
 
