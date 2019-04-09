@@ -41,8 +41,7 @@ export default {
     editingNoteDialog: false,
     editingNote: "",
     showNotePopup: false,
-    keyboardShortcutDialog: false,
-    sliderTempValue: 0
+    keyboardShortcutDialog: false
   }),
   computed: {
     ...mapState(["vtkViews", "loadingDataset", "drawer", "screenshots"]),
@@ -72,7 +71,6 @@ export default {
     }
   },
   async created() {
-    this.datasetSliderChange = _.throttle(this.datasetSliderChange, 50);
     this.debouncedDatasetSliderChange = _.debounce(
       this.debouncedDatasetSliderChange,
       1000
@@ -234,12 +232,7 @@ export default {
       this.$refs.note.focus();
       e.preventDefault();
     },
-    datasetSliderChange(index) {
-      this.sliderTempValue = index;
-      this.debouncedDatasetSliderChange(index);
-    },
     debouncedDatasetSliderChange(index) {
-      this.sliderTempValue = null;
       var dataset = this.currentSession.datasets[index];
       this.$router.push(dataset._id);
     }
@@ -333,9 +326,7 @@ export default {
                 <v-flex style="width:140px; text-align: center;">
                   <span
                     >{{
-                      sliderTempValue
-                        ? sliderTempValue + 1
-                        : currentSession.datasets.indexOf(currentDataset) + 1
+                      currentSession.datasets.indexOf(currentDataset) + 1
                     }}
                     of {{ currentSession.datasets.length }}</span
                   >
@@ -364,16 +355,18 @@ export default {
                     class="dataset-slider"
                     hide-details
                     always-dirty
-                    :min="0"
+                    thumb-label
+                    thumb-size="28"
+                    :min="1"
                     :max="
                       currentSession.datasets.length === 1
-                        ? 1
-                        : currentSession.datasets.length - 1
+                        ? 2
+                        : currentSession.datasets.length
                     "
                     :disabled="currentSession.datasets.length === 1"
                     :height="24"
-                    :value="currentSession.datasets.indexOf(currentDataset)"
-                    @input="datasetSliderChange"
+                    :value="currentSession.datasets.indexOf(currentDataset) + 1"
+                    @input="debouncedDatasetSliderChange($event - 1)"
                   ></v-slider>
                 </v-flex>
                 <v-flex shrink>
