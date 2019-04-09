@@ -20,7 +20,7 @@ export default {
     fullscreen: false
   }),
   computed: {
-    ...mapState(["proxyManager"]),
+    ...mapState(["proxyManager", "sliceCache"]),
     ...mapGetters(["currentSession", "currentDataset"]),
     representation() {
       return this.proxyManager.getRepresentation(null, this.view);
@@ -58,31 +58,41 @@ export default {
   },
   watch: {
     slice(value) {
-      this.representation.setSlice(value);
+      if (value !== this.representation.getSlice()) {
+        this.representation.setSlice(value);
+        this.saveSlice({ name: this.name, value });
+      }
     },
     view(view, oldView) {
       this.cleanup();
       oldView.setContainer(null);
-      this.initialize();
+      this.initializeSlice();
+      this.initializeView();
     }
   },
+  created() {
+    this.initializeSlice();
+  },
   mounted() {
-    this.initialize();
+    this.initializeView();
   },
   beforeDestroy() {
     this.cleanup();
   },
   methods: {
-    ...mapMutations(["setCurrentScreenshot"]),
-    initialize() {
-      this.view.setContainer(this.$refs.viewer);
-      fill2DView(this.view);
+    ...mapMutations(["saveSlice", "setCurrentScreenshot"]),
+    initializeSlice() {
+      var cachedSlice = this.sliceCache[this.name];
       if (this.name !== "default") {
-        this.slice = this.representation.getSlice();
+        this.slice = cachedSlice ? cachedSlice : this.representation.getSlice();
         this.modifiedSubscription = this.representation.onModified(() => {
           this.slice = this.representation.getSlice();
         });
       }
+    },
+    initializeView() {
+      this.view.setContainer(this.$refs.viewer);
+      fill2DView(this.view);
       setTimeout(() => {
         this.resized = true;
       });

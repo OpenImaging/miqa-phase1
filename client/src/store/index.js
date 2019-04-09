@@ -29,7 +29,8 @@ const store = new Vuex.Store({
     loadingDataset: false,
     currentScreenshot: null,
     screenshots: [],
-    sites: null
+    sites: null,
+    sliceCache: {}
   },
   getters: {
     currentDataset(state, getters) {
@@ -171,6 +172,9 @@ const store = new Vuex.Store({
     },
     removeScreenshot(state, screenshot) {
       state.screenshots.splice(state.screenshots.indexOf(screenshot), 1);
+    },
+    saveSlice(state, { name, value }) {
+      Vue.set(state.sliceCache, name, value);
     }
   },
   actions: {
@@ -278,6 +282,15 @@ store.watch(
           cacheFollowingDatasets();
         });
       });
+    }
+  }
+);
+
+store.watch(
+  (state, getters) => getters.currentSession,
+  (newValue, oldValue) => {
+    if (newValue !== oldValue) {
+      store.state.sliceCache = {};
     }
   }
 );
