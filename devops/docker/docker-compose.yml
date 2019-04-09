@@ -10,6 +10,8 @@ services:
     build:
       context: ../..
       dockerfile: devops/docker/girder/Dockerfile
+      args:
+        subpath: ${SUBPATH}
     ports:
       - "${PORT}:8080"
     links:
@@ -17,7 +19,8 @@ services:
     command: --host 0.0.0.0 --database mongodb://database:27017/girder
     volumes:
       - "${DATA_PERSISTENCE_DIRECTORY}/assetstore:/assetstore"
-      - "${PATH_TO_MOUNT}"
+      - "${PATH_TO_MOUNT_0}"
+      - "${PATH_TO_MOUNT_1}"
 
   provision:
     build:
@@ -28,7 +31,7 @@ services:
       - web_server
     command:
       [
-        "ghost=web_server gport=8080 gscheme=http assetstore=/assetstore admin_name=${GIRDER_ADMIN_NAME} admin_pass=${GIRDER_ADMIN_PASS} smtp_server=smtp-relay smtp_port=587 smtp_encryption=none smtp_username= smtp_password= server_url_in_email=${SERVER_URL_IN_EMAIL} sender_address=${SENDER_ADDRESS}"]
+        "ghost=web_server gport=8080 gscheme=http assetstore=/assetstore admin_name=${GIRDER_ADMIN_NAME} admin_pass=${GIRDER_ADMIN_PASS} smtp_server=smtp-relay smtp_port=587 smtp_encryption=none smtp_username= smtp_password= server_url_in_email=${SERVER_URL_IN_EMAIL} sender_address=${SENDER_ADDRESS} subpath=${SUBPATH}"]
 
   smtp-relay:
     image: hongkongkiwi/postfix-smtp-relay:latest

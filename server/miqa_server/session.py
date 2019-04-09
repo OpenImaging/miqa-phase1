@@ -144,8 +144,7 @@ class Session(Resource):
         with open(exportpath, 'w') as csv_file:
             csv_file.write(output.getvalue())
 
-    @access.admin
-    @access.cookie
+    @access.admin(cookie=True)
     @autoDescribeRoute(
         Description('')
         .errorResponse())
