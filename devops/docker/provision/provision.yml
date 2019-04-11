@@ -123,11 +123,6 @@
         value: "{{ server_url_in_email }}"
       - key: "core.email_from_address"
         value: "{{ sender_address }}"
-      - key: core.route_table
-        value: 
-            core_girder : /
-            core_static_root : "{{ subpath }}static"
-        
       - key: "autojoin"
         value:
           - groupId: "{{ reviewerGroup['gc_return']['_id'] }}"

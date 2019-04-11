@@ -1,6 +1,7 @@
 import datetime
 from girder import events, plugin
 from girder.models.user import User
+from girder.utility import server
 
 from .client_webroot import ClientWebroot
 from .session import Session
@@ -20,3 +21,5 @@ class GirderPlugin(plugin.GirderPlugin):
         info['apiRoot'].miqa = Session()
         info['apiRoot'].miqa_email = Email()
         info['apiRoot'].miqa_setting = SettingResource()
+
+server.getStaticRoot = lambda: 'static'
