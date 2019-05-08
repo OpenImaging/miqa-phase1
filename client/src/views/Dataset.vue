@@ -73,7 +73,7 @@ export default {
   async created() {
     this.debouncedDatasetSliderChange = _.debounce(
       this.debouncedDatasetSliderChange,
-      1000
+      30
     );
     await Promise.all([this.loadSessions(), this.loadSites()]);
     var datasetId = this.$route.params.datasetId;

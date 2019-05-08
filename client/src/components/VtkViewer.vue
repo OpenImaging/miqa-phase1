@@ -21,9 +21,13 @@ export default {
   }),
   computed: {
     ...mapState(["proxyManager", "sliceCache"]),
-    ...mapGetters(["currentSession", "currentDataset"]),
+    ...mapGetters(["currentSession", "currentDataset", "currentSession"]),
     representation() {
-      return this.proxyManager.getRepresentation(null, this.view);
+      return (
+        // force add dependancy on currentDataset
+        this.currentDataset &&
+        this.proxyManager.getRepresentation(null, this.view)
+      );
     },
     sliceDomain() {
       return this.representation.getPropertyDomainByName("slice");
@@ -60,7 +64,6 @@ export default {
     slice(value) {
       if (value !== this.representation.getSlice()) {
         this.representation.setSlice(value);
-        this.saveSlice({ name: this.name, value });
       }
     },
     view(view, oldView) {
@@ -68,6 +71,12 @@ export default {
       oldView.setContainer(null);
       this.initializeSlice();
       this.initializeView();
+    },
+    currentDataset() {
+      this.representation.setSlice(this.slice);
+    },
+    currentSession() {
+      this.initializeSlice();
     }
   },
   created() {
@@ -82,12 +91,8 @@ export default {
   methods: {
     ...mapMutations(["saveSlice", "setCurrentScreenshot"]),
     initializeSlice() {
-      var cachedSlice = this.sliceCache[this.name];
       if (this.name !== "default") {
-        this.slice = cachedSlice ? cachedSlice : this.representation.getSlice();
-        this.modifiedSubscription = this.representation.onModified(() => {
-          this.slice = this.representation.getSlice();
-        });
+        this.slice = this.representation.getSlice();
       }
     },
     initializeView() {

@@ -1,5 +1,5 @@
 <script>
-import { mapState } from "vuex";
+import { mapState, mapGetters } from "vuex";
 
 export default {
   name: "WindowControl",
@@ -9,8 +9,9 @@ export default {
   }),
   computed: {
     ...mapState(["proxyManager"]),
+    ...mapGetters(["currentDataset"]),
     representation() {
-      return this.proxyManager.getRepresentations()[0];
+      return this.currentDataset && this.proxyManager.getRepresentations()[0];
     },
     windowWidthDomain() {
       return this.representation.getPropertyDomainByName("windowWidth");
