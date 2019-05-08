@@ -16,28 +16,7 @@ export default {
   }),
   computed: {
     ...mapState(["sessionTree"]),
-    ...mapGetters(["currentSession"]),
-    orderedSessionTree() {
-      if (!this.sessionTree) {
-        return [];
-      }
-      var finished = [];
-      var pending = [];
-      for (let experiment of this.sessionTree) {
-        let added = false;
-        for (let session of experiment.sessions) {
-          if (!session.meta || !session.meta.rating) {
-            pending.push(experiment);
-            added = true;
-            break;
-          }
-        }
-        if (!added) {
-          finished.push(experiment);
-        }
-      }
-      return [...pending, ...finished];
-    }
+    ...mapGetters(["currentSession"])
   },
   methods: {}
 };
@@ -45,9 +24,9 @@ export default {
 
 <template>
   <div class="sessions-view">
-    <ul class="experiment" v-if="orderedSessionTree.length">
+    <ul class="experiment" v-if="sessionTree && sessionTree.length">
       <li
-        v-for="experiment of orderedSessionTree"
+        v-for="experiment of sessionTree"
         class="body-2"
         :key="experiment.folderId"
       >

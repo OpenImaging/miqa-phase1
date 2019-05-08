@@ -44,7 +44,13 @@ export default {
     keyboardShortcutDialog: false
   }),
   computed: {
-    ...mapState(["vtkViews", "loadingDataset", "drawer", "screenshots"]),
+    ...mapState([
+      "vtkViews",
+      "loadingDataset",
+      "drawer",
+      "screenshots",
+      "sessionCachedPercentage"
+    ]),
     ...mapGetters([
       "nextDataset",
       "currentDataset",
@@ -277,30 +283,30 @@ export default {
         <SessionsView class="mt-1" minimal />
       </div>
     </v-navigation-drawer>
+    <v-layout
+      v-if="loadingDataset"
+      class="loading-indicator-container"
+      align-center
+      justify-center
+      row
+      fill-height
+    >
+      <v-progress-circular
+        color="primary"
+        :width="4"
+        :size="50"
+        indeterminate
+      ></v-progress-circular>
+    </v-layout>
     <template v-if="currentDataset">
       <v-flex class="layout-container">
         <Layout />
-        <v-layout
-          v-if="loadingDataset"
-          class="loading-indicator-container"
-          align-center
-          justify-center
-          row
-          fill-height
-        >
-          <v-progress-circular
-            color="primary"
-            :width="4"
-            :size="50"
-            indeterminate
-          ></v-progress-circular>
-        </v-layout>
       </v-flex>
       <v-flex shrink class="bottom">
         <v-container fluid grid-list-sm class="pa-2">
           <v-layout>
             <v-flex
-              shrink
+              xs-3
               class="mx-2"
               style="display:flex;flex-direction:column;"
             >
@@ -323,7 +329,7 @@ export default {
                     <v-icon>keyboard_arrow_left</v-icon>
                   </v-btn>
                 </v-flex>
-                <v-flex style="width:140px; text-align: center;">
+                <v-flex style="text-align: center;">
                   <span
                     >{{
                       currentSession.datasets.indexOf(currentDataset) + 1
@@ -350,7 +356,7 @@ export default {
                 </v-flex>
               </v-layout>
               <v-layout align-center>
-                <v-flex class="ml-4">
+                <v-flex class="ml-3 mr-1">
                   <v-slider
                     class="dataset-slider"
                     hide-details
@@ -370,40 +376,7 @@ export default {
                   ></v-slider>
                 </v-flex>
                 <v-flex shrink>
-                  <v-menu
-                    offset-y
-                    top
-                    max-height="400"
-                    min-width="100"
-                    auto
-                    :disabled="currentSession.datasets.length === 1"
-                  >
-                    <v-btn
-                      slot="activator"
-                      flat
-                      icon
-                      small
-                      color="primary"
-                      class="my-0"
-                      :disabled="currentSession.datasets.length === 1"
-                    >
-                      <v-icon>more_vert</v-icon>
-                    </v-btn>
-                    <v-list>
-                      <v-list-tile
-                        v-for="(dataset, index) in currentSession.datasets"
-                        :key="index"
-                        :to="dataset._id"
-                        :class="{
-                          'primary--text': dataset === currentDataset
-                        }"
-                      >
-                        <v-list-tile-title>{{
-                          cleanDatasetName(dataset.name)
-                        }}</v-list-tile-title>
-                      </v-list-tile>
-                    </v-list>
-                  </v-menu>
+                  {{ Math.round(sessionCachedPercentage * 100) }}%
                 </v-flex>
               </v-layout>
               <v-layout class="bottom-row">
@@ -440,7 +413,7 @@ export default {
                 </v-flex>
               </v-layout>
             </v-flex>
-            <v-flex xs8 class="mx-2">
+            <v-flex xs6 class="mx-2">
               <v-layout align-center justify-center class="body-2">
                 <v-flex>
                   {{ getSiteDisplayName(currentSession.meta.site) }},
@@ -629,15 +602,21 @@ export default {
                 </v-flex>
               </v-layout>
             </v-flex>
-            <v-flex xs4 class="mx-2">
+            <v-flex xs3 class="mx-2">
               <WindowControl v-if="vtkViews.length" class="py-0" />
             </v-flex>
           </v-layout>
         </v-container>
       </v-flex>
     </template>
-    <v-layout v-else align-center justify-center row fill-height>
-      <div class="title" v-if="!loadingDataset">Select a session</div>
+    <v-layout
+      v-if="!currentDataset && !loadingDataset"
+      align-center
+      justify-center
+      row
+      fill-height
+    >
+      <div class="title">Select a session</div>
     </v-layout>
     <v-dialog v-model="unsavedDialog" lazy persistent max-width="400">
       <v-card>
@@ -713,13 +692,18 @@ export default {
     text-overflow: ellipsis;
   }
 
+  .loading-indicator-container {
+    background: #ffffff57;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 1;
+  }
+
   .layout-container {
     position: relative;
-
-    .loading-indicator-container {
-      background: #ffffff57;
-      position: relative;
-    }
   }
 
   .v-btn.smaller {
