@@ -29,7 +29,7 @@ export default {
     KeyboardShortcutDialog,
     NavigationTabs
   },
-  inject: ["girderRest"],
+  inject: ["girderRest", "userLevel"],
   data: () => ({
     newNote: "",
     rating: null,
@@ -279,7 +279,7 @@ export default {
         <v-toolbar dense flat>
           <v-toolbar-title>Sessions</v-toolbar-title>
         </v-toolbar>
-        <CSVImportExport />
+        <CSVImportExport v-if="userLevel.value <= 2" />
         <SessionsView class="mt-1" minimal />
       </div>
     </v-navigation-drawer>
@@ -487,11 +487,7 @@ export default {
                     </v-card>
                   </v-menu>
                 </v-flex>
-                <v-flex
-                  shrink
-                  class="pa-0"
-                  v-if="girderRest.user && girderRest.user.admin"
-                >
+                <v-flex shrink class="pa-0" v-if="userLevel.value <= 1">
                   <v-btn flat small icon class="ma-0" @click="enableEditHistroy"
                     ><v-icon style="font-size: 18px;">edit</v-icon></v-btn
                   >
@@ -534,13 +530,14 @@ export default {
                 </v-flex>
               </v-layout>
               <v-layout>
-                <v-flex>
+                <v-flex v-if="userLevel.value <= 2">
                   <v-btn-toggle
                     class="buttons"
                     v-model="rating"
                     @change="ratingChanged"
                   >
                     <v-btn
+                      v-if="userLevel.value <= 1"
                       flat
                       small
                       value="bad"
@@ -551,6 +548,14 @@ export default {
                         handler: () => setRating('bad')
                       }"
                       >Bad</v-btn
+                    >
+                    <v-btn
+                      flat
+                      small
+                      value="questionable"
+                      color="orange"
+                      :disabled="!newNote && !note"
+                      ><b>?</b></v-btn
                     >
                     <v-btn
                       flat
@@ -572,7 +577,7 @@ export default {
                         bind: 'u',
                         handler: () => setRating('usableExtra')
                       }"
-                      >Usable extra</v-btn
+                      >Extra</v-btn
                     >
                   </v-btn-toggle>
                 </v-flex>
@@ -722,18 +727,7 @@ export default {
       .v-btn {
         height: 36px;
         opacity: 1;
-
-        &:nth-child(1) {
-          width: 30%;
-        }
-
-        &:nth-child(2) {
-          width: 30%;
-        }
-
-        &:nth-child(3) {
-          width: 40%;
-        }
+        flex: 1;
       }
     }
   }

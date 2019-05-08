@@ -5,7 +5,7 @@ import { GIRDER_URL } from "../constants";
 
 export default {
   name: "NavigationTabs",
-  inject: ["girderRest"],
+  inject: ["girderRest", "userLevel"],
   data: () => ({
     GIRDER_URL
   }),
@@ -30,15 +30,11 @@ export default {
       <v-icon>view_column</v-icon>
       Sessions
     </v-tab>
-    <v-tab to="/settings" v-if="girderRest.user && girderRest.user.admin">
+    <v-tab to="/settings" v-if="userLevel.value === 0">
       <v-icon>settings</v-icon>
       Settings
     </v-tab>
-    <v-tab
-      v-if="girderRest.user && girderRest.user.admin"
-      :href="GIRDER_URL"
-      target="_blank"
-    >
+    <v-tab v-if="userLevel.value === 0" :href="GIRDER_URL" target="_blank">
       <v-icon>open_in_new</v-icon>
       Girder
     </v-tab>

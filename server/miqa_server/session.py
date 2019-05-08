@@ -158,6 +158,7 @@ class Session(Resource):
         def convertRatingToDecision(rating):
             return {
                 None: 0,
+                'questionable': 0,
                 'good': 1,
                 'usableExtra': 2,
                 'bad': -1

@@ -18,7 +18,20 @@ export default {
     ...mapState(["sessionTree"]),
     ...mapGetters(["currentSession"])
   },
-  methods: {}
+  methods: {
+    ratingToLabel(rating) {
+      switch (rating) {
+        case "questionable":
+          return "Q";
+        case "good":
+          return "G";
+        case "bad":
+          return "B";
+        case "usableExtra":
+          return "E";
+      }
+    }
+  }
 };
 </script>
 
@@ -45,10 +58,10 @@ export default {
               small
               :to="session.datasets[0]._id"
               active-class=""
-              >{{ session.name }}</v-btn
-            >
-            <v-icon small v-if="session.meta && session.meta.rating"
-              >check</v-icon
+              >{{ session.name
+              }}<span small v-if="session.meta && session.meta.rating"
+                >&nbsp;&nbsp;({{ ratingToLabel(session.meta.rating) }})</span
+              ></v-btn
             >
           </li>
         </ul>

@@ -35,20 +35,25 @@
         path: "user/me"
     register: admin
 
-  - name: Ensure the Reviewer Group
+  - name: Ensure user groups
     girder:
       host: "{{ ghost }}"
       port: "{{ gport }}"
       scheme: "{{ gscheme }}"
       token: "{{ admin['token'] }}"
       group:
-        name: "reviewer"
-        description: "The user group for Reviewer"
+        name: "{{ item }}"
+        description: "The user group for {{ item }}"
         users:
           - login: "{{ admin_name }}"
             type: "admin"
       state: present
-    register: reviewerGroup
+    register: userGroups
+
+    with_items:
+      - "Manager"
+      - "Reviewer"
+      - "Collaborator"
 
   - name: Ensure Default Assetstore
     girder:
@@ -80,8 +85,12 @@
             - login: "{{ admin_name }}"
               type: admin
           groups:
-            - name: reviewer
+            - name: Reviewer
               type: moderator
+            - name: Manager
+              type: moderator
+            - name: Collaborator
+              type: member
       state: present
 
   - name: Activate Girder Plugins
@@ -125,7 +134,7 @@
         value: "{{ sender_address }}"
       - key: "autojoin"
         value:
-          - groupId: "{{ reviewerGroup['gc_return']['_id'] }}"
+          - groupId: "{{ userGroups.results[2]['gc_return']['_id'] }}"
             level: 0
             pattern: "@"
 
