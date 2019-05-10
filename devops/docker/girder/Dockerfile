@@ -21,8 +21,8 @@ ENV LANG=C.UTF-8
 # Install girder
 RUN mkdir /miqa
 COPY server /miqa/server
-RUN pip install /miqa/server \
-    && girder build --static-root /static
+RUN pip install /miqa/server
+RUN girder build --static-root /static
 
 # Install miqa
 COPY client /miqa/client
