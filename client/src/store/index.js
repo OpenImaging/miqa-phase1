@@ -219,12 +219,12 @@ const store = new Vuex.Store({
       calculateCachedPercentage();
       loadFileAndGetData(dataset._id).then(imagedata => {
         sourceProxy.setInputData(imagedata);
-        state.loadingDataset = false;
         if (needPrep) {
           prepareProxyManager(state.proxyManager);
           state.vtkViews = state.proxyManager.getViews();
         }
         state.currentDatasetId = dataset["_id"];
+        state.loadingDataset = false;
       });
     },
     async loadSites({ state }) {

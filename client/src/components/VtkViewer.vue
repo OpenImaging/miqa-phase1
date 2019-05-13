@@ -20,7 +20,7 @@ export default {
     fullscreen: false
   }),
   computed: {
-    ...mapState(["proxyManager", "sliceCache"]),
+    ...mapState(["proxyManager", "loadingDataset"]),
     ...mapGetters(["currentSession", "currentDataset", "currentSession"]),
     representation() {
       return (
@@ -79,11 +79,9 @@ export default {
       this.initializeSlice();
     }
   },
-  created() {
-    this.initializeSlice();
-  },
   mounted() {
     this.initializeView();
+    this.initializeSlice();
   },
   beforeDestroy() {
     this.cleanup();
@@ -98,6 +96,13 @@ export default {
     initializeView() {
       this.view.setContainer(this.$refs.viewer);
       fill2DView(this.view);
+      if (this.name !== "default") {
+        this.modifiedSubscription = this.representation.onModified(() => {
+          if (!this.loadingDataset) {
+            this.slice = this.representation.getSlice();
+          }
+        });
+      }
       setTimeout(() => {
         this.resized = true;
       });
