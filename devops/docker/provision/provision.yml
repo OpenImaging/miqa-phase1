@@ -44,9 +44,6 @@
       group:
         name: "{{ item }}"
         description: "The user group for {{ item }}"
-        users:
-          - login: "{{ admin_name }}"
-            type: "admin"
       state: present
     register: userGroups
 
