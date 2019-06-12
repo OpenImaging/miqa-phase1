@@ -175,7 +175,16 @@ const store = new Vuex.Store({
   actions: {
     async loadSessions({ state }) {
       let { data: sessionTree } = await girder.rest.get(`miqa/sessions`);
-      state.sessionTree = sessionTree;
+      state.sessionTree = sessionTree.map(experiment => {
+        return {
+          ...experiment,
+          ...{
+            sessions: experiment.sessions.sort(
+              (a, b) => a.meta.scanId - b.meta.scanId
+            )
+          }
+        };
+      });
     },
     async swapToDataset({ state, getters }, dataset) {
       if (!dataset) {
