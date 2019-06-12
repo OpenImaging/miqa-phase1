@@ -208,6 +208,10 @@ const store = new Vuex.Store({
         // However maybe unnecessary
         shrinkProxyManager(state.proxyManager);
         newProxyManager = true;
+        readDataQueue.forEach(({ fileP }) => {
+          fileP.cancel();
+        });
+        readDataQueue = [];
       }
 
       if (!state.proxyManager || newProxyManager) {
@@ -316,7 +320,7 @@ function shrinkProxyManager(proxyManager) {
 
 function loadFile(id) {
   if (fileCache.has(id)) {
-    return { id, fileP: Promise.resolve(fileCache.get(id)) };
+    return { id, fileP: fileCache.get(id) };
   }
   let p = ReaderFactory.downloadDataset(
     girder.rest,

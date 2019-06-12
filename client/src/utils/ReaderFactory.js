@@ -1,9 +1,19 @@
+import { CancelToken } from "axios";
+import Promise from "bluebird";
+
+Promise.config({
+  longStackTraces: false,
+  warnings: false, // note, run node with --trace-warnings to see full stack traces for warnings,
+  cancellation: true
+});
+
 const READER_MAPPING = {};
 
 const FETCH_DATA = {
-  readAsArrayBuffer(axios, url) {
+  readAsArrayBuffer(axios, url, source) {
     return axios
       .get(url, {
+        cancelToken: source.token,
         responseType: "arraybuffer"
       })
       .then(({ data }) => data);
@@ -92,12 +102,13 @@ function loadFiles(files) {
   return Promise.all(promises);
 }
 
-function downloadDataset(axios, fileName, url, progressCallback) {
-  return new Promise((resolve, reject) => {
+function downloadDataset(axios, fileName, url) {
+  return new Promise((resolve, reject, onCancel) => {
     const readerMapping = getReader({ name: fileName });
     if (readerMapping) {
       const { readMethod } = readerMapping;
-      FETCH_DATA[readMethod](axios, url, progressCallback)
+      const source = CancelToken.source();
+      FETCH_DATA[readMethod](axios, url, source)
         .then(rawData => {
           if (rawData) {
             resolve(new File([rawData], fileName));
@@ -106,6 +117,9 @@ function downloadDataset(axios, fileName, url, progressCallback) {
           }
         })
         .catch(reject);
+      onCancel(function() {
+        source.cancel("navigated away");
+      });
     } else {
       throw new Error(`No reader found for ${fileName}`);
     }
