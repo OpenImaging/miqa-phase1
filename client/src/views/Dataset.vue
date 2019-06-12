@@ -47,6 +47,7 @@ export default {
     ...mapState([
       "vtkViews",
       "loadingDataset",
+      "errorLoadingDataset",
       "drawer",
       "screenshots",
       "sessionCachedPercentage"
@@ -301,6 +302,14 @@ export default {
     <template v-if="currentDataset">
       <v-flex class="layout-container">
         <Layout />
+        <v-layout
+          v-if="errorLoadingDataset"
+          align-center
+          justify-center
+          fill-height
+        >
+          <div class="title">Error loading this dataset</div>
+        </v-layout>
       </v-flex>
       <v-flex shrink class="bottom">
         <v-container fluid grid-list-sm class="pa-2">
@@ -618,7 +627,6 @@ export default {
       v-if="!currentDataset && !loadingDataset"
       align-center
       justify-center
-      row
       fill-height
     >
       <div class="title">Select a session</div>

@@ -24,6 +24,7 @@ const store = new Vuex.Store({
     vtkViews: [],
     currentDatasetId: null,
     loadingDataset: false,
+    errorLoadingDataset: false,
     currentScreenshot: null,
     screenshots: [],
     sites: null,
@@ -184,6 +185,7 @@ const store = new Vuex.Store({
         return;
       }
       state.loadingDataset = true;
+      state.errorLoadingDataset = false;
       var oldSession = getters.currentSession;
       var temp = state.currentDatasetId;
       // Use side effect to get the new session, logically correct but should be improved
@@ -217,15 +219,24 @@ const store = new Vuex.Store({
       }
 
       calculateCachedPercentage();
-      loadFileAndGetData(dataset._id).then(imagedata => {
+      // This try catch and within logic are mainly for handling data doesn't exist issue
+      try {
+        var imagedata = await loadFileAndGetData(dataset._id);
         sourceProxy.setInputData(imagedata);
-        if (needPrep) {
+        if (needPrep || !state.proxyManager.getViews().length) {
           prepareProxyManager(state.proxyManager);
           state.vtkViews = state.proxyManager.getViews();
         }
+        if (!state.vtkViews.length) {
+          state.vtkViews = state.proxyManager.getViews();
+        }
+      } catch {
+        state.vtkViews = [];
+        state.errorLoadingDataset = true;
+      } finally {
         state.currentDatasetId = dataset["_id"];
         state.loadingDataset = false;
-      });
+      }
     },
     async loadSites({ state }) {
       let { data: sites } = await girder.rest.get("miqa_setting/site");
