@@ -66,10 +66,8 @@ def main():
     ############
     #MRIQC command
     # input -> bids_output_path, mriqc_output_path
-    '''
     command = 'docker run -ti --rm -v '+bids_output_path+':/bids_dataset:ro -v '+mriqc_output+':/output poldracklab/mriqc:latest /bids_dataset /output participant --participant_label'
     os.system(command)
-    '''
     ############
     
     iqms, iqm_values = get_iqms(mriqc_output)
