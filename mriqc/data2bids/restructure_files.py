@@ -11,6 +11,12 @@ from glob import glob
 import json
 import argparse
 
+'''
+python restructure_files.py --csv '/home/dhruv.sharma/Projects/MRIQC_AL/miqa sample data/sample data new/scans_to_review-2019-01-23.csv'
+--root '/home/dhruv.sharma/Projects/MRIQC_AL/miqa sample data/sample data new/datasnap-2019-01-23'
+'''
+
+
 def get_csv_contents(file_path):
     '''
     Reads the csv file and returns a list of rows split at comma. This csv file

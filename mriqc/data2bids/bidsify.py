@@ -10,6 +10,10 @@ import json
 import shutil
 import argparse
 
+'''
+python bidsify.py --output_dir "./bids_output"
+'''
+
 def generate_basic_files(bids_folder, data_description):
     '''
     This function creates the basic files necessary as per the BIDS requirements,
