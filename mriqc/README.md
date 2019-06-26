@@ -16,7 +16,7 @@ To exrtact, one needs to fulfill the following requirements:
 
 The `data2mriqc.py` is the engine file that runs all the processes to generate the csv file containing IQMs for each subject. You can do `python data2mriqc.py --help` to get to know the input requirements.
 
-Inputs:
+Inputs(paths should be absolute paths):
 
 1. path to the input csv
 2. root path to the folder where images start
