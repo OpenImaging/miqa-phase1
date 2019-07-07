@@ -31,11 +31,15 @@ def get_csv_contents(file_path):
     data = []
     with open(file_path, 'r') as csv_file:
         csvReader = csv.reader(csv_file, delimiter = ',')
-        next(csvReader)
+#        next(csvReader)
+        header = None
         for row in csvReader:
-            data.append(row)
+            if header is None:
+                header = row
+            else:
+                data.append(row)
     
-    return data
+    return header,data
         
 def group_by_subject(list_of_scans):
     '''
@@ -191,7 +195,7 @@ def main():
     root_path = args["root"]#'/home/dhruv.sharma/Projects/MRIQC_AL/miqa sample data/sample data new/datasnap-2019-01-23'
     intermediary_file_path = './intermediate_files'
     
-    csv_content = get_csv_contents(csv_path)
+    _, csv_content = get_csv_contents(csv_path)
     subject_wise_data = group_by_subject(csv_content)
 #    print(subject_wise_data['E08706'])
     

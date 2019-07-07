@@ -28,6 +28,7 @@ def get_BIDS_modality(modality):
         return 'T1w', 'anat'
     if (modality == 't2fse'):
         return 'T2w', 'anat'
+    return modality, 'etc'
     
 
 def process_modality(sub_id, modality, modality_data, sub_data):
