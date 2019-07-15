@@ -125,6 +125,10 @@ class Session(Resource):
                         'fileIncludeRegex': '.+[.]nii[.]gz$',
                         'importPath': niftiFolder,
                     }, progress=noProgress, user=user, leafFoldersAsItems=False)
+                iqm = self.parseIQM(row['IQMs'])
+                if iqm:
+                    item = list(Folder().childItems(scanFolder,limit=1))[0]
+                    Item().setMetadata(item,{'iqm':iqm},allowNull=True)
                 successCount += 1
             tryAddSites(sites, self.getCurrentUser())
             return {
@@ -210,3 +214,25 @@ class Session(Resource):
         if not sessionFolder:
             return None
         return sessionFolder.get('meta', {})
+
+    def parseIQM(self, iqm):
+        if not iqm:
+            return None
+        rows = iqm.split(';')
+        metrics = []
+        for row in rows:
+            if not row:
+                continue
+            [key, value] = row.split(':')
+            value = float(value)
+            elements = key.split('_')
+            if len(elements) == 1:
+                metrics.append({key: value})
+            else:
+                type_ = '_'.join(elements[:-1])
+                subType = elements[-1]
+                if(list(metrics[-1].keys())[0]) != type_:
+                    metrics.append({type_: []})
+                subTypes = metrics[-1][type_]
+                subTypes.append({subType: value})
+        return metrics

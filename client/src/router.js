@@ -5,6 +5,7 @@ import girder from "./girder";
 import Settings from "./views/Settings.vue";
 import Dataset from "./views/Dataset.vue";
 import Login from "./views/Login.vue";
+import Metrics from "./views/Metrics.vue";
 
 Vue.use(Router);
 
@@ -39,6 +40,12 @@ export default new Router({
       path: "/settings",
       name: "settings",
       component: Settings,
+      beforeEnter: beforeEnterAdmin
+    },
+    {
+      path: "/metrics",
+      name: "metrics",
+      component: Metrics,
       beforeEnter: beforeEnterAdmin
     },
     // Order matters

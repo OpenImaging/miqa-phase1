@@ -30,6 +30,10 @@ export default {
       <v-icon>view_column</v-icon>
       Sessions
     </v-tab>
+    <v-tab to="/metrics">
+      <v-icon>bar_chart</v-icon>
+      Metrics
+    </v-tab>
     <v-tab to="/settings" v-if="userLevel.value === 0">
       <v-icon>settings</v-icon>
       Settings

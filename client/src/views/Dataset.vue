@@ -12,11 +12,12 @@ import WindowControl from "@/components/WindowControl";
 import ScreenshotDialog from "@/components/ScreenshotDialog";
 import EmailDialog from "@/components/EmailDialog";
 import KeyboardShortcutDialog from "@/components/KeyboardShortcutDialog";
+import MetricsDisplay from "@/components/MetricsDisplay";
 import NavigationTabs from "@/components/NavigationTabs";
 import { cleanDatasetName } from "@/utils/helper";
 
 export default {
-  name: "dataset",
+  name: "Dataset",
   components: {
     NavbarTitle,
     UserButton,
@@ -27,7 +28,8 @@ export default {
     ScreenshotDialog,
     EmailDialog,
     KeyboardShortcutDialog,
-    NavigationTabs
+    NavigationTabs,
+    MetricsDisplay
   },
   inject: ["girderRest", "userLevel"],
   data: () => ({
@@ -41,7 +43,8 @@ export default {
     editingNoteDialog: false,
     editingNote: "",
     showNotePopup: false,
-    keyboardShortcutDialog: false
+    keyboardShortcutDialog: false,
+    initializeLoading: false
   }),
   computed: {
     ...mapState([
@@ -82,7 +85,9 @@ export default {
       this.debouncedDatasetSliderChange,
       30
     );
+    this.initializeLoading = true;
     await Promise.all([this.loadSessions(), this.loadSites()]);
+    this.initializeLoading = false;
     var datasetId = this.$route.params.datasetId;
     var dataset = this.getDataset(datasetId);
     if (dataset) {
@@ -253,9 +258,26 @@ export default {
       <NavbarTitle />
       <NavigationTabs />
       <v-spacer></v-spacer>
-      <v-btn icon class="mr-4" @click="keyboardShortcutDialog = true">
-        <v-icon>keyboard</v-icon>
-      </v-btn>
+      <v-menu :close-on-content-click="false" offset-x>
+        <template v-slot:activator="{ on }">
+          <v-btn
+            icon
+            v-on="on"
+            :disabled="
+              !currentDataset ||
+                !currentDataset.meta ||
+                !currentDataset.meta.iqm
+            "
+            ><v-icon>bar_chart</v-icon></v-btn
+          >
+        </template>
+        <MetricsDisplay
+          v-if="
+            currentDataset && currentDataset.meta && currentDataset.meta.iqm
+          "
+          :iqm="currentDataset.meta.iqm"
+        />
+      </v-menu>
       <v-btn
         icon
         class="mr-4"
@@ -266,6 +288,9 @@ export default {
           <span slot="badge" dark>{{ screenshots.length }}</span>
           <v-icon>email</v-icon>
         </v-badge>
+      </v-btn>
+      <v-btn icon class="mr-4" @click="keyboardShortcutDialog = true">
+        <v-icon>keyboard</v-icon>
       </v-btn>
       <UserButton @user="girderRest.logout()" />
     </v-toolbar>
@@ -285,7 +310,7 @@ export default {
       </div>
     </v-navigation-drawer>
     <v-layout
-      v-if="loadingDataset"
+      v-if="loadingDataset || initializeLoading"
       class="loading-indicator-container"
       align-center
       justify-center
@@ -624,7 +649,7 @@ export default {
       </v-flex>
     </template>
     <v-layout
-      v-if="!currentDataset && !loadingDataset"
+      v-if="!currentDataset && !loadingDataset && !initializeLoading"
       align-center
       justify-center
       fill-height
