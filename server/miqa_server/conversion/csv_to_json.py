@@ -73,6 +73,10 @@ def csvContentToJsonObject(csvContent):
         }
         if 'decision' in scan:
             scan_obj['decision'] = scan['decision']
+        if 'IQMs' in scan:
+            scan_obj['iqms'] = scan['IQMs']
+        if 'good_prob' in scan:
+            scan_obj['good_prob'] = scan['good_prob']
         scans.append(scan_obj)
 
     # Build list of unique experiments

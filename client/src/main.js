@@ -8,6 +8,7 @@ import App from "./App.vue";
 import router from "./router";
 import store from "./store";
 import Girder, { RestClient, utils } from "@girder/components/src";
+import NotificationBus from "@girder/components/src/utils/notifications";
 import { API_URL, STATIC_PATH } from "./constants";
 
 import vMousetrap from "./vue-utilities/v-mousetrap";
@@ -34,6 +35,8 @@ Vue.use(snackbarService(vuetify));
 Vue.use(promptService(vuetify));
 
 girder.rest = new RestClient({ apiRoot: API_URL });
+const notificationBus = new NotificationBus(girder.rest);
+notificationBus.connect();
 
 import config from "itk/itkConfig";
 config.itkModulesPath = STATIC_PATH + config.itkModulesPath;
@@ -49,7 +52,7 @@ girder.rest.fetchUser().then(() => {
     router,
     store,
     render: h => h(App),
-    provide: { girderRest: girder.rest }
+    provide: { girderRest: girder.rest, notificationBus }
   })
     .$mount("#app")
     .$snackbarAttach()

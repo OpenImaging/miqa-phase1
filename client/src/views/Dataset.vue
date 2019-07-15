@@ -16,11 +16,12 @@ import WindowControl from "@/components/WindowControl";
 import ScreenshotDialog from "@/components/ScreenshotDialog";
 import EmailDialog from "@/components/EmailDialog";
 import KeyboardShortcutDialog from "@/components/KeyboardShortcutDialog";
+import MetricsDisplay from "@/components/MetricsDisplay";
 import NavigationTabs from "@/components/NavigationTabs";
 import { cleanDatasetName } from "@/utils/helper";
 
 export default {
-  name: "dataset",
+  name: "Dataset",
   components: {
     NavbarTitle,
     UserButton,
@@ -31,7 +32,8 @@ export default {
     ScreenshotDialog,
     EmailDialog,
     KeyboardShortcutDialog,
-    NavigationTabs
+    NavigationTabs,
+    MetricsDisplay
   },
   inject: ["girderRest", "userLevel"],
   data: () => ({
@@ -47,7 +49,8 @@ export default {
     showNotePopup: false,
     keyboardShortcutDialog: false,
     scanning: false,
-    direction: "forward"
+    direction: "forward",
+    initializeLoading: false
   }),
   computed: {
     ...mapState([
@@ -102,7 +105,9 @@ export default {
       this.debouncedDatasetSliderChange,
       30
     );
+    this.initializeLoading = true;
     await Promise.all([this.loadSessions(), this.loadSites()]);
+    this.initializeLoading = false;
     var datasetId = this.$route.params.datasetId;
     var dataset = this.getDataset(datasetId);
     if (dataset) {
@@ -305,6 +310,12 @@ export default {
     handleMouseUp() {
       this.scanning = false;
       window.cancelAnimationFrame(this.nextAnimRequest);
+    },
+    getMetricColor(dataset) {
+      if (!dataset || !dataset.meta.goodProb) {
+        return null;
+      }
+      return dataset.meta.goodProb > 0.5 ? "green" : "red";
     }
   }
 };
@@ -316,9 +327,29 @@ export default {
       <NavbarTitle />
       <NavigationTabs />
       <v-spacer></v-spacer>
-      <v-btn icon class="mr-4" @click="keyboardShortcutDialog = true">
-        <v-icon>keyboard</v-icon>
-      </v-btn>
+      <v-menu :close-on-content-click="false" offset-x class="mr-4">
+        <template v-slot:activator="{ on }">
+          <v-btn
+            icon
+            flat
+            :color="getMetricColor(currentDataset)"
+            v-on="on"
+            :disabled="
+              !currentDataset ||
+                !currentDataset.meta ||
+                !currentDataset.meta.iqm
+            "
+            ><v-icon>bar_chart</v-icon></v-btn
+          >
+        </template>
+        <MetricsDisplay
+          v-if="
+            currentDataset && currentDataset.meta && currentDataset.meta.iqm
+          "
+          :good-prob="currentDataset.meta.goodProb"
+          :iqm="currentDataset.meta.iqm"
+        />
+      </v-menu>
       <v-btn
         icon
         class="mr-4"
@@ -329,6 +360,9 @@ export default {
           <span slot="badge" dark>{{ screenshots.length }}</span>
           <v-icon>email</v-icon>
         </v-badge>
+      </v-btn>
+      <v-btn icon class="mr-4" @click="keyboardShortcutDialog = true">
+        <v-icon>keyboard</v-icon>
       </v-btn>
       <UserButton @user="girderRest.logout()" />
     </v-app-bar>
@@ -348,7 +382,7 @@ export default {
       </div>
     </v-navigation-drawer>
     <v-layout
-      v-if="loadingDataset"
+      v-if="loadingDataset || initializeLoading"
       class="loading-indicator-container"
       align-center
       justify-center
@@ -703,7 +737,7 @@ export default {
       </v-flex>
     </template>
     <v-layout
-      v-if="!currentDataset && !loadingDataset"
+      v-if="!currentDataset && !loadingDataset && !initializeLoading"
       align-center
       justify-center
       fill-height

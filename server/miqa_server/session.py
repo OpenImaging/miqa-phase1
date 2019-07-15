@@ -12,7 +12,6 @@ from girder.exceptions import RestException
 from girder.api.describe import Description, autoDescribeRoute
 from girder import logger
 from girder.models.collection import Collection
-from girder.models.assetstore import Assetstore
 from girder.models.folder import Folder
 from girder.models.item import Item
 from girder.models.setting import Setting
@@ -22,6 +21,29 @@ from .conversion.csv_to_json import csvContentToJsonObject
 from .setting import fileWritable, tryAddSites
 from .constants import exportpathKey, importpathKey
 from .schema.data_import import schema
+
+
+def parseIQM(iqm):
+    if not iqm:
+        return None
+    rows = iqm.split(';')
+    metrics = []
+    for row in rows:
+        if not row:
+            continue
+        [key, value] = row.split(':')
+        value = float(value)
+        elements = key.split('_')
+        if len(elements) == 1:
+            metrics.append({key: value})
+        else:
+            type_ = '_'.join(elements[:-1])
+            subType = elements[-1]
+            if(list(metrics[-1].keys())[0]) != type_:
+                metrics.append({type_: []})
+            subTypes = metrics[-1][type_]
+            subTypes.append({subType: value})
+    return metrics
 
 
 class Session(Resource):
@@ -42,7 +64,7 @@ class Session(Resource):
 
     def _getSessions(self):
         user = self.getCurrentUser()
-        sessionsFolder = self.findSessionsFolder()
+        sessionsFolder = findSessionsFolder()
         if not sessionsFolder:
             return []
         experiments = []
@@ -214,12 +236,27 @@ class Session(Resource):
                               folder=scanFolder,
                               reuseExisting=True,
                               description=json.dumps(imageOrderDescription))
+            itemMeta = {}
+            iqm = parseIQM(scan['iqms'])
+            if iqm:
+                itemMeta['iqm'] = iqm
+            good_prob = None
+            try:
+                good_prob = float(scan['good_prob'])
+            except:
+                pass
+            if good_prob:
+                itemMeta['goodProb'] = good_prob
+            if itemMeta:
+                item = list(Folder().childItems(scanFolder, limit=1))[0]
+                Item().setMetadata(item, itemMeta, allowNull=True)
             successCount += 1
         tryAddSites(sites, self.getCurrentUser())
         return {
             "success": successCount,
             "failed": failedCount
         }
+
 
     @access.user
     @autoDescribeRoute(
