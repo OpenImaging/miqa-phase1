@@ -38,7 +38,8 @@ def process_json_file(json_path):
         if(k=="bids_meta"):
             iqm_values["subject_id"] = 'NCANDA_'+data[k]["subject_id"]
             iqm_values["modality"] = data[k]["modality"]
-        elif(k!='provenance'):
+        elif(k!='provenance' and k!='summary_bg_n' and k!='summary_csf_n' and k!='summary_gm_n' and k!='summary_wm_n' and
+             'spacing_' not in k and 'size_' not in k):
             iqm_values[k] = data[k]
             iqms.append(k)
     
@@ -144,6 +145,10 @@ def input_csv_to_dict(csv_content):
     '''
     csv_dict = dict()
     for row in csv_content:
+        if len(row) == 4:
+            row.append('')
+            row.append('')
+            row.append('')
         sub_id, mod = get_id_mod(row)
         if sub_id in csv_dict:
             csv_dict[sub_id][mod] = row
