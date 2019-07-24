@@ -6,7 +6,7 @@ Created on Fri Jun 21 16:39:21 2019
 @author: dhruv.sharma
 """
 
-from process_iqms import get_iqms, generate_csv
+from process_iqms import get_iqms, generate_csv, iqms_to_dict, input_csv_to_dict
 from data2bids.restructure_files import get_csv_contents, get_initial_dict, add_subject_data, group_by_subject
 from data2bids.generate_bids_json import populate_bids_json
 from data2bids.bidsify import generate_basic_files, bidsify_json, is_bidsvalidator_installed
@@ -14,11 +14,12 @@ import os
 import argparse
 
 '''
-python data2mriqc.py -ci '/home/dhruv.sharma/Projects/MRIQC_AL/miqa sample data/sample data new/scans_to_review-2019-01-23.csv' 
-                     -r '/home/dhruv.sharma/Projects/MRIQC_AL/miqa sample data/sample data new/datasnap-2019-01-23' 
-                     -bo '../../data2bids/bids_output/' 
-                     -mo "../../data2bids/mriqc_output/" 
-                     -co "../../mriqc_output.csv"
+all paths should be absolute paths
+python data2mriqc.py -ci '/home/dhruv.sharma/Projects/MRIQC_AL/miqa sample data/sample data new/scans_to_review-2019-01-23.csv' \
+                     -r '/home/dhruv.sharma/Projects/MRIQC_AL/miqa sample data/sample data new/datasnap-2019-01-23' \
+                     -bo '/home/dhruv.sharma/Projects/MRIQC_AL/data2bids/bids_output/' \
+                     -mo "/home/dhruv.sharma/Projects/MRIQC_AL/data2bids/mriqc_output/" \
+                     -co "/home/dhruv.sharma/Projects/MRIQC_AL/mriqc_output.csv"
 '''
 
 def main():
@@ -42,7 +43,7 @@ def main():
     mriqc_output = args["mriqc_output_path"]#"../../data2bids/mriqc_output/"
     csv_output_path = args["csv_output_path"]# "../../mriqc_output.csv"
     
-    csv_content = get_csv_contents(csv_input_path)
+    header, csv_content = get_csv_contents(csv_input_path)
     subject_wise_data = group_by_subject(csv_content)
 #    print(subject_wise_data['E08706'])
     
@@ -71,7 +72,12 @@ def main():
     ############
     
     iqms, iqm_values = get_iqms(mriqc_output)
-    generate_csv(csv_output_path, iqms, iqm_values)
+    iqm_dict = iqms_to_dict(iqms, iqm_values)
+    
+    header, csv_data = get_csv_contents(csv_input_path)
+    csv_dict = input_csv_to_dict(csv_data)
+    
+    generate_csv(csv_output_path, iqm_dict, csv_dict, header)
     
 if __name__ == '__main__':
     main()
