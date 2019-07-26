@@ -8,7 +8,7 @@ from girder import events
 from girder.api.rest import Resource
 from girder.api import access
 from girder.api.describe import Description, autoDescribeRoute
-from girder.constants import SettingKey
+from girder.settings import SettingKey
 from girder.exceptions import RestException
 from girder.models.setting import Setting
 

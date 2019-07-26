@@ -7,6 +7,7 @@ from .client_webroot import ClientWebroot
 from .session import Session
 from .email import Email
 from .setting import SettingResource
+from .learning import Learning
 
 
 class GirderPlugin(plugin.GirderPlugin):
@@ -21,5 +22,16 @@ class GirderPlugin(plugin.GirderPlugin):
         info['apiRoot'].miqa = Session()
         info['apiRoot'].miqa_email = Email()
         info['apiRoot'].miqa_setting = SettingResource()
+        info['apiRoot'].learning = Learning()
 
-server.getStaticRoot = lambda: 'static'
+        events.bind('jobs.job.update.after', 'large_image', afterJobUpdate)
+
+
+def afterJobUpdate(event):
+    # learned from https://github.com/girder/large_image/blob/girder-3/girder/girder_large_image/__init__.py#L83
+    job = event.info['job']
+    meta = job.get('meta', {})
+    if (meta.get('creator') != 'miqa' or not meta.get('itemId') or
+            meta.get('task') != 'learning_with_data'):
+        return
+    Learning.afterJobUpdate(job)
