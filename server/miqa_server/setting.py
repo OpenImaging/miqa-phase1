@@ -3,7 +3,7 @@ import os
 from girder.api.rest import Resource
 from girder.api import access
 from girder.api.describe import Description, autoDescribeRoute
-from girder.constants import SettingDefault
+from girder.settings import SettingDefault
 from girder.models.collection import Collection
 from girder.models.folder import Folder
 from girder.models.item import Item
