@@ -90,17 +90,6 @@
               type: member
       state: present
 
-  - name: Activate Girder Plugins
-    girder:
-      host: "{{ ghost }}"
-      port: "{{ gport }}"
-      scheme: "{{ gscheme }}"
-      token: "{{ admin['token'] }}"
-      plugins:
-        - miqa_server
-        - autojoin
-      state: present
-
   - name: Update Girder System Settings
     girder:
       host: "{{ ghost }}"
