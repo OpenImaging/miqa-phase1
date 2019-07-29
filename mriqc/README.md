@@ -59,4 +59,21 @@ master_folder/
 
 The `active_learner.py` has two functions:
 * predict() : This function takes the two inputs - path to master_folder, and path to the input csv. It returns the path to the new csv with an added column `good_prob` which contains the prediction scores for the image quality.
-* train() : 
+Function signature is as follows:
+```
+Args:
+    master_path: the absolute path to the master folder with all important directories like training_data.csv, model_weights, log files
+    path: path to the csv file with the new input data
+Returns:
+    path: the new path to the file with the new input data
+```
+
+* train() : This function also takes two inputs - path to master_folder, and path to the input csv(optional). If path to input csv is not provided, it trains on the already available data and saves the model. If the path is provided, it picks the most informative labeled data points and adds them to the training data. Then, the model is retrained on this new data and the input CSV is updated with the new prediction scores.
+Function signature is as follows:
+```
+Args:
+    master_path: the absolute path to the master folder with all important directories like training_data.csv, model_weights, log files
+    csv_path: the path to the csv containing the newly labeled data
+Returns:
+    None
+```
