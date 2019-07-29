@@ -41,11 +41,18 @@ This module is to plug-in the active learning framework with the web-based appli
 
 ### Requirements
 
-The requirements have been defined in `requirements.txt` and can be installed using `pip install -r requirements.txt`. Also, place the master folder the appropriate location. The contents of the master folder are as follows:
+The requirements have been defined in `requirements.txt` and can be installed using `pip install -r requirements.txt`. Also, place the master folder the appropriate location. The structure of the master folder should be as follows:
 ```
-- master_folder/
----- training_data.csv
----- model_weights/ 
+master_folder/
+├── data_with_labels
+│   ├── data_1.csv
+│   └── data_2.csv
+├── data_with_preds
+│   ├── data_1.csv
+│   └── data_2.csv
+├── model_weights
+└── training_data.csv
+ 
 ```
 
 ### Using the module 
