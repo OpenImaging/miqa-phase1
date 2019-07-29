@@ -6,7 +6,7 @@ MRIQC is an opensource tool that generates Image Quality Metrics(IQMs) for the N
 
 ### Requirements
 
-To exrtact, one needs to fulfill the following requirements:
+To extract, one needs to fulfill the following requirements:
 
 * Python 3.5 or above
 * NPM
@@ -37,4 +37,19 @@ python data2mriqc.py -ci '/home/dhruv.sharma/Projects/MRIQC_AL/miqa sample data/
 
 ### Brief Overview
 
-This module is to plug-in the active learning framework with the web-based application of MIQA. The module takes in the user input in CSV format and makes predictions on the quality of the image. These predictions are then displayed to the user on the MIQA platform for their feedback. The decision of the user is then taken into account to retrain the model and update the weights by selecting only the most informative data points. The most informative points are selected using the query strategies of the active learning framework. 
+This module is to plug-in the active learning framework with the web-based application of MIQA. The module takes in the user input in CSV format and makes predictions on the quality of the image. These predictions are then displayed to the user on the MIQA platform for their feedback. The decision of the user is then taken into account to retrain the model and update the weights by selecting only the most informative data points. The most informative points are selected using the query strategies of the active learning framework.
+
+### Requirements
+
+The requirements have been defined in `requirements.txt` and can be installed using `pip install -r requirements.txt`. Also, place the master folder the appropriate location. The contents of the master folder are as follows:
+```
+- master_folder/
+---- training_data.csv
+---- model_weights/ 
+```
+
+### Using the module 
+
+The `active_learner.py` has two functions:
+* predict() : This function takes the two inputs - path to master_folder, and path to the input csv. It returns the path to the new csv with an added column `good_prob` which contains the prediction scores for the image quality.
+* train() : 
