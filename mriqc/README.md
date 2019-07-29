@@ -32,3 +32,9 @@ python data2mriqc.py -ci '/home/dhruv.sharma/Projects/MRIQC_AL/miqa sample data/
                      -mo "/home/dhruv.sharma/Projects/MRIQC_AL/data2bids/mriqc_output/" 
                      -co "/home/dhruv.sharma/Projects/MRIQC_AL/mriqc_output.csv"
 ```
+
+# Active Learning and MIQA
+
+### Brief Overview
+
+This module is to plug-in the active learning framework with the web-based application of MIQA. The module takes in the user input in CSV format and makes predictions on the quality of the image. These predictions are then displayed to the user on the MIQA platform for their feedback. The decision of the user is then taken into account to retrain the model and update the weights by selecting only the most informative data points. The most informative points are selected using the query strategies of the active learning framework. 
