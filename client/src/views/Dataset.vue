@@ -247,6 +247,12 @@ export default {
     debouncedDatasetSliderChange(index) {
       var dataset = this.currentSession.datasets[index];
       this.$router.push(dataset._id);
+    },
+    getMetricColor(dataset) {
+      if (!dataset || !dataset.meta.goodProb) {
+        return null;
+      }
+      return dataset.meta.goodProb > 0.5 ? "green" : "red";
     }
   }
 };
@@ -258,10 +264,12 @@ export default {
       <NavbarTitle />
       <NavigationTabs />
       <v-spacer></v-spacer>
-      <v-menu :close-on-content-click="false" offset-x>
+      <v-menu :close-on-content-click="false" offset-x class="mr-4">
         <template v-slot:activator="{ on }">
           <v-btn
             icon
+            flat
+            :color="getMetricColor(currentDataset)"
             v-on="on"
             :disabled="
               !currentDataset ||
@@ -275,6 +283,7 @@ export default {
           v-if="
             currentDataset && currentDataset.meta && currentDataset.meta.iqm
           "
+          :good-prob="currentDataset.meta.goodProb"
           :iqm="currentDataset.meta.iqm"
         />
       </v-menu>

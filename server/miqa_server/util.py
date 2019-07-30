@@ -88,16 +88,27 @@ def importCSV(csv_content, user):
                 'fileIncludeRegex': '.+[.]nii[.]gz$',
                 'importPath': niftiFolder,
             }, progress=noProgress, user=user, leafFoldersAsItems=False)
+        itemMeta = {}
         iqm = parseIQM(row['IQMs'])
         if iqm:
-            item = list(Folder().childItems(scanFolder,limit=1))[0]
-            Item().setMetadata(item,{'iqm':iqm},allowNull=True)
+            itemMeta['iqm'] = iqm
+        good_prob = None
+        try:
+            good_prob = float(row['good_prob'])
+        except:
+            pass
+        if good_prob:
+            itemMeta['goodProb'] = good_prob
+        if itemMeta:
+            item = list(Folder().childItems(scanFolder, limit=1))[0]
+            Item().setMetadata(item, itemMeta, allowNull=True)
         successCount += 1
     tryAddSites(sites, user)
     return {
         "success": successCount,
         "failed": failedCount
     }
+
 
 def parseIQM(iqm):
     if not iqm:

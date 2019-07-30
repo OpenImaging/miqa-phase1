@@ -7,6 +7,10 @@ export default {
     iqm: {
       type: Array,
       required: true
+    },
+    goodProb: {
+      type: Number,
+      required: false
     }
   },
   data() {
@@ -54,11 +58,18 @@ export default {
 
 <template>
   <v-card width="400">
-    <v-card-title>
+    <v-card-title class="subheading pb-2">
       Metrics
     </v-card-title>
     <v-card-text class="pt-0">
       <v-container fluid class="pa-0" grid-list-md>
+        <v-layout v-if="goodProb">
+          Good probability<span
+            class="ml-1"
+            :style="{ color: goodProb > 0.5 ? 'green' : 'red' }"
+            >{{ goodProb.toFixed(2) }}</span
+          >
+        </v-layout>
         <v-layout>
           <v-flex style="width: 250px;" shrink>
             <v-select
