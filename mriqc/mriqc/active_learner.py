@@ -7,9 +7,9 @@ Created on Fri Jul 26 09:38:23 2019
 """
 import os
 
-from model import Model
-from data_loader import Data
-from strategy import uncertainty_sampling
+from .model import Model
+from .data_loader import Data
+from .strategy import uncertainty_sampling
 from glob import glob
 
 def predict(master_path, path):
@@ -37,7 +37,7 @@ def predict(master_path, path):
     
     # if the model hasn't been trained yet, train it
     if(len(glob(os.path.join(model_path, '*.pkl'))) == 0):
-        train()
+        train(master_path)
     
     # load the most recently saved model
     model.load_model(model_path)

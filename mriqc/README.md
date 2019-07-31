@@ -26,10 +26,10 @@ Inputs(paths should be absolute paths):
 
 For example:
 ```
-python data2mriqc.py -ci '/home/dhruv.sharma/Projects/MRIQC_AL/miqa sample data/sample data new/scans_to_review-2019-01-23.csv' 
-                     -r '/home/dhruv.sharma/Projects/MRIQC_AL/miqa sample data/sample data new/datasnap-2019-01-23' 
-                     -bo '/home/dhruv.sharma/Projects/MRIQC_AL/data2bids/bids_output/' 
-                     -mo "/home/dhruv.sharma/Projects/MRIQC_AL/data2bids/mriqc_output/" 
+python data2mriqc.py -ci "/home/dhruv.sharma/Projects/MRIQC_AL/miqa sample data/sample data new/scans_to_review-2019-01-23.csv" \
+                     -r "/home/dhruv.sharma/Projects/MRIQC_AL/miqa sample data/sample data new/datasnap-2019-01-23" \
+                     -bo "/home/dhruv.sharma/Projects/MRIQC_AL/data2bids/bids_output/" \
+                     -mo "/home/dhruv.sharma/Projects/MRIQC_AL/data2bids/mriqc_output/" \
                      -co "/home/dhruv.sharma/Projects/MRIQC_AL/mriqc_output.csv"
 ```
 
