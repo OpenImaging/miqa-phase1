@@ -124,15 +124,3 @@
             level: 0
             pattern: "@"
 
-  - name: Restart Girder Server
-    girder:
-      host: "{{ ghost }}"
-      port: "{{ gport }}"
-      scheme: "{{ gscheme }}"
-      token: "{{ admin['token'] }}"
-      put:
-        path: "system/restart"
-
-  - name: Wait for Girder Server
-    local_action:
-      module: wait_for host="{{ ghost }}" port="{{ gport }}" delay=5
