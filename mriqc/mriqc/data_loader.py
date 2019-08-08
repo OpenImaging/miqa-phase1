@@ -189,8 +189,10 @@ class Data():
         Returns:
             None
         '''
-        new_data = new_data.drop(columns = ['good_prob'])
-        self.data = self.data.append(new_data)
+        if(new_data.shape[0]!=0):
+            ind = ~ new_data.xnat_experiment_id.isin(self.data.xnat_experiment_id) & new_data.scan_type.isin(self.data.scan_type)
+            new_data = new_data.drop(columns = ['good_prob'])
+            self.data = self.data.append(new_data[ind])
                 
                 
                 
