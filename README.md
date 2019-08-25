@@ -1,55 +1,19 @@
 # MIQA
+MIQA is a medical scan QA/QC application. It takes .nifti files and a CSV file as input, and output the same CSV file with additional QA/QC results.
 
-## Develop environment setup
+The server is built based on [Girder](https://github.com/girder/girder), a python based data management solution, and the client application is built with [Vue.js](https://vuejs.org/), Vuetify, and Vue CLI. The medical scan visualization is powered by [VTK.js](https://kitware.github.io/vtk-js/index.html)
 
-MIQA has server, client two components. They are located under *server* and *client* directory respectively.
+## A screen record
+![](https://user-images.githubusercontent.com/3123478/63644049-df545a80-c6ad-11e9-8a32-22b18c3add25.gif)
 
-### Prerequisite
-* Pyhton 3.5+
-* Mongodb running at the default port
-* Node 8
+## Active learning
+MIQA has an implementation of active learning. It uses MRIQC to extract features out of scans then uses labeled data and Random Forest Regression to evaluate if a dataset meets the standard.
 
-### Server
-
-#### Setup
-* `git clone https://github.com/OpenImaging/miqa.git`
-* `pip install -e miqa/server/`
-* `girder build`
-* `girder serve`
-Now a running girder instance should be available at `localhost:8080/girder`
-
-#### Setup Girder with Miqa Server
-* Navigate to `localhost:8080/girder`
-* Create admin user
-* Navigate to *Admin Console*, *System configuration*
-* Populate fields under *Email Delivery* of appropriate values to enable girder to send emails
-* under *Advanced Settings*, Set *CORS Allowed Origins* to *, then click *Save*
-
-### Client
-Miqa client is a [Vue CLI](https://cli.vuejs.org/) based application. All Vue-CLI options are available. 
-
-* `cd miqa/client`
-* `npm install`
-* `npm run serve`
-* Navigate to `localhost:8081`
-* After login, datasets should be available in the application
-
-### Populate data
-MIQA works with any data provided in the following format. The repo currently doesn't provide a sample dataset.
-
-* Navigate to localhost:8080 and jump to the Girder interface
-* Navigate to *Collection*
-* Create a collection named `miqa`
-* Copy the collection ID from the URL or detail dialog
-* Navigate to *Admin Console*, *Assetstores*
-* Create a *Filesystem* assetstore
-* Navigate back to localhost:8080 and open the Sessions sidebar
-* Choose a CSV file. the CSV file needs to have the following fields
-  * *xnat_experiment_id*, an id field of an experiment. Same id will be grouped
-  * *nifti_folder*, *scan_id*, and *scan_type* these three columns will be concatenated into a directory path, which needs to be accessible by the server and each directory needs to contain one or more **.nii.gz* files
-  * *experiment_note*
-  * *decision*
-* Click *Import*. The importing will take up to few minutes based on number of record in the CSV file
+## Development
+MIQA can be development on Linux. See [development](development.md) for detail.
 
 ## Deployment
-MIQA can be deploymented on any linux system. This repo provided a [solution](devops/docker/README.md) with Docker.
+MIQA can be deployed on any Linux system. This repo provided a [solution](devops/docker/README.md) with Docker.
+
+## Try out MIQA
+The simplest way to try out MIQA is to create docker instance with sample data, see [docker deployment](devops/docker/README.md) for detail.

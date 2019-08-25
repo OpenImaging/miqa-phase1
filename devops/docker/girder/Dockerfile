@@ -31,4 +31,8 @@ RUN npm install \
     && npm run build \
     && mv dist /usr/share/girder/static/miqa
 
+# Add sample data
+COPY sample_data /miqa/sample_data
+RUN sed -i 's/~//g' /miqa/sample_data/sample.csv
+
 ENTRYPOINT ["girder", "serve"]

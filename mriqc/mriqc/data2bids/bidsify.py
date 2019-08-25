@@ -70,7 +70,7 @@ def generate_basic_files(bids_folder, data_description):
         json.dump(data_description, json_file, indent=4)
         
     with open(os.path.join(bids_folder, 'README'), 'w') as txt_file:
-        text = "This dataset was obtained from the mIQa tool.\nDescription: Image-Quality assesment."
+        text = "This dataset was obtained from the MIQA tool.\nDescription: Image-Quality assesment."
         txt_file.write(text)
 
 def bidsify_each_image(image_info, root_folder_path):

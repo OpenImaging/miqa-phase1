@@ -46,8 +46,8 @@ class SettingResource(Resource):
         importpath = Setting().get(importpathKey)
         exportpath = Setting().get(exportpathKey)
         return {
-            'importpath': importpath if os.path.isfile(importpath) else '',
-            'exportpath': exportpath if fileWritable(exportpath) else ''
+            'importpath': importpath if os.path.isfile(os.path.expanduser(importpath)) else '',
+            'exportpath': exportpath if fileWritable(os.path.expanduser(exportpath)) else ''
         }
 
     @access.admin
@@ -100,7 +100,7 @@ def getExtension(mime):
 })
 def importpathValidate(doc):
     path = doc['value'].strip()
-    if not os.path.isfile(path):
+    if not os.path.isfile(os.path.expanduser(path)):
         raise ValidationException('%s must be a valid file path.' % doc['key'], 'value')
     doc['value'] = path
 
@@ -110,7 +110,7 @@ def importpathValidate(doc):
 })
 def exportpathValidate(doc):
     path = doc['value'].strip()
-    if not fileWritable(path):
+    if not fileWritable(os.path.expanduser(path)):
         raise ValidationException('%s needs to be a writable path.' % doc['key'], 'value')
     doc['value'] = path
 

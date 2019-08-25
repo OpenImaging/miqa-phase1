@@ -66,7 +66,7 @@ class Session(Resource):
         .errorResponse())
     def csvImport(self, params):
         user = self.getCurrentUser()
-        importpath = Setting().get(importpathKey)
+        importpath = os.path.expanduser(Setting().get(importpathKey))
         if not os.path.isfile(importpath):
             raise RestException('import csv file doesn\'t exists', code=404)
         with open(importpath) as csv_file:
@@ -86,15 +86,12 @@ class Session(Resource):
                 experimentId = row['xnat_experiment_id']
                 niftiPath = row['nifti_folder']
                 experimentNote = row['experiment_note']
-                splits = niftiPath.split('/')
-                site = splits[5].split('_')[0]
+                [site, experimentId2] = getSiteAndExperimentId2(row)
                 sites.add(site)
-                experimentId2 = '-'.join(splits[7].split('-')[0:-1])
-                date = splits[7].split('-')[-1]
                 scanId = row['scan_id']
                 scanType = row['scan_type']
                 scan = scanId+'_'+scanType
-                niftiFolder = os.path.join(niftiPath, scan)
+                niftiFolder = os.path.expanduser(os.path.join(niftiPath, scan))
                 if not os.path.isdir(niftiFolder):
                     failedCount += 1
                     continue
@@ -107,7 +104,6 @@ class Session(Resource):
                     'experimentId2': experimentId2,
                     'experimentNote': experimentNote,
                     'site': site,
-                    'date': date,
                     'scanId': scanId,
                     'scanType': scanType
                 }
@@ -137,7 +133,7 @@ class Session(Resource):
         Description('')
         .errorResponse())
     def csvExport(self, params):
-        exportpath = Setting().get(exportpathKey)
+        exportpath = os.path.expanduser(Setting().get(exportpathKey))
         if not fileWritable(exportpath):
             raise RestException('export csv file is not writable', code=500)
         output = self.getExportCSV()
@@ -210,3 +206,13 @@ class Session(Resource):
         if not sessionFolder:
             return None
         return sessionFolder.get('meta', {})
+
+
+def getSiteAndExperimentId2(row):
+    niftiPath = row['nifti_folder']
+    if niftiPath.startswith('/fs/storage/XNAT/archive/'):
+        # Special case handling
+        splits = niftiPath.split('/')
+        return [splits[5].split('_')[0], '-'.join(splits[7].split('-')[0:-1])]
+    else:
+        return [row['site'], row['experiment_id_2']]

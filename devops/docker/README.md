@@ -11,7 +11,10 @@ Deploy MIQA system with Docker.
 * Populate and update fields. (*GIRDER_ADMIN_PASS* needs to be at least 6 characters long)
 * `docker-compose build`
 * `docker-compose up` should finish without error
-* MIQA should be available at localhost
+* MIQA should be available at `localhost:8080`
+
+### Sample data
+set `SAMPLE_DATA=true` in .env file to provision the docker instance with sample data
 
 ### Note
 The smtp-relay container is not required. Girder has the ability to send emails via any SMTP service.

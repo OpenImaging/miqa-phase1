@@ -4,9 +4,9 @@
 from setuptools import setup, find_packages
 
 requirements = [
-    'girder==3.0.0rc2.dev146',
-    'girder_jobs==3.0.0rc2.dev146',
-    'girder-autojoin'
+    'girder==3.0.3',
+    'girder_jobs==3.0.3',
+    'girder-autojoin==3.0.3'
 ]
 
 setup(
@@ -29,7 +29,7 @@ setup(
     name='miqa_server',
     packages=find_packages(exclude=['test', 'test.*']),
     url='https://github.com/OpenImaging/miqa',
-    version='0.3.1',
+    version='0.3.3',
     zip_safe=False,
     entry_points={
         'girder.plugin': [

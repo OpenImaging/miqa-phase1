@@ -29,7 +29,7 @@ services:
       - web_server
     command:
       [
-        "ghost=web_server gport=8080 gscheme=http assetstore=/assetstore admin_name=${GIRDER_ADMIN_NAME} admin_pass=${GIRDER_ADMIN_PASS} smtp_server=smtp-relay smtp_port=587 smtp_encryption=none smtp_username= smtp_password= server_url_in_email=${SERVER_URL_IN_EMAIL} sender_address=${SENDER_ADDRESS}"]
+        "ghost=web_server gport=8080 gscheme=http assetstore=/assetstore admin_name=${GIRDER_ADMIN_NAME} admin_pass=${GIRDER_ADMIN_PASS} smtp_server=smtp-relay smtp_port=587 smtp_encryption=none smtp_username= smtp_password= server_url_in_email=${SERVER_URL_IN_EMAIL} sender_address=${SENDER_ADDRESS} sample_data=${SAMPLE_DATA}"]
 
   smtp-relay:
     image: hongkongkiwi/postfix-smtp-relay:latest

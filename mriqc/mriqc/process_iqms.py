@@ -191,7 +191,7 @@ def generate_csv(csv_opath, iqm_dict, csv_dict, header):
     This function maps the two dictionaries containing the data into a single list of lists
     Args:
         csv_opath: This is the path to the csv file where all the IQMs will be dumped
-                    along with the other information for mIQa input.
+                    along with the other information for MIQA input.
         iqm_dict: A dictionary hashed on each subject to contain the iqms
         csv_dict: A dictionary hashed on each experiment id, which is futher hashed on the
                   modality
@@ -219,7 +219,7 @@ def main():
     ap.add_argument("-co", "--csv_output_path", required=True,
                     help = "path to save the processed csv file")
     ap.add_argument("-ci", "--csv_input_path", required=True,
-                    help = "path to original csv file to be fed to mIQa as input")
+                    help = "path to original csv file to be fed to MIQA as input")
     args = vars(ap.parse_args())
     
     mriqc_output = args["mriqc_output_path"]#"../../data2bids/mriqc_output/"

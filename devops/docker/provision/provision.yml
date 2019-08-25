@@ -100,7 +100,6 @@
         key: "{{ item.key }}"
         value: "{{ item.value }}"
       state: present
-
     with_items:
       - key: "core.registration_policy"
         value: "approve"
@@ -123,4 +122,29 @@
           - groupId: "{{ userGroups.results[2]['gc_return']['_id'] }}"
             level: 0
             pattern: "@"
+  
+  - name: Prepare sample data import if needed
+    when: sample_data == "true"
+    girder:
+      host: "{{ ghost }}"
+      port: "{{ gport }}"
+      scheme: "{{ gscheme }}"
+      token: "{{ admin['token'] }}"
+      setting:
+        key: "{{ item.key }}"
+        value: "{{ item.value }}"
+    with_items:
+      - key: "miqa.csv.importpath"
+        value: "/miqa/sample_data/sample.csv"
 
+  - name: Import sample data
+    when: sample_data == "true"
+    girder:
+      host: "{{ ghost }}"
+      port: "{{ gport }}"
+      scheme: "{{ gscheme }}"
+      username: "{{ admin_name }}"
+      password: "{{ admin_pass }}"
+      post:
+        path: "miqa/csv/import"
+    register: admin
