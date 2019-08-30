@@ -16,4 +16,4 @@ MIQA can be development on Linux. See [development](development.md) for detail.
 MIQA can be deployed on any Linux system. This repo provided a [solution](devops/docker/README.md) with Docker.
 
 ## Try out MIQA
-The simplest way to try out MIQA is to create docker instance with sample data, see [docker deployment](devops/docker/README.md) for detail.
+The simplest way to try out MIQA is to follow these steps [here](https://cloud.docker.com/u/kitware/repository/docker/kitware/miqa/general). You could also build MIQA from scratch with the [scripts here](devops/docker/README.md).

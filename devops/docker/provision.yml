@@ -8,13 +8,13 @@
 
   - name: Wait for Girder Server
     local_action:
-      module: wait_for host="{{ ghost }}" port="{{ gport }}" delay=10
+      module: wait_for host="localhost" port="8080" delay=10
 
   - name: Ensure Privileged User
     girder:
-      host: "{{ ghost }}"
-      port: "{{ gport }}"
-      scheme: "{{ gscheme }}"
+      host: "localhost"
+      port: "8080"
+      scheme: "http"
       user:
         login: "{{ admin_name }}"
         password: "{{ admin_pass }}"
@@ -26,9 +26,9 @@
 
   - name: Record Privileged User Token
     girder:
-      host: "{{ ghost }}"
-      port: "{{ gport }}"
-      scheme: "{{ gscheme }}"
+      host: "localhost"
+      port: "8080"
+      scheme: "http"
       username: "{{ admin_name }}"
       password: "{{ admin_pass }}"
       get:
@@ -37,9 +37,9 @@
 
   - name: Ensure user groups
     girder:
-      host: "{{ ghost }}"
-      port: "{{ gport }}"
-      scheme: "{{ gscheme }}"
+      host: "localhost"
+      port: "8080"
+      scheme: "http"
       token: "{{ admin['token'] }}"
       group:
         name: "{{ item }}"
@@ -54,29 +54,29 @@
 
   - name: Ensure Default Assetstore
     girder:
-      host: "{{ ghost }}"
-      port: "{{ gport }}"
-      scheme: "{{ gscheme }}"
+      host: "localhost"
+      port: "8080"
+      scheme: "http"
       token: "{{ admin['token'] }}"
       assetstore:
         name: "Local"
         type: "filesystem"
         current: true
-        root: "{{ assetstore }}"
+        root: "/assetstore"
       state: present
 
   - name: Ensure Default Collection
     girder:
-      host: "{{ ghost }}"
-      port: "{{ gport }}"
-      scheme: "{{ gscheme }}"
+      host: "localhost"
+      port: "8080"
+      scheme: "http"
       token: "{{ admin['token'] }}"
       collection:
         name: "miqa"
         description: "Required collection for MIQA"
         public: false
         current: true
-        root: "{{ assetstore }}"
+        root: "/assetstore"
         access:
           users:
             - login: "{{ admin_name }}"
@@ -92,9 +92,9 @@
 
   - name: Update Girder System Settings
     girder:
-      host: "{{ ghost }}"
-      port: "{{ gport }}"
-      scheme: "{{ gscheme }}"
+      host: "localhost"
+      port: "8080"
+      scheme: "http"
       token: "{{ admin['token'] }}"
       setting:
         key: "{{ item.key }}"
@@ -126,9 +126,9 @@
   - name: Prepare sample data import if needed
     when: sample_data == "true"
     girder:
-      host: "{{ ghost }}"
-      port: "{{ gport }}"
-      scheme: "{{ gscheme }}"
+      host: "localhost"
+      port: "8080"
+      scheme: "http"
       token: "{{ admin['token'] }}"
       setting:
         key: "{{ item.key }}"
@@ -140,9 +140,9 @@
   - name: Import sample data
     when: sample_data == "true"
     girder:
-      host: "{{ ghost }}"
-      port: "{{ gport }}"
-      scheme: "{{ gscheme }}"
+      host: "localhost"
+      port: "8080"
+      scheme: "http"
       username: "{{ admin_name }}"
       password: "{{ admin_pass }}"
       post:
