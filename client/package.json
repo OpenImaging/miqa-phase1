@@ -15,7 +15,7 @@
     "vue": "^2.6.8",
     "vue-async-computed": "^3.5.1",
     "vue-router": "^3.0.2",
-    "vue-utilities": "git+https://github.com/Kitware/vue-utilities.git",
+    "vue-utilities": "git+https://github.com/Kitware/vue-utilities.git#32f5e42b830da642251e0e8df890f2b3a64f0b68",
     "vuetify": "^1.5.4",
     "vuex": "^3.0.1"
   },
