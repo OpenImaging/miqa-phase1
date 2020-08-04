@@ -50,10 +50,14 @@ export default {
       </v-card-title>
       <v-divider></v-divider>
       <v-card-text style="height: 500px;">
-        <v-data-table :items="shortcuts" hide-default-footer hide-headers>
-          <template #items="{ item }">
-            <td>{{ item[0] }}</td>
-            <td v-html="item[1]"></td>
+        <v-data-table :items="shortcuts" hide-default-footer hide-default-header>
+          <template v-slot:body="{ items }">
+            <tbody>
+              <tr v-for="item in items" :key="item[0]">
+                <td>{{ item[0] }}</td>
+                <td v-html="item[1]"></td>
+              </tr>
+            </tbody>
           </template>
         </v-data-table>
       </v-card-text>
