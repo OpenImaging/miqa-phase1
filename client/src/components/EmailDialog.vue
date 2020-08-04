@@ -203,7 +203,7 @@ ${this.note}
                 label="Subject"
                 placeholder=" "
                 name="miqa_subject"
-                browser-autocomplete="on"
+                autocomplete="on"
                 :rules="[v => !!v || 'Subject is required']"
                 required
               />
@@ -260,7 +260,7 @@ ${this.note}
         </v-container>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn color="primary" flat :loading="sending" type="submit">
+          <v-btn color="primary" text :loading="sending" type="submit">
             Send
           </v-btn>
         </v-card-actions>

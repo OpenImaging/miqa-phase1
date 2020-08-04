@@ -26,7 +26,7 @@ export default {
         var { data: result } = await this.girderRest.post("miqa/csv/import");
         this.importing = false;
         this.$snackbar({
-          text: `Import finished. 
+          text: `Import finished.
           With ${result.success} rows succeeded and ${result.failed} failed.`,
           timeout: 6000
         });
@@ -55,13 +55,13 @@ export default {
 <template>
   <div>
     <v-btn
-      flat
+      text
       color="primary"
       @click="importDialog = true"
       :disabled="!importEnabled"
       >Import</v-btn
     >
-    <v-btn flat color="primary" @click="exportCSV" :disabled="!exportEnabled"
+    <v-btn text color="primary" @click="exportCSV" :disabled="!exportEnabled"
       >Export</v-btn
     >
     <v-dialog v-model="importDialog" width="500" :persistent="importing">
@@ -75,10 +75,10 @@ export default {
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn flat @click="importDialog = false" :disabled="importing"
+          <v-btn text @click="importDialog = false" :disabled="importing"
             >Cancel</v-btn
           >
-          <v-btn flat color="primary" @click="importCSV" :loading="importing"
+          <v-btn text color="primary" @click="importCSV" :loading="importing"
             >Import</v-btn
           >
         </v-card-actions>

@@ -249,7 +249,7 @@ export default {
 
 <template>
   <v-layout class="dataset" fill-height column>
-    <v-toolbar app dense>
+    <v-app-bar app dense>
       <NavbarTitle />
       <NavigationTabs />
       <v-spacer></v-spacer>
@@ -268,7 +268,7 @@ export default {
         </v-badge>
       </v-btn>
       <UserButton @user="girderRest.logout()" />
-    </v-toolbar>
+    </v-app-bar>
     <v-navigation-drawer
       app
       temporary
@@ -277,7 +277,7 @@ export default {
       @input="setDrawer($event)"
     >
       <div class="sessions-bar">
-        <v-toolbar dense flat>
+        <v-toolbar dense flat max-height="48px">
           <v-toolbar-title>Sessions</v-toolbar-title>
         </v-toolbar>
         <CSVImportExport v-if="userLevel.value <= 2" />
@@ -315,7 +315,7 @@ export default {
         <v-container fluid grid-list-sm class="pa-2">
           <v-layout>
             <v-flex
-              xs-3
+              xs4
               class="mx-2"
               style="display:flex;flex-direction:column;"
             >
@@ -422,7 +422,7 @@ export default {
                 </v-flex>
               </v-layout>
             </v-flex>
-            <v-flex xs6 class="mx-2">
+            <v-flex xs4 class="mx-2">
               <v-layout align-center justify-center class="body-2">
                 <v-flex>
                   {{ getSiteDisplayName(currentSession.meta.site) }},
@@ -477,7 +477,7 @@ export default {
                   >
                     <template v-slot:activator="{ on }">
                       <v-btn
-                        flat
+                        text
                         small
                         icon
                         class="ma-0"
@@ -497,7 +497,7 @@ export default {
                   </v-menu>
                 </v-flex>
                 <v-flex shrink class="pa-0" v-if="userLevel.value <= 1">
-                  <v-btn flat small icon class="ma-0" @click="enableEditHistroy"
+                  <v-btn text small icon class="ma-0" @click="enableEditHistroy"
                     ><v-icon style="font-size: 18px;">edit</v-icon></v-btn
                   >
                 </v-flex>
@@ -522,20 +522,23 @@ export default {
                   ></v-text-field>
                 </v-flex>
                 <v-flex shrink v-if="reviewChanged">
-                  <v-tooltip top>
-                    <v-btn
-                      slot="activator"
-                      flat
-                      icon
-                      small
-                      color="grey"
-                      class="my-0"
-                      @click="loadSessionMeta"
-                    >
-                      <v-icon>undo</v-icon>
-                    </v-btn>
-                    <span>Revert</span>
-                  </v-tooltip>
+                  <template v-slot:activator="{ on }">
+                    <v-tooltip top>
+                      <v-btn
+                        slot="activator"
+                        text
+                        icon
+                        small
+                        color="grey"
+                        class="my-0"
+                        v-on="on"
+                        @click="loadSessionMeta"
+                      >
+                        <v-icon>undo</v-icon>
+                      </v-btn>
+                      <span>Revert</span>
+                    </v-tooltip>
+                  </template>
                 </v-flex>
               </v-layout>
               <v-layout>
@@ -547,7 +550,7 @@ export default {
                   >
                     <v-btn
                       v-if="userLevel.value <= 1"
-                      flat
+                      text
                       small
                       value="bad"
                       color="red"
@@ -559,7 +562,7 @@ export default {
                       >Bad</v-btn
                     >
                     <v-btn
-                      flat
+                      text
                       small
                       value="questionable"
                       color="orange"
@@ -567,7 +570,7 @@ export default {
                       ><b>?</b></v-btn
                     >
                     <v-btn
-                      flat
+                      text
                       small
                       value="good"
                       color="green"
@@ -578,7 +581,7 @@ export default {
                       >Good</v-btn
                     >
                     <v-btn
-                      flat
+                      text
                       small
                       value="usableExtra"
                       color="light-green"
@@ -616,7 +619,7 @@ export default {
                 </v-flex>
               </v-layout>
             </v-flex>
-            <v-flex xs3 class="mx-2">
+            <v-flex xs4 class="mx-2">
               <WindowControl v-if="vtkViews.length" class="py-0" />
             </v-flex>
           </v-layout>
@@ -631,28 +634,28 @@ export default {
     >
       <div class="title">Select a session</div>
     </v-layout>
-    <v-dialog v-model="unsavedDialog" lazy persistent max-width="400">
+    <v-dialog v-model="unsavedDialog" persistent max-width="400">
       <v-card>
         <v-card-title class="title">Review is not saved</v-card-title>
         <v-card-text>Do you want save before continue?</v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
           <v-btn
-            flat
+            text
             color="primary"
             @click="unsavedDialogYes"
             v-mousetrap="{ bind: 'y', handler: el => el.focus() }"
             >Yes</v-btn
           >
           <v-btn
-            flat
+            text
             color="primary"
             @click="unsavedDialogNo"
             v-mousetrap="{ bind: 'n', handler: el => el.focus() }"
             >no</v-btn
           >
           <v-btn
-            flat
+            text
             @click="unsavedDialogCancel"
             v-mousetrap="{ bind: 'esc', handler: unsavedDialogCancel }"
             >Cancel</v-btn
@@ -660,7 +663,7 @@ export default {
         </v-card-actions>
       </v-card>
     </v-dialog>
-    <v-dialog v-model="editingNoteDialog" lazy max-width="600">
+    <v-dialog v-model="editingNoteDialog" max-width="600">
       <v-card>
         <v-card-text>
           <v-textarea
@@ -674,7 +677,7 @@ export default {
         ></v-card-text>
         <v-card-actions>
           <v-spacer />
-          <v-btn flat color="primary" @click="saveNoteHistory">
+          <v-btn text color="primary" @click="saveNoteHistory">
             Save
           </v-btn>
         </v-card-actions>

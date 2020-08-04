@@ -51,7 +51,7 @@ export default {
           placeholder=" "
           v-model="importpath"
           @input="changed = true"
-          browser-autocomplete="on"
+          autocomplete="on"
           name="miqa-csv-importpath"
           :rules="[
             v => !!v || 'path is required',
@@ -65,7 +65,7 @@ export default {
           placeholder=" "
           v-model="exportpath"
           @input="changed = true"
-          browser-autocomplete="on"
+          autocomplete="on"
           name="miqa-csv-exportpath"
           :rules="[
             v => !!v || 'path is required',

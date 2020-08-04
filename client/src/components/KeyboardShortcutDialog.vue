@@ -50,7 +50,7 @@ export default {
       </v-card-title>
       <v-divider></v-divider>
       <v-card-text style="height: 500px;">
-        <v-data-table :items="shortcuts" hide-actions hide-headers>
+        <v-data-table :items="shortcuts" hide-default-footer hide-headers>
           <template #items="{ item }">
             <td>{{ item[0] }}</td>
             <td v-html="item[1]"></td>
@@ -59,7 +59,7 @@ export default {
       </v-card-text>
       <v-card-actions>
         <v-spacer />
-        <v-btn color="primary" flat @click="$emit('input', false)">Close</v-btn>
+        <v-btn color="primary" text @click="$emit('input', false)">Close</v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>

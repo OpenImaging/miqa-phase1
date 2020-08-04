@@ -184,7 +184,7 @@ export default {
       class="viewer"
       :style="{ visibility: resized ? 'unset' : 'hidden' }"
     ></div>
-    <v-toolbar class="toolbar" dark flat color="black" height="42">
+    <v-toolbar class="toolbar" dark flat color="black" max-height="42">
       <div class="indicator body-2" :class="name">{{ displayName }}</div>
       <v-spacer></v-spacer>
       <v-btn

@@ -15,10 +15,10 @@ export default {
 </script>
 
 <template>
-  <v-toolbar app dense>
+  <v-app-bar app dense>
     <NavbarTitle />
     <NavigationTabs />
     <v-spacer></v-spacer>
     <UserButton @user="girderRest.logout()" />
-  </v-toolbar>
+  </v-app-bar>
 </template>

@@ -1,4 +1,8 @@
 import Vue from "vue";
+import Vuetify from "vuetify";
+
+Vue.use(Vuetify);
+
 import AsyncComputed from "vue-async-computed";
 import App from "./App.vue";
 import router from "./router";
@@ -17,11 +21,15 @@ import "./vtk/ColorMaps";
 
 // import proxyConfigGenerator from './store/proxyConfigGenerator';
 
+
 Vue.use(AsyncComputed);
 Vue.use(Girder);
 Vue.use(vMousetrap);
-Vue.use(snackbarService);
-Vue.use(promptService);
+
+let vuetify = new Vuetify({});
+
+Vue.use(snackbarService(vuetify));
+Vue.use(promptService(vuetify));
 
 girder.rest = new RestClient({ apiRoot: API_URL });
 
@@ -35,6 +43,7 @@ Vue.config.productionTip = true;
 
 girder.rest.fetchUser().then(() => {
   new Vue({
+    vuetify,
     router,
     store,
     render: h => h(App),
