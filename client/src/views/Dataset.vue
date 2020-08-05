@@ -428,18 +428,14 @@ export default {
                   {{ getSiteDisplayName(currentSession.meta.site) }},
                   <a
                     :href="
-                      `/xnat/app/action/DisplayItemAction/search_value/${
-                        currentSession.meta.experimentId
-                      }/search_element/xnat:mrSessionData/search_field/xnat:mrSessionData.ID`
+                      `/xnat/app/action/DisplayItemAction/search_value/${currentSession.meta.experimentId}/search_element/xnat:mrSessionData/search_field/xnat:mrSessionData.ID`
                     "
                     target="_blank"
                     >{{ currentSession.meta.experimentId }}</a
                   >
                   (<a
                     :href="
-                      `/redcap/redcap_v8.4.0/DataEntry/record_home.php?pid=20&arm=1&id=${
-                        currentSession.meta.experimentId2
-                      }`
+                      `/redcap/redcap_v8.4.0/DataEntry/record_home.php?pid=20&arm=1&id=${currentSession.meta.experimentId2}`
                     "
                     target="_blank"
                     >{{ currentSession.meta.experimentId2 }}</a

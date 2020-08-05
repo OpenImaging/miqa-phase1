@@ -137,7 +137,10 @@ const View3D = [
   {
     name: "presetToOrientationAxes",
     domain: {
-      items: [{ text: "XYZ", value: "default" }, { text: "LPS", value: "lps" }]
+      items: [
+        { text: "XYZ", value: "default" },
+        { text: "LPS", value: "lps" }
+      ]
     }
   }
 ];
@@ -156,7 +159,10 @@ const View2D = [
   {
     name: "presetToOrientationAxes",
     domain: {
-      items: [{ text: "XYZ", value: "default" }, { text: "LPS", value: "lps" }]
+      items: [
+        { text: "XYZ", value: "default" },
+        { text: "LPS", value: "lps" }
+      ]
     }
   },
   {

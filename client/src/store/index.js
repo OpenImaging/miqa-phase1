@@ -263,7 +263,7 @@ store.watch(
   (state, getters) => getters.currentSession,
   (newValue, oldValue) => {
     if (
-      !!!newValue ||
+      !newValue ||
       newValue === oldValue ||
       (newValue && oldValue && newValue.folderId === oldValue.folderId)
     ) {
