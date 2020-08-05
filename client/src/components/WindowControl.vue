@@ -88,7 +88,7 @@ export default {
     <v-layout>
       <v-flex>
         <v-slider
-          class="mr-4"
+          class="mr-4 verticalOffset"
           hide-details
           label="Window"
           :min="windowWidthDomain.min"
@@ -114,7 +114,7 @@ export default {
     <v-layout>
       <v-flex>
         <v-slider
-          class="mr-4"
+          class="mr-4 verticalOffset"
           hide-details
           label="Level"
           :min="windowLevelDomain.min"
@@ -139,3 +139,10 @@ export default {
     </v-layout>
   </div>
 </template>
+
+<style lang="scss">
+.verticalOffset {
+  position: relative;
+  top: 12px;
+}
+</style>
