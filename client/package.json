@@ -20,6 +20,11 @@
     "vuex": "^3.0.1"
   },
   "devDependencies": {
+    "@babel/core": "7.11.0",
+    "@babel/parser": "7.11.0",
+    "@babel/plugin-transform-block-scoping": "7.10.5",
+    "@babel/runtime": "7.11.0",
+    "@babel/runtime-corejs2": "7.11.0",
     "@vue/cli-plugin-babel": "^3.3.0",
     "@vue/cli-plugin-eslint": "^3.3.0",
     "@vue/cli-service": "^3.3.0",
