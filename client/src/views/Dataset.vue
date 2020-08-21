@@ -449,10 +449,10 @@ export default {
                   v-if="currentSession.meta.experimentNote"
                 >
                   <v-tooltip top>
-                    <span slot="activator">{{
-                      currentSession.meta.experimentNote
-                    }}</span>
-                    {{ currentSession.meta.experimentNote }}
+                    <template v-slot:activator="{ on }">
+                      <span v-on="on">{{ currentSession.meta.experimentNote }}</span>
+                    </template>
+                    Experiment note: {{ currentSession.meta.experimentNote }}
                   </v-tooltip>
                 </v-flex>
               </v-layout>
@@ -664,7 +664,7 @@ export default {
         <v-card-text>
           <v-textarea
             label="Edit note history"
-            box
+            filled
             hide-details
             no-resize
             :rows="12"
