@@ -2,7 +2,9 @@ import csv
 import datetime
 import io
 import os
+import re
 
+from girder import logger
 from girder.api.rest import Resource, setResponseHeader, setContentDisposition
 from girder.api import access, rest
 from girder.constants import AccessType
@@ -66,6 +68,7 @@ class Session(Resource):
         .errorResponse())
     def csvImport(self, params):
         user = self.getCurrentUser()
+        # logger.info('csvImport, user = {0}'.format(user))
         importpath = os.path.expanduser(Setting().get(importpathKey))
         if not os.path.isfile(importpath):
             raise RestException('import csv file doesn\'t exists', code=404)
@@ -208,11 +211,37 @@ class Session(Resource):
         return sessionFolder.get('meta', {})
 
 
-def getSiteAndExperimentId2(row):
+_siteAndExperimentId2Finders = []
+
+
+def addSiteAndExperimentId2Finder(handler):
+    global _siteAndExperimentId2Finders
+    if handler not in _siteAndExperimentId2Finders:
+        _siteAndExperimentId2Finders.append(handler)
+
+
+def finderForXNATArchiveData(row):
     niftiPath = row['nifti_folder']
-    if niftiPath.startswith('/fs/storage/XNAT/archive/'):
-        # Special case handling
-        splits = niftiPath.split('/')
-        return [splits[5].split('_')[0], '-'.join(splits[7].split('-')[0:-1])]
-    else:
+    m = re.search(r".+/([^_]+)_incoming/[^/]+/(.+)-\d{8}/RESOURCES", niftiPath)
+    if m:
+        return [m.group(1), m.group(2)]
+    return None
+
+
+def defaultFinder(row):
+    if 'site' in row and 'experiment_id_2' in row:
         return [row['site'], row['experiment_id_2']]
+    return None
+
+
+addSiteAndExperimentId2Finder(defaultFinder)
+addSiteAndExperimentId2Finder(finderForXNATArchiveData)
+
+
+def getSiteAndExperimentId2(row):
+    global _siteAndExperimentId2Finders
+    for finder in _siteAndExperimentId2Finders:
+        results = finder(row)
+        if results:
+            return results
+    return [None, None]
