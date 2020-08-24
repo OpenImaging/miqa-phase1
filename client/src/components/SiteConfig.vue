@@ -57,7 +57,7 @@ export default {
     class="site-config"
     :headers="headers"
     :items="items"
-    hide-default-filter
+    hide-default-footer
   >
     <template #items="{ item }">
       <td>{{ item.name }}</td>

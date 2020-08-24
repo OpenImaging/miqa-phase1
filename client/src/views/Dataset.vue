@@ -1,6 +1,10 @@
 <script>
 import _ from "lodash";
 
+import {
+  NavigationFailureType,
+  isNavigationFailure
+} from "vue-router/src/util/errors";
 import Layout from "@/components/Layout.vue";
 import { mapState, mapActions, mapGetters, mapMutations } from "vuex";
 
@@ -88,7 +92,7 @@ export default {
     if (dataset) {
       await this.swapToDataset(dataset);
     } else {
-      this.$router.replace("/");
+      this.$router.replace("/").catch(this.handleNavigationError);
       this.setDrawer(true);
     }
   },
@@ -118,6 +122,19 @@ export default {
     ...mapMutations(["setDrawer"]),
     ...mapActions(["loadSessions", "loadSites", "swapToDataset"]),
     cleanDatasetName,
+    handleNavigationError(fail) {
+      let failureType = "unknown";
+      if (isNavigationFailure(fail, NavigationFailureType.redirected)) {
+        failureType = "redirected";
+      } else if (isNavigationFailure(fail, NavigationFailureType.aborted)) {
+        failureType = "aborted";
+      } else if (isNavigationFailure(fail, NavigationFailureType.cancelled)) {
+        failureType = "cancelled";
+      } else if (isNavigationFailure(fail, NavigationFailureType.duplicated)) {
+        failureType = "duplicated";
+      }
+      console.log(`Caught navigation error (${failureType})`);
+    },
     async beforeLeaveSession(toDataset) {
       let currentDataset = this.currentDataset;
       if (
@@ -223,14 +240,18 @@ export default {
       await this.save();
       if (this.firstDatasetInNextSession) {
         var currentDatasetId = this.currentDataset._id;
-        this.$router.push(this.firstDatasetInNextSession._id);
+        this.$router
+          .push(this.firstDatasetInNextSession._id)
+          .catch(this.handleNavigationError);
         this.$snackbar({
           text: "Proceeded to next session",
           button: "Go back",
           timeout: 6000,
           immediate: true,
           callback: () => {
-            this.$router.push(currentDatasetId);
+            this.$router
+              .push(currentDatasetId)
+              .catch(this.handleNavigationError);
           }
         });
       }
@@ -241,7 +262,7 @@ export default {
     },
     debouncedDatasetSliderChange(index) {
       var dataset = this.currentSession.datasets[index];
-      this.$router.push(dataset._id);
+      this.$router.push(dataset._id).catch(this.handleNavigationError);
     }
   }
 };
@@ -332,7 +353,9 @@ export default {
                       disabled:
                         !previousDataset || unsavedDialog || loadingDataset,
                       handler: () =>
-                        $router.push(previousDataset ? previousDataset._id : '')
+                        $router
+                          .push(previousDataset ? previousDataset._id : '')
+                          .catch(this.handleNavigationError)
                     }"
                   >
                     <v-icon>keyboard_arrow_left</v-icon>
@@ -357,7 +380,9 @@ export default {
                       bind: 'right',
                       disabled: !nextDataset || unsavedDialog || loadingDataset,
                       handler: () =>
-                        $router.push(nextDataset ? nextDataset._id : '')
+                        $router
+                          .push(nextDataset ? nextDataset._id : '')
+                          .catch(this.handleNavigationError)
                     }"
                   >
                     <v-icon>chevron_right</v-icon>
@@ -450,7 +475,9 @@ export default {
                 >
                   <v-tooltip top>
                     <template v-slot:activator="{ on }">
-                      <span v-on="on">{{ currentSession.meta.experimentNote }}</span>
+                      <span v-on="on">{{
+                        currentSession.meta.experimentNote
+                      }}</span>
                     </template>
                     Experiment note: {{ currentSession.meta.experimentNote }}
                   </v-tooltip>
@@ -518,10 +545,9 @@ export default {
                   ></v-text-field>
                 </v-flex>
                 <v-flex shrink v-if="reviewChanged">
-                  <template v-slot:activator="{ on }">
-                    <v-tooltip top>
+                  <v-tooltip top>
+                    <template v-slot:activator="{ on }">
                       <v-btn
-                        slot="activator"
                         text
                         icon
                         small
@@ -532,9 +558,9 @@ export default {
                       >
                         <v-icon>undo</v-icon>
                       </v-btn>
-                      <span>Revert</span>
-                    </v-tooltip>
-                  </template>
+                    </template>
+                    <span>Revert</span>
+                  </v-tooltip>
                 </v-flex>
               </v-layout>
               <v-layout>

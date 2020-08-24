@@ -39,11 +39,11 @@ export default {
     formatCodes: function(codes) {
       return codes
         .map(keylist =>
-          keylist.map(keychar => `<code>${keychar}</code>`).join(' / ')
+          keylist.map(keychar => `<code>${keychar}</code>`).join(" / ")
         )
-        .join(', ');
-    },
-  },
+        .join(", ");
+    }
+  }
 };
 </script>
 
