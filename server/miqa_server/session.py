@@ -82,26 +82,30 @@ class Session(Resource):
             csv_content = csv_file.read()
             Item().createItem('csv', user, sessionsFolder, description=csv_content)
             reader = csv.DictReader(io.StringIO(csv_content))
+            getField = findFieldHandler(reader.fieldnames)
             successCount = 0
             failedCount = 0
             sites = set()
             for row in reader:
-                experimentId = row['xnat_experiment_id']
-                niftiPath = row['nifti_folder']
-                experimentNote = row['experiment_note']
-                [site, experimentId2] = getSiteAndExperimentId2(row)
+                experimentId = getField('xnat_experiment_id', row)
+                niftiPath = getField('nifti_folder', row)
+                experimentNote = getField('experiment_note', row)
+                site = getField('site', row)
+                experimentId2 = getField('experiment_id_2', row)
                 sites.add(site)
-                scanId = row['scan_id']
-                scanType = row['scan_type']
-                scan = scanId+'_'+scanType
-                niftiFolder = os.path.expanduser(os.path.join(niftiPath, scan))
+                scanId = getField('scan_id', row)
+                scanType = getField('scan_type', row)
+                relScanPath = getField('relative_scan_path', row)
+                logger.info('read fields for {0}'.format(experimentId))
+                niftiFolder = os.path.expanduser(os.path.join(niftiPath, relScanPath))
                 if not os.path.isdir(niftiFolder):
+                    logger.info('whoops, {0} is not a folder'.format(niftiFolder))
                     failedCount += 1
                     continue
                 experimentFolder = Folder().createFolder(
                     sessionsFolder, experimentId, parentType='folder', reuseExisting=True)
                 scanFolder = Folder().createFolder(
-                    experimentFolder, scan, parentType='folder', reuseExisting=True)
+                    experimentFolder, relScanPath, parentType='folder', reuseExisting=True)
                 meta = {
                     'experimentId': experimentId,
                     'experimentId2': experimentId2,
@@ -113,7 +117,7 @@ class Session(Resource):
                 # Merge note and rating if record exists
                 if existingSessionsFolder:
                     existingMeta = self.tryGetExistingSessionMeta(
-                        existingSessionsFolder, experimentId, scan)
+                        existingSessionsFolder, experimentId, relScanPath)
                     if(existingMeta and (existingMeta.get('note', None) or existingMeta.get('rating', None))):
                         meta['note'] = existingMeta.get('note', None)
                         meta['rating'] = existingMeta.get('rating', None)
@@ -125,6 +129,7 @@ class Session(Resource):
                         'importPath': niftiFolder,
                     }, progress=noProgress, user=user, leafFoldersAsItems=False)
                 successCount += 1
+            print('just need to add sites and we will be done')
             tryAddSites(sites, self.getCurrentUser())
             return {
                 "success": successCount,
@@ -211,37 +216,36 @@ class Session(Resource):
         return sessionFolder.get('meta', {})
 
 
-_siteAndExperimentId2Finders = []
+def finderForXNATArchiveData(fieldName, row):
+    if fieldName == 'relative_scan_path':
+        return '{0}_{1}'.format(row['scan_id'], row['scan_type'])
+    elif fieldName == 'site' or fieldName == 'experiment_id_2':
+        niftiPath = row['nifti_folder']
+        m = re.search(r".+/([^_]+)_incoming/[^/]+/(.+)-\d{8}/RESOURCES", niftiPath)
+        if m:
+            return m.group(1) if fieldName == 'site' else m.group(2)
+    return row[fieldName]
 
 
-def addSiteAndExperimentId2Finder(handler):
-    global _siteAndExperimentId2Finders
-    if handler not in _siteAndExperimentId2Finders:
-        _siteAndExperimentId2Finders.append(handler)
+def finderForSampleBidsData(fieldName, row):
+    if fieldName == 'xnat_experiment_id':
+        return row['experiment_id']
+    elif fieldName == 'relative_scan_path':
+        return row['filename']
+    elif fieldName == 'experiment_id_2':
+        return 'N/A'
+    return row[fieldName]
 
 
-def finderForXNATArchiveData(row):
-    niftiPath = row['nifti_folder']
-    m = re.search(r".+/([^_]+)_incoming/[^/]+/(.+)-\d{8}/RESOURCES", niftiPath)
-    if m:
-        return [m.group(1), m.group(2)]
-    return None
+def defaultFinder(fieldName, row):
+    if fieldName == 'relative_scan_path':
+        return '{0}_{1}'.format(row['scan_id'], row['scan_type'])
+    return row[fieldName]
 
 
-def defaultFinder(row):
-    if 'site' in row and 'experiment_id_2' in row:
-        return [row['site'], row['experiment_id_2']]
-    return None
-
-
-addSiteAndExperimentId2Finder(defaultFinder)
-addSiteAndExperimentId2Finder(finderForXNATArchiveData)
-
-
-def getSiteAndExperimentId2(row):
-    global _siteAndExperimentId2Finders
-    for finder in _siteAndExperimentId2Finders:
-        results = finder(row)
-        if results:
-            return results
-    return [None, None]
+def findFieldHandler(fieldnames):
+    if 'MQy:VRX' in fieldnames and 'MQy:VRY' in fieldnames and 'MQy:VRZ' in fieldnames:
+        return finderForSampleBidsData
+    elif 'site' not in fieldnames and 'experiment_id_2' not in fieldnames:
+        return finderForXNATArchiveData
+    return defaultFinder
