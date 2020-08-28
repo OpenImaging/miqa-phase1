@@ -18,6 +18,14 @@ ENV LANG=C.UTF-8
 
 # above is largely duplicated from https://github.com/girder/girder/blob/master/Dockerfile.py3
 
+ARG GIRDER_API_ROOT=/api/v1
+ARG GIRDER_STATIC_PUBLIC_PATH=/static
+
+RUN echo "[server]\n\
+api_root = \"${GIRDER_API_ROOT}\"\n\
+static_public_path = \"${GIRDER_STATIC_PUBLIC_PATH}\"\n"\
+>> /etc/girder.cfg
+
 # Install girder
 RUN mkdir /miqa
 COPY server /miqa/server

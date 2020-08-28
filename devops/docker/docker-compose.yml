@@ -10,6 +10,10 @@ services:
     build:
       context: ../..
       dockerfile: devops/docker/Dockerfile
+      args:
+        GIRDER_API_ROOT: ${GIRDER_API_ROOT}
+        GIRDER_STATIC_PUBLIC_PATH: ${GIRDER_STATIC_PUBLIC_PATH}
+
     ports:
       - "${PORT}:8080"
     links:
