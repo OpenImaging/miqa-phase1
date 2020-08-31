@@ -54,7 +54,7 @@ export default {
             <v-btn
               class="ml-0 px-1 session-name"
               href
-              flat
+              text
               small
               :to="session.datasets[0]._id"
               active-class=""

@@ -9,31 +9,41 @@ export default {
   },
   data: () => ({
     shortcuts: [
-      ["Next dataset", "<code>→</code>"],
-      ["Previous dataset", "<code>←</code>"],
+      ["Next dataset", [["→"]]],
+      ["Previous dataset", [["←"]]],
       [
         "Change slices",
-        "<code>q</code> / <code>w</code>, <code>a</code> / <code>s</code>, <code>z</code> / <code>x</code>"
+        [
+          ["q", "w"],
+          ["a", "s"],
+          ["z", "x"]
+        ]
       ],
-      ["Toggle fullscreen", "<code>e</code> / <code>d</code> / <code>c</code>"],
-      ["Zooming", "<code>right button + dragging</code>"],
-      ["Panning", "<code>shift + dragging</code>"],
-      ["Cancel on confirm dialog", "<code>esc</code>"],
-      ["Increase/decrease window", "<code>=</code> / <code>-</code>"],
-      ["Increase/decrease window level", "<code>[</code> / <code>]</code>"],
-      ["Focus to note", "<code>n</code>"],
-      ["Show note history", "<code>h</code>"],
-      ["Unfocus from note", "<code>esc</<code>"],
-      [
-        "Mark as bad/good/usable extra",
-        "<code>b</code> / <code>g</code> / <code>u</code>"
-      ],
-      ["Save", "<code>alt + s</code>"],
-      ["Save on confirm dialog", "<code>y</code>"],
-      ["Don't save on confirm dialog", "<code>n</code>"],
-      ["Cancel on confirm dialog", "<code>esc</code>"]
+      ["Toggle fullscreen", [["e", "d", "c"]]],
+      ["Zooming", [["right button + dragging"]]],
+      ["Panning", [["shift + dragging"]]],
+      ["Cancel on confirm dialog", [["esc"]]],
+      ["Increase/decrease window", [["=", "-"]]],
+      ["Increase/decrease window level", [["[", "]"]]],
+      ["Focus to note", [["n"]]],
+      ["Show note history", [["h"]]],
+      ["Unfocus from note", [["esc"]]],
+      ["Mark as bad/good/usable extra", [["b", "g", "u"]]],
+      ["Save", [["alt + s"]]],
+      ["Save on confirm dialog", [["y"]]],
+      ["Don't save on confirm dialog", [["n"]]],
+      ["Cancel on confirm dialog", [["esc"]]]
     ]
-  })
+  }),
+  methods: {
+    formatCodes: function(codes) {
+      return codes
+        .map(keylist =>
+          keylist.map(keychar => `<code>${keychar}</code>`).join(" / ")
+        )
+        .join(", ");
+    }
+  }
 };
 </script>
 
@@ -50,16 +60,22 @@ export default {
       </v-card-title>
       <v-divider></v-divider>
       <v-card-text style="height: 500px;">
-        <v-data-table :items="shortcuts" hide-actions hide-headers>
-          <template #items="{ item }">
-            <td>{{ item[0] }}</td>
-            <td v-html="item[1]"></td>
+        <v-data-table
+          :items="shortcuts"
+          hide-default-footer
+          hide-default-header
+        >
+          <template v-slot:item="{ item }">
+            <tr>
+              <td>{{ item[0] }}</td>
+              <td v-html="formatCodes(item[1])"></td>
+            </tr>
           </template>
         </v-data-table>
       </v-card-text>
       <v-card-actions>
         <v-spacer />
-        <v-btn color="primary" flat @click="$emit('input', false)">Close</v-btn>
+        <v-btn color="primary" text @click="$emit('input', false)">Close</v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>

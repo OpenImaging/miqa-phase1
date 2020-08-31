@@ -95,9 +95,7 @@ export default {
       this.bcc = this.bccCandidates.map(c => c.name);
       this.showCC = !!this.cc.length;
       this.showBCC = !!this.bcc.length;
-      var experiment = `Regarding ${this.currentSession.meta.experimentId} (${
-        this.currentSession.meta.experimentId2
-      }), ${this.currentSession.name}`;
+      var experiment = `Regarding ${this.currentSession.meta.experimentId} (${this.currentSession.meta.experimentId2}), ${this.currentSession.name}`;
       this.subject = experiment;
       this.body = `${experiment}
 
@@ -203,7 +201,7 @@ ${this.note}
                 label="Subject"
                 placeholder=" "
                 name="miqa_subject"
-                browser-autocomplete="on"
+                autocomplete="on"
                 :rules="[v => !!v || 'Subject is required']"
                 required
               />
@@ -260,7 +258,7 @@ ${this.note}
         </v-container>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn color="primary" flat :loading="sending" type="submit">
+          <v-btn color="primary" text :loading="sending" type="submit">
             Send
           </v-btn>
         </v-card-actions>

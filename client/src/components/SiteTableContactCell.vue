@@ -97,7 +97,7 @@ export default {
                 />
               </v-flex>
               <v-flex shrink>
-                <v-btn flat icon color="primary" @click="remove(contact)">
+                <v-btn text icon color="primary" @click="remove(contact)">
                   <v-icon>remove_circle</v-icon>
                 </v-btn>
               </v-flex>
@@ -105,7 +105,7 @@ export default {
             <v-layout>
               <v-spacer />
               <v-flex shrink>
-                <v-btn flat icon color="primary" @click="add">
+                <v-btn text icon color="primary" @click="add">
                   <v-icon>add_circle</v-icon>
                 </v-btn>
               </v-flex>
@@ -113,8 +113,8 @@ export default {
           </v-container>
           <v-card-actions>
             <v-spacer />
-            <v-btn flat @click="cancel">Cancel</v-btn>
-            <v-btn color="primary" flat type="submit">Save</v-btn>
+            <v-btn text @click="cancel">Cancel</v-btn>
+            <v-btn color="primary" text type="submit">Save</v-btn>
           </v-card-actions>
         </v-card>
       </v-form>

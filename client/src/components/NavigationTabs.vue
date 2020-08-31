@@ -22,7 +22,7 @@ export default {
 </script>
 
 <template>
-  <v-tabs class="navigation-tabs ml-3" color="transparent">
+  <v-tabs class="navigation-tabs ml-3" background-color="transparent">
     <v-tab
       :to="`/${currentDatasetId ? currentDatasetId : ''}`"
       @click="datasetTabClick"

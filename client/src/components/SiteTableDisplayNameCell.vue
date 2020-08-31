@@ -57,8 +57,8 @@ export default {
           </v-container>
           <v-card-actions>
             <v-spacer />
-            <v-btn flat @click="cancel">Cancel</v-btn>
-            <v-btn color="primary" flat type="submit">Save</v-btn>
+            <v-btn text @click="cancel">Cancel</v-btn>
+            <v-btn color="primary" text type="submit">Save</v-btn>
           </v-card-actions>
         </v-card>
       </v-form>

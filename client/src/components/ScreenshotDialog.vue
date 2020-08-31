@@ -111,7 +111,7 @@ export default {
         <v-spacer></v-spacer>
         <v-btn
           color="primary"
-          flat
+          text
           :disabled="!output"
           :download="`${filename}.${fileType}`"
           :href="output"
@@ -120,7 +120,7 @@ export default {
         </v-btn>
         <v-btn
           color="primary"
-          flat
+          text
           :disabled="!output"
           @click="
             save();

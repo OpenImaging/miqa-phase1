@@ -26,7 +26,7 @@ export default {
       {{ initials }}
     </v-avatar>
   </v-btn>
-  <v-btn v-else flat @click="$emit('login')">
+  <v-btn v-else text @click="$emit('login')">
     Login
   </v-btn>
 </template>

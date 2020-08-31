@@ -1,9 +1,13 @@
 import Vue from "vue";
+import Vuetify from "vuetify";
+
+Vue.use(Vuetify);
+
 import AsyncComputed from "vue-async-computed";
 import App from "./App.vue";
 import router from "./router";
 import store from "./store";
-import Girder, { RestClient } from "@girder/components/src";
+import Girder, { RestClient, utils } from "@girder/components/src";
 import { API_URL, STATIC_PATH } from "./constants";
 
 import vMousetrap from "vue-utilities/v-mousetrap";
@@ -20,8 +24,14 @@ import "./vtk/ColorMaps";
 Vue.use(AsyncComputed);
 Vue.use(Girder);
 Vue.use(vMousetrap);
-Vue.use(snackbarService);
-Vue.use(promptService);
+
+// Merge our own (currently empty) configuration with the one provided by
+// Girder web components (needed for the login dialog to render properly).
+const vuetifyOptions = Object.assign({}, utils.vuetifyConfig);
+const vuetify = new Vuetify(vuetifyOptions);
+
+Vue.use(snackbarService(vuetify));
+Vue.use(promptService(vuetify));
 
 girder.rest = new RestClient({ apiRoot: API_URL });
 
@@ -35,6 +45,7 @@ Vue.config.productionTip = true;
 
 girder.rest.fetchUser().then(() => {
   new Vue({
+    vuetify,
     router,
     store,
     render: h => h(App),
