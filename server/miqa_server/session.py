@@ -1,6 +1,8 @@
-import csv
 import datetime
 import io
+import json
+from jsonschema import validate
+from jsonschema.exceptions import ValidationError as JSONValidationError
 import os
 
 from girder.api.rest import Resource, setResponseHeader, setContentDisposition
@@ -17,6 +19,7 @@ from girder.utility.progress import noProgress
 
 from .setting import fileWritable, tryAddSites
 from .constants import exportpathKey, importpathKey
+from .schema.data_import import schema
 
 
 class Session(Resource):
@@ -24,10 +27,10 @@ class Session(Resource):
         super(Session, self).__init__()
         self.resourceName = 'miqa'
 
-        self.route('POST', ('csv', 'import',), self.csvImport)
+        self.route('POST', ('data', 'import',), self.dataImport)
         self.route('GET', ('sessions',), self.getSessions)
-        self.route('GET', ('csv', 'export',), self.csvExport)
-        self.route('GET', ('csv', 'export', 'download',), self.csvExportDownload)
+        self.route('GET', ('data', 'export',), self.dataExport)
+        self.route('GET', ('data', 'export', 'download',), self.dataExportDownload)
 
     @access.user
     @autoDescribeRoute(
@@ -64,34 +67,49 @@ class Session(Resource):
     @autoDescribeRoute(
         Description('')
         .errorResponse())
-    def csvImport(self, params):
+    def dataImport(self, params):
         user = self.getCurrentUser()
         importpath = os.path.expanduser(Setting().get(importpathKey))
         if not os.path.isfile(importpath):
             raise RestException('import csv file doesn\'t exists', code=404)
-        with open(importpath) as csv_file:
+        with open(importpath) as json_file:
+            json_content = json.load(json_file)
+            try:
+                validate(json_content, schema)
+            except JSONValidationError as inst:
+                return {
+                    "error": 'Invalid JSON file: '.format(inst.message),
+                    "success": successCount,
+                    "failed": failedCount
+                }
             existingSessionsFolder = self.findSessionsFolder(user)
             if existingSessionsFolder:
                 existingSessionsFolder['name'] = 'sessions_' + \
                     datetime.datetime.now().strftime("%Y-%m-%d %I:%M:%S %p")
                 Folder().save(existingSessionsFolder)
             sessionsFolder = self.findSessionsFolder(user, True)
-            csv_content = csv_file.read()
-            Item().createItem('csv', user, sessionsFolder, description=csv_content)
-            reader = csv.DictReader(io.StringIO(csv_content))
+            Item().createItem('json', user, sessionsFolder, description=json_content)
+
+            datasetRoot = json_content['data_root']
+            experiments = json_content['experiments']
+            sites = json_content['sites']
+
             successCount = 0
             failedCount = 0
             sites = set()
-            for row in reader:
-                experimentId = row['xnat_experiment_id']
-                niftiPath = row['nifti_folder']
-                experimentNote = row['experiment_note']
-                [site, experimentId2] = getSiteAndExperimentId2(row)
+            for scan in json_content['scans']:
+                experimentId = scan['experiment_id']
+                experimentNote = ''
+                for experiment in experiments:
+                    if experiment['id'] == experimentId:
+                        experimentNote = experiment['note']
+                scanPath = scan['path']
+                site = scan['site_id']
                 sites.add(site)
-                scanId = row['scan_id']
-                scanType = row['scan_type']
+                scanId = scan['id']
+                scanType = scan['type']
                 scan = scanId+'_'+scanType
-                niftiFolder = os.path.expanduser(os.path.join(niftiPath, scan))
+                niftiFolder = os.path.expanduser(os.path.join(datasetRoot, scanPath))
                 if not os.path.isdir(niftiFolder):
                     failedCount += 1
                     continue
@@ -101,7 +119,6 @@ class Session(Resource):
                     experimentFolder, scan, parentType='folder', reuseExisting=True)
                 meta = {
                     'experimentId': experimentId,
-                    'experimentId2': experimentId2,
                     'experimentNote': experimentNote,
                     'site': site,
                     'scanId': scanId,
@@ -116,11 +133,16 @@ class Session(Resource):
                         meta['rating'] = existingMeta.get('rating', None)
                 Folder().setMetadata(scanFolder, meta)
                 currentAssetstore = Assetstore().getCurrent()
-                Assetstore().importData(
-                    currentAssetstore, parent=scanFolder, parentType='folder', params={
-                        'fileIncludeRegex': '.+[.]nii[.]gz$',
-                        'importPath': niftiFolder,
-                    }, progress=noProgress, user=user, leafFoldersAsItems=False)
+                scanImages = scan['images']
+                for scanImage in scanImages:
+                    absImagePath = os.path.join(niftiFolder, scanImage)
+                    imageItem = Item().createItem(name=scanImage, creator=user, folder=scanFolder, reuseExisting=True)
+                    Assetstore().importFile(imageItem, absImagePath, user, name=scanImage)
+                # Assetstore().importData(
+                #     currentAssetstore, parent=scanFolder, parentType='folder', params={
+                #         'fileIncludeRegex': '.+[.]nii[.]gz$',
+                #         'importPath': niftiFolder,
+                #     }, progress=noProgress, user=user, leafFoldersAsItems=False)
                 successCount += 1
             tryAddSites(sites, self.getCurrentUser())
             return {
@@ -132,25 +154,25 @@ class Session(Resource):
     @autoDescribeRoute(
         Description('')
         .errorResponse())
-    def csvExport(self, params):
+    def dataExport(self, params):
         exportpath = os.path.expanduser(Setting().get(exportpathKey))
         if not fileWritable(exportpath):
-            raise RestException('export csv file is not writable', code=500)
-        output = self.getExportCSV()
-        with open(exportpath, 'w') as csv_file:
-            csv_file.write(output.getvalue())
+            raise RestException('export json file is not writable', code=500)
+        output = self.getExportJSON()
+        with open(exportpath, 'w') as json_file:
+            json_file.write(output.getvalue())
 
     @access.admin(cookie=True)
     @autoDescribeRoute(
         Description('')
         .errorResponse())
-    def csvExportDownload(self, params):
-        setResponseHeader('Content-Type', 'text/csv')
-        setContentDisposition('_output.csv')
-        output = self.getExportCSV()
+    def dataExportDownload(self, params):
+        setResponseHeader('Content-Type', 'application/json')
+        setContentDisposition('_output.json')
+        output = self.getExportJSON()
         return lambda: [(yield x) for x in output.getvalue()]
 
-    def getExportCSV(self):
+    def getExportJSON(self):
         def convertRatingToDecision(rating):
             return {
                 None: 0,
@@ -160,10 +182,11 @@ class Session(Resource):
                 'bad': -1
             }[rating]
         sessionsFolder = self.findSessionsFolder()
-        items = list(Folder().childItems(sessionsFolder, filters={'name': 'csv'}))
+        items = list(Folder().childItems(sessionsFolder, filters={'name': 'json'}))
         if not len(items):
-            raise RestException('doesn\'t contain a csv item', code=404)
+            raise RestException('doesn\'t contain a json item', code=404)
         csvItem = items[0]
+        # Next TODO: read, format, and stream back the json version of the export
         reader = csv.DictReader(io.StringIO(csvItem['description']))
         output = io.StringIO()
         writer = csv.DictWriter(output, fieldnames=reader.fieldnames)
@@ -206,13 +229,3 @@ class Session(Resource):
         if not sessionFolder:
             return None
         return sessionFolder.get('meta', {})
-
-
-def getSiteAndExperimentId2(row):
-    niftiPath = row['nifti_folder']
-    if niftiPath.startswith('/fs/storage/XNAT/archive/'):
-        # Special case handling
-        splits = niftiPath.split('/')
-        return [splits[5].split('_')[0], '-'.join(splits[7].split('-')[0:-1])]
-    else:
-        return [row['site'], row['experiment_id_2']]

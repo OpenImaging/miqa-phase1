@@ -2,7 +2,7 @@
 import { mapActions } from "vuex";
 
 export default {
-  name: "CSVImportExport",
+  name: "DataImportExport",
   components: {},
   inject: ["girderRest"],
   data: () => ({
@@ -20,14 +20,14 @@ export default {
   },
   methods: {
     ...mapActions(["loadSessions"]),
-    async importCSV() {
+    async importData() {
       this.importing = true;
       try {
-        var { data: result } = await this.girderRest.post("miqa/csv/import");
+        var { data: result } = await this.girderRest.post("miqa/data/import");
         this.importing = false;
         this.$snackbar({
           text: `Import finished.
-          With ${result.success} rows succeeded and ${result.failed} failed.`,
+          With ${result.success} scans succeeded and ${result.failed} failed.`,
           timeout: 6000
         });
         this.loadSessions();
@@ -40,11 +40,11 @@ export default {
       }
       this.importDialog = false;
     },
-    async exportCSV() {
-      await this.girderRest.get("miqa/csv/export");
+    async exportData() {
+      await this.girderRest.get("miqa/data/export");
       this.$prompt({
         title: "Export",
-        text: "Saved data to csv file successfully.",
+        text: "Saved data to json file successfully.",
         positiveButton: "Ok"
       });
     }
@@ -61,7 +61,7 @@ export default {
       :disabled="!importEnabled"
       >Import</v-btn
     >
-    <v-btn text color="primary" @click="exportCSV" :disabled="!exportEnabled"
+    <v-btn text color="primary" @click="exportData" :disabled="!exportEnabled"
       >Export</v-btn
     >
     <v-dialog v-model="importDialog" width="500" :persistent="importing">
@@ -78,7 +78,7 @@ export default {
           <v-btn text @click="importDialog = false" :disabled="importing"
             >Cancel</v-btn
           >
-          <v-btn text color="primary" @click="importCSV" :loading="importing"
+          <v-btn text color="primary" @click="importData" :loading="importing"
             >Import</v-btn
           >
         </v-card-actions>

@@ -20,8 +20,8 @@ class SettingResource(Resource):
         self.resourceName = 'miqa_setting'
 
         self.route('GET', ('site',), self.getAll)
-        self.route('GET', ('csvpath',), self.getCsvpath)
-        self.route('POST', ('csvpath',), self.saveCsvpath)
+        self.route('GET', ('datapath',), self.getDatapath)
+        self.route('POST', ('datapath',), self.saveDatapath)
         self.route('GET', ('import-export-enabled',), self.importExportEnabled)
 
     @access.user
@@ -39,10 +39,10 @@ class SettingResource(Resource):
     @autoDescribeRoute(
         Description('')
         .errorResponse())
-    def getCsvpath(self, params):
-        return self._getCsvpath()
+    def getDatapath(self, params):
+        return self._getDatapath()
 
-    def _getCsvpath(self):
+    def _getDatapath(self):
         importpath = Setting().get(importpathKey)
         exportpath = Setting().get(exportpathKey)
         return {
@@ -55,7 +55,7 @@ class SettingResource(Resource):
         Description('')
         .jsonParam('path', '', paramType='body', requireObject=True)
         .errorResponse())
-    def saveCsvpath(self, path, params):
+    def saveDatapath(self, path, params):
         Setting().set(importpathKey, path['importpath'])
         Setting().set(exportpathKey, path['exportpath'])
 
@@ -64,10 +64,10 @@ class SettingResource(Resource):
         Description('')
         .errorResponse())
     def importExportEnabled(self, params):
-        csvpath = self._getCsvpath()
+        jsonpath = self._getDatapath()
         return {
-            'import': bool(csvpath['importpath']),
-            'export': bool(csvpath['exportpath'])
+            'import': bool(jsonpath['importpath']),
+            'export': bool(jsonpath['exportpath'])
         }
 
 

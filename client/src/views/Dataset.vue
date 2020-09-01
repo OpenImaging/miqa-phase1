@@ -10,7 +10,7 @@ import { mapState, mapActions, mapGetters, mapMutations } from "vuex";
 
 import NavbarTitle from "@/components/NavbarTitle";
 import UserButton from "@/components/girder/UserButton";
-import CSVImportExport from "../components/CSVImportExport";
+import DataImportExport from "../components/DataImportExport";
 import SessionsView from "@/components/SessionsView";
 import WindowControl from "@/components/WindowControl";
 import ScreenshotDialog from "@/components/ScreenshotDialog";
@@ -25,7 +25,7 @@ export default {
     NavbarTitle,
     UserButton,
     Layout,
-    CSVImportExport,
+    DataImportExport,
     SessionsView,
     WindowControl,
     ScreenshotDialog,
@@ -301,7 +301,7 @@ export default {
         <v-toolbar dense flat max-height="48px">
           <v-toolbar-title>Sessions</v-toolbar-title>
         </v-toolbar>
-        <CSVImportExport v-if="userLevel.value <= 2" />
+        <DataImportExport v-if="userLevel.value <= 2" />
         <SessionsView class="mt-1" minimal />
       </div>
     </v-navigation-drawer>

@@ -1,6 +1,6 @@
 <script>
 export default {
-  name: "CSVConfig",
+  name: "JSONConfig",
   inject: ["girderRest"],
   data: () => ({
     importpath: "",
@@ -10,7 +10,7 @@ export default {
     exportpathError: ""
   }),
   async created() {
-    var { data: result } = await this.girderRest.get("miqa_setting/csvpath");
+    var { data: result } = await this.girderRest.get("miqa_setting/datapath");
     this.importpath = result.importpath;
     this.exportpath = result.exportpath;
   },
@@ -20,7 +20,7 @@ export default {
         return;
       }
       try {
-        await this.girderRest.post("miqa_setting/csvpath", {
+        await this.girderRest.post("miqa_setting/datapath", {
           importpath: this.importpath,
           exportpath: this.exportpath
         });
@@ -52,10 +52,10 @@ export default {
           v-model="importpath"
           @input="changed = true"
           autocomplete="on"
-          name="miqa-csv-importpath"
+          name="miqa-json-importpath"
           :rules="[
             v => !!v || 'path is required',
-            v => v.endsWith('.csv') || 'Need a be a csv file'
+            v => v.endsWith('.json') || 'Needs to be a json file'
           ]"
           :error-messages="importpathError"
       /></v-flex>
@@ -66,10 +66,10 @@ export default {
           v-model="exportpath"
           @input="changed = true"
           autocomplete="on"
-          name="miqa-csv-exportpath"
+          name="miqa-json-exportpath"
           :rules="[
             v => !!v || 'path is required',
-            v => v.endsWith('.csv') || 'Need a be a csv file'
+            v => v.endsWith('.json') || 'Needs to be a json file'
           ]"
           :error-messages="exportpathError"
       /></v-flex>

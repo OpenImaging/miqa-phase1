@@ -3,6 +3,7 @@ import os
 import sys
 
 from jsonschema import validate
+from jsonschema.exceptions import ValidationError as JSONValidationError
 
 from data_import import schema
 
@@ -18,4 +19,8 @@ with open(json_file_path) as fd:
 print(json_data_object)
 print('\n\nvalidating...\n\n')
 
-validate(json_data_object, schema)
+try:
+    validate(json_data_object, schema)
+except JSONValidationError as inst:
+    print('Damn: {0}'.format(inst.message))
+    print(dir(inst))

@@ -2,14 +2,14 @@
 // import { mapState, mapActions } from "vuex";
 
 import GenericNavigationBar from "@/components/GenericNavigationBar";
-import CSVConfig from "@/components/CSVConfig";
+import JSONConfig from "@/components/JSONConfig";
 import SiteConfig from "@/components/SiteConfig";
 
 export default {
   name: "Settings",
   components: {
     GenericNavigationBar,
-    CSVConfig,
+    JSONConfig,
     SiteConfig
   },
   inject: ["girderRest"],
@@ -24,11 +24,11 @@ export default {
     <GenericNavigationBar />
     <v-container grid-list-md>
       <div class="subheading">
-        CSV path
+        JSON path
       </div>
       <v-layout>
         <v-flex>
-          <CSVConfig />
+          <JSONConfig />
         </v-flex>
       </v-layout>
       <div class="subheading mt-4">
