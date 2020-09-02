@@ -1,2 +1,2 @@
-importpathKey = 'miqa.csv.importpath'
-exportpathKey = 'miqa.csv.exportpath'
+importpathKey = 'miqa.json.importpath'
+exportpathKey = 'miqa.json.exportpath'

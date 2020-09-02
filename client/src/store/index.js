@@ -175,6 +175,7 @@ const store = new Vuex.Store({
   actions: {
     async loadSessions({ state }) {
       let { data: sessionTree } = await girder.rest.get(`miqa/sessions`);
+      console.log('poke into the sessionTree here...');
       state.sessionTree = sessionTree.map(experiment => {
         return {
           ...experiment,
