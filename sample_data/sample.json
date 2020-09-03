@@ -1,0 +1,50 @@
+{
+  "data_root": "/miqa/sample_data",
+  "sites": [
+    {
+      "id": "site1"
+    }
+  ],
+  "experiments": [
+    {
+      "id": "ID-1",
+      "note": ""
+    },
+    {
+      "id": "ID-2",
+      "note": ""
+    }
+  ],
+  "scans": [
+    {
+      "experiment_id": "ID-1",
+      "site_id": "site1",
+      "path": "1_type1",
+      "imagePattern": ".*\\.nii\\.gz",
+      "id": "1",
+      "type": "type1",
+      "decision": "",
+      "note": ""
+    },
+    {
+      "experiment_id": "ID-1",
+      "site_id": "site1",
+      "path": "2_type1",
+      "imagePattern": ".*\\.nii\\.gz",
+      "id": "2",
+      "type": "type1",
+      "decision": "",
+      "note": ""
+    },
+    {
+      "experiment_id": "ID-2",
+      "site_id": "site1",
+      "path": "3_type2",
+      "imagePattern": ".*\\.nii\\.gz",
+      "id": "3",
+      "type": "type2",
+      "decision": "",
+      "note": ""
+    }
+  ]
+}

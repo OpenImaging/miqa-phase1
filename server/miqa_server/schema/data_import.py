@@ -29,15 +29,10 @@ properties = {
         'items': {
             'type': 'object',
             'additionalProperties': False,
-            'required': [],
             'properties': {
                 'experiment_id': {'type': 'string'},
                 'site_id': {'type': 'string'},
                 'path': {'type': 'string'},
-                'images': {
-                    'type': 'array',
-                    'items': {'type': 'string'}
-                },
                 'id': {'type': 'string'},
                 'type': {'type': 'string'},
                 'decision': {'type': 'string'},
@@ -48,7 +43,16 @@ properties = {
                     'required': [],
                     r'\w.*': {'type': 'string'},
                 },
+                'images': {
+                    'type': 'array',
+                    'items': {'type': 'string'},
+                },
+                'imagePattern': {'type': 'string'},
             },
+            'oneOf': [
+                { 'required': ['experiment_id', 'path', 'site_id', 'id', 'type', 'images'], },
+                { 'required': ['experiment_id', 'path', 'site_id', 'id', 'type', 'imagePattern'], },
+            ],
         },
     },
 }
@@ -58,5 +62,6 @@ schema = {
     'title': 'MIQA data import schema',
     'type': 'object',
     'additionalProperties': False,
+    'required': ['scans'],
     'properties': properties,
 }

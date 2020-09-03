@@ -53,8 +53,38 @@ class Session(Resource):
                 'sessions': sessions
             })
             for sessionFolder in Folder().childFolders(experimentFolder, 'folder', user=user):
-                datasets = list(Item().find({'$query': {'folderId': sessionFolder['_id'],
-                                                        'name': {'$regex': 'nii.gz$'}}, '$orderby': {'name': 1}}))
+                orderItem = Item().findOne({'name': 'imageOrderDescription',
+                                            'folderId': sessionFolder['_id']})
+                descriptionJson = json.loads(orderItem['description'])
+                orderDescription = descriptionJson['orderDescription']
+                if 'images' in orderDescription:
+                    imageOrderList = orderDescription['images']
+                    unordered_data = list(Item().find({
+                        '$query': {
+                            'folderId': sessionFolder['_id'],
+                        }
+                    }))
+                    datasets = [None] * (len(unordered_data) - 1)
+                    for dataset in unordered_data:
+                        if dataset['name'] != 'imageOrderDescription':
+                            insertIndex = imageOrderList.index(dataset['name'])
+                            datasets[insertIndex] = dataset
+                elif 'imagePattern' in orderDescription:
+                    imagePattern = orderDescription['imagePattern']
+                    datasets = list(Item().find({
+                        '$query': {
+                            'folderId': sessionFolder['_id'],
+                            'name': {
+                                '$regex': 'nii.gz$'
+                            }
+                        },
+                        '$orderby': {
+                            'name': 1
+                        }
+                    }))
+                else:
+                    raise RestException('Scan folder does not contain expected image ordering information')
+
                 sessions.append({
                     'folderId': sessionFolder['_id'],
                     'name': sessionFolder['name'],
@@ -133,17 +163,39 @@ class Session(Resource):
                         meta['rating'] = existingMeta.get('rating', None)
                 Folder().setMetadata(scanFolder, meta)
                 currentAssetstore = Assetstore().getCurrent()
-                scanImages = scan['images']
-                for scanImage in scanImages:
-                    absImagePath = os.path.join(niftiFolder, scanImage)
-                    # imageItem = Item().createItem(name=scanImage, creator=user, folder=scanFolder, reuseExisting=True)
-                    # Assetstore().importFile(imageItem, absImagePath, user, name=scanImage)
-                    logger.info('importing next file {0}'.format(scanImage))
+                if 'images' in scan:
+                    scanImages = scan['images']
+                    # Import images one at a time because the user provided a list
+                    for scanImage in scanImages:
+                        absImagePath = os.path.join(niftiFolder, scanImage)
+                        Assetstore().importData(
+                            currentAssetstore, parent=scanFolder, parentType='folder', params={
+                                'fileIncludeRegex': '^{0}$'.format(scanImage),
+                                'importPath': niftiFolder,
+                            }, progress=noProgress, user=user, leafFoldersAsItems=False)
+                    imageOrderDescription = {
+                        'orderDescription': {
+                            'images': scanImages
+                        }
+                    }
+                else:
+                    scanImagePattern = scan['imagePattern']
+                    # Import all images in directory at once because user provide a file pattern
                     Assetstore().importData(
                         currentAssetstore, parent=scanFolder, parentType='folder', params={
-                            'fileIncludeRegex': '^{0}$'.format(scanImage),
+                            'fileIncludeRegex': scanImagePattern,
                             'importPath': niftiFolder,
                         }, progress=noProgress, user=user, leafFoldersAsItems=False)
+                    imageOrderDescription = {
+                        'orderDescription': {
+                            'imagePattern': scanImagePattern
+                        }
+                    }
+                Item().createItem(name='imageOrderDescription',
+                                  creator=user,
+                                  folder=scanFolder,
+                                  reuseExisting=True,
+                                  description=json.dumps(imageOrderDescription))
                 successCount += 1
             tryAddSites(sites, self.getCurrentUser())
             return {

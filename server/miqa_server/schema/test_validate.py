@@ -20,7 +20,8 @@ print(json_data_object)
 print('\n\nvalidating...\n\n')
 
 try:
-    validate(json_data_object, schema)
+    valid_object = validate(json_data_object, schema)
+    print(valid_object)
 except JSONValidationError as inst:
     print('Damn: {0}'.format(inst.message))
     print(dir(inst))
