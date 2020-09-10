@@ -1,4 +1,0 @@
-xnat_experiment_id,site,experiment_id_2,nifti_folder,scan_id,scan_type,experiment_note,decision,scan_note
-ID-1,site1,ID_2-1,/miqa/sample_data/,1,type1,,,
-ID-1,site1,ID_2-1,/miqa/sample_data/,2,type1,,,
-ID-2,site1,ID_2-2,/miqa/sample_data/,3,type2,,,

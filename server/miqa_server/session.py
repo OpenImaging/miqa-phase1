@@ -1,6 +1,8 @@
-import csv
 import datetime
 import io
+import json
+from jsonschema import validate
+from jsonschema.exceptions import ValidationError as JSONValidationError
 import os
 
 from girder.api.rest import Resource, setResponseHeader, setContentDisposition
@@ -8,6 +10,7 @@ from girder.api import access, rest
 from girder.constants import AccessType
 from girder.exceptions import RestException
 from girder.api.describe import Description, autoDescribeRoute
+from girder import logger
 from girder.models.collection import Collection
 from girder.models.assetstore import Assetstore
 from girder.models.folder import Folder
@@ -17,6 +20,7 @@ from girder.utility.progress import noProgress
 
 from .setting import fileWritable, tryAddSites
 from .constants import exportpathKey, importpathKey
+from .schema.data_import import schema
 
 
 class Session(Resource):
@@ -24,10 +28,9 @@ class Session(Resource):
         super(Session, self).__init__()
         self.resourceName = 'miqa'
 
-        self.route('POST', ('csv', 'import',), self.csvImport)
+        self.route('POST', ('data', 'import',), self.dataImport)
         self.route('GET', ('sessions',), self.getSessions)
-        self.route('GET', ('csv', 'export',), self.csvExport)
-        self.route('GET', ('csv', 'export', 'download',), self.csvExportDownload)
+        self.route('GET', ('data', 'export',), self.dataExport)
 
     @access.user
     @autoDescribeRoute(
@@ -50,8 +53,38 @@ class Session(Resource):
                 'sessions': sessions
             })
             for sessionFolder in Folder().childFolders(experimentFolder, 'folder', user=user):
-                datasets = list(Item().find({'$query': {'folderId': sessionFolder['_id'],
-                                                        'name': {'$regex': 'nii.gz$'}}, '$orderby': {'name': 1}}))
+                orderItem = Item().findOne({'name': 'imageOrderDescription',
+                                            'folderId': sessionFolder['_id']})
+                descriptionJson = json.loads(orderItem['description'])
+                orderDescription = descriptionJson['orderDescription']
+                if 'images' in orderDescription:
+                    imageOrderList = orderDescription['images']
+                    unordered_data = list(Item().find({
+                        '$query': {
+                            'folderId': sessionFolder['_id'],
+                        }
+                    }))
+                    datasets = [None] * (len(unordered_data) - 1)
+                    for dataset in unordered_data:
+                        if dataset['name'] != 'imageOrderDescription':
+                            insertIndex = imageOrderList.index(dataset['name'])
+                            datasets[insertIndex] = dataset
+                elif 'imagePattern' in orderDescription:
+                    imagePattern = orderDescription['imagePattern']
+                    datasets = list(Item().find({
+                        '$query': {
+                            'folderId': sessionFolder['_id'],
+                            'name': {
+                                '$regex': 'nii.gz$'
+                            }
+                        },
+                        '$orderby': {
+                            'name': 1
+                        }
+                    }))
+                else:
+                    raise RestException('Scan folder does not contain expected image ordering information')
+
                 sessions.append({
                     'folderId': sessionFolder['_id'],
                     'name': sessionFolder['name'],
@@ -64,44 +97,58 @@ class Session(Resource):
     @autoDescribeRoute(
         Description('')
         .errorResponse())
-    def csvImport(self, params):
+    def dataImport(self, params):
         user = self.getCurrentUser()
         importpath = os.path.expanduser(Setting().get(importpathKey))
         if not os.path.isfile(importpath):
-            raise RestException('import csv file doesn\'t exists', code=404)
-        with open(importpath) as csv_file:
+            raise RestException('import path does not exist ({0}'.format(importpath), code=404)
+        with open(importpath) as json_file:
+            json_content = json.load(json_file)
+            try:
+                validate(json_content, schema)
+            except JSONValidationError as inst:
+                return {
+                    "error": 'Invalid JSON file: '.format(inst.message),
+                    "success": successCount,
+                    "failed": failedCount
+                }
             existingSessionsFolder = self.findSessionsFolder(user)
             if existingSessionsFolder:
                 existingSessionsFolder['name'] = 'sessions_' + \
                     datetime.datetime.now().strftime("%Y-%m-%d %I:%M:%S %p")
                 Folder().save(existingSessionsFolder)
             sessionsFolder = self.findSessionsFolder(user, True)
-            csv_content = csv_file.read()
-            Item().createItem('csv', user, sessionsFolder, description=csv_content)
-            reader = csv.DictReader(io.StringIO(csv_content))
+            Item().createItem('json', user, sessionsFolder, description=json.dumps(json_content))
+
+            datasetRoot = json_content['data_root']
+            experiments = json_content['experiments']
+            sites = json_content['sites']
+
             successCount = 0
             failedCount = 0
             sites = set()
-            for row in reader:
-                experimentId = row['xnat_experiment_id']
-                niftiPath = row['nifti_folder']
-                experimentNote = row['experiment_note']
-                [site, experimentId2] = getSiteAndExperimentId2(row)
+            for scan in json_content['scans']:
+                experimentId = scan['experiment_id']
+                experimentNote = ''
+                for experiment in experiments:
+                    if experiment['id'] == experimentId:
+                        experimentNote = experiment['note']
+                scanPath = scan['path']
+                site = scan['site_id']
                 sites.add(site)
-                scanId = row['scan_id']
-                scanType = row['scan_type']
-                scan = scanId+'_'+scanType
-                niftiFolder = os.path.expanduser(os.path.join(niftiPath, scan))
+                scanId = scan['id']
+                scanType = scan['type']
+                scanName = scanId+'_'+scanType
+                niftiFolder = os.path.expanduser(os.path.join(datasetRoot, scanPath))
                 if not os.path.isdir(niftiFolder):
                     failedCount += 1
                     continue
                 experimentFolder = Folder().createFolder(
                     sessionsFolder, experimentId, parentType='folder', reuseExisting=True)
                 scanFolder = Folder().createFolder(
-                    experimentFolder, scan, parentType='folder', reuseExisting=True)
+                    experimentFolder, scanName, parentType='folder', reuseExisting=True)
                 meta = {
                     'experimentId': experimentId,
-                    'experimentId2': experimentId2,
                     'experimentNote': experimentNote,
                     'site': site,
                     'scanId': scanId,
@@ -110,17 +157,45 @@ class Session(Resource):
                 # Merge note and rating if record exists
                 if existingSessionsFolder:
                     existingMeta = self.tryGetExistingSessionMeta(
-                        existingSessionsFolder, experimentId, scan)
+                        existingSessionsFolder, experimentId, scanName)
                     if(existingMeta and (existingMeta.get('note', None) or existingMeta.get('rating', None))):
                         meta['note'] = existingMeta.get('note', None)
                         meta['rating'] = existingMeta.get('rating', None)
                 Folder().setMetadata(scanFolder, meta)
                 currentAssetstore = Assetstore().getCurrent()
-                Assetstore().importData(
-                    currentAssetstore, parent=scanFolder, parentType='folder', params={
-                        'fileIncludeRegex': '.+[.]nii[.]gz$',
-                        'importPath': niftiFolder,
-                    }, progress=noProgress, user=user, leafFoldersAsItems=False)
+                if 'images' in scan:
+                    scanImages = scan['images']
+                    # Import images one at a time because the user provided a list
+                    for scanImage in scanImages:
+                        absImagePath = os.path.join(niftiFolder, scanImage)
+                        Assetstore().importData(
+                            currentAssetstore, parent=scanFolder, parentType='folder', params={
+                                'fileIncludeRegex': '^{0}$'.format(scanImage),
+                                'importPath': niftiFolder,
+                            }, progress=noProgress, user=user, leafFoldersAsItems=False)
+                    imageOrderDescription = {
+                        'orderDescription': {
+                            'images': scanImages
+                        }
+                    }
+                else:
+                    scanImagePattern = scan['imagePattern']
+                    # Import all images in directory at once because user provide a file pattern
+                    Assetstore().importData(
+                        currentAssetstore, parent=scanFolder, parentType='folder', params={
+                            'fileIncludeRegex': scanImagePattern,
+                            'importPath': niftiFolder,
+                        }, progress=noProgress, user=user, leafFoldersAsItems=False)
+                    imageOrderDescription = {
+                        'orderDescription': {
+                            'imagePattern': scanImagePattern
+                        }
+                    }
+                Item().createItem(name='imageOrderDescription',
+                                  creator=user,
+                                  folder=scanFolder,
+                                  reuseExisting=True,
+                                  description=json.dumps(imageOrderDescription))
                 successCount += 1
             tryAddSites(sites, self.getCurrentUser())
             return {
@@ -132,25 +207,15 @@ class Session(Resource):
     @autoDescribeRoute(
         Description('')
         .errorResponse())
-    def csvExport(self, params):
+    def dataExport(self, params):
         exportpath = os.path.expanduser(Setting().get(exportpathKey))
         if not fileWritable(exportpath):
-            raise RestException('export csv file is not writable', code=500)
-        output = self.getExportCSV()
-        with open(exportpath, 'w') as csv_file:
-            csv_file.write(output.getvalue())
+            raise RestException('export json file is not writable', code=500)
+        output = self.getExportJSON()
+        with open(exportpath, 'w') as json_file:
+            json_file.write(output)
 
-    @access.admin(cookie=True)
-    @autoDescribeRoute(
-        Description('')
-        .errorResponse())
-    def csvExportDownload(self, params):
-        setResponseHeader('Content-Type', 'text/csv')
-        setContentDisposition('_output.csv')
-        output = self.getExportCSV()
-        return lambda: [(yield x) for x in output.getvalue()]
-
-    def getExportCSV(self):
+    def getExportJSON(self):
         def convertRatingToDecision(rating):
             return {
                 None: 0,
@@ -160,31 +225,31 @@ class Session(Resource):
                 'bad': -1
             }[rating]
         sessionsFolder = self.findSessionsFolder()
-        items = list(Folder().childItems(sessionsFolder, filters={'name': 'csv'}))
+        items = list(Folder().childItems(sessionsFolder, filters={'name': 'json'}))
         if not len(items):
-            raise RestException('doesn\'t contain a csv item', code=404)
-        csvItem = items[0]
-        reader = csv.DictReader(io.StringIO(csvItem['description']))
-        output = io.StringIO()
-        writer = csv.DictWriter(output, fieldnames=reader.fieldnames)
-        writer.writeheader()
-        for row in reader:
-            experience = Folder().findOne({
-                'name': row['xnat_experiment_id'],
+            raise RestException('doesn\'t contain a json item', code=404)
+        jsonItem = items[0]
+        # Next TODO: read, format, and stream back the json version of the export
+        logger.info(jsonItem)
+        original_json_object = json.loads(jsonItem['description'])
+
+        for scan in original_json_object['scans']:
+            experiment = Folder().findOne({
+                'name': scan['experiment_id'],
                 'parentId': sessionsFolder['_id']
             })
-            if not experience:
+            if not experiment:
                 continue
             session = Folder().findOne({
-                'name': row['scan_id']+'_'+row['scan_type'],
-                'parentId': experience['_id']
+                'name': '{0}_{1}'.format(scan['id'], scan['type']),
+                'parentId': experiment['_id']
             })
             if not session:
                 continue
-            row['decision'] = convertRatingToDecision(session.get('meta', {}).get('rating', None))
-            row['scan_note'] = session.get('meta', {}).get('note', None)
-            writer.writerow(row)
-        return output
+            scan['decision'] = convertRatingToDecision(session.get('meta', {}).get('rating', None))
+            scan['note'] = session.get('meta', {}).get('note', None)
+
+        return json.dumps(original_json_object)
 
     def findSessionsFolder(self, user=None, create=False):
         collection = Collection().findOne({'name': 'miqa'})
@@ -206,13 +271,3 @@ class Session(Resource):
         if not sessionFolder:
             return None
         return sessionFolder.get('meta', {})
-
-
-def getSiteAndExperimentId2(row):
-    niftiPath = row['nifti_folder']
-    if niftiPath.startswith('/fs/storage/XNAT/archive/'):
-        # Special case handling
-        splits = niftiPath.split('/')
-        return [splits[5].split('_')[0], '-'.join(splits[7].split('-')[0:-1])]
-    else:
-        return [row['site'], row['experiment_id_2']]
