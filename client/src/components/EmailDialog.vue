@@ -37,8 +37,8 @@ export default {
     sending: false
   }),
   computed: {
-    ...mapState(["screenshots"]),
-    ...mapGetters(["currentDataset", "currentSession", "siteMap"])
+    ...mapState(["currentDataset", "screenshots"]),
+    ...mapGetters(["currentSession", "siteMap"])
   },
   watch: {
     currentDataset(value) {

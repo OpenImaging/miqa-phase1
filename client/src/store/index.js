@@ -22,7 +22,7 @@ const store = new Vuex.Store({
     sessionTree: null,
     proxyManager: null,
     vtkViews: [],
-    currentDatasetId: null,
+    currentDataset: null,
     loadingDataset: false,
     errorLoadingDataset: false,
     currentScreenshot: null,
@@ -31,13 +31,8 @@ const store = new Vuex.Store({
     sessionCachedPercentage: 0
   },
   getters: {
-    currentDataset(state, getters) {
-      if (!state.currentDatasetId || !getters.allDatasets) {
-        return;
-      }
-      return getters.allDatasets.find(
-        dataset => dataset._id === state.currentDatasetId
-      );
+    currentDatasetId(state) {
+      return state.currentDataset ? state.currentDataset["_id"] : null;
     },
     allDatasets(state) {
       if (!state.sessionTree) {
@@ -47,33 +42,12 @@ const store = new Vuex.Store({
         return _.flatMap(experiment.sessions, session => session.datasets);
       });
     },
-    allDatasetIds(state, getters) {
-      if (!getters.allDatasets) {
-        return [];
-      }
-      return getters.allDatasets.map(dataset => dataset._id);
+    previousDataset(state) {
+      return state.currentDataset ? state.currentDataset.previousDataset : null;
     },
-    previousDataset(state, getters) {
-      if (!getters.currentDataset || !getters.allDatasets) {
-        return;
-      }
-      var index = getters.allDatasets.indexOf(getters.currentDataset);
-      return getters.allDatasets.slice(index - 1, index)[0];
+    nextDataset(state) {
+      return state.currentDataset ? state.currentDataset.nextDataset : null;
     },
-    nextDataset(state, getters) {
-      if (!getters.currentDataset || !getters.allDatasets) {
-        return;
-      }
-      var index = getters.allDatasets.indexOf(getters.currentDataset);
-      return getters.allDatasets.slice(index + 1, index + 2)[0];
-    },
-    // nextNextDataset(state, getters) {
-    //   if (!getters.currentDataset || !getters.allDatasets) {
-    //     return;
-    //   }
-    //   var index = getters.allDatasets.indexOf(getters.currentDataset);
-    //   return getters.allDatasets.slice(index + 2, index + 3)[0];
-    // },
     getDataset(state, getters) {
       return function(datasetId) {
         if (!datasetId || !getters.allDatasets) {
@@ -82,59 +56,18 @@ const store = new Vuex.Store({
         return getters.allDatasets.find(dataset => dataset._id === datasetId);
       };
     },
-    currentSession(state, getters) {
-      if (!getters.currentDataset || !state.sessionTree) {
-        return;
-      }
-      for (let experiment of state.sessionTree) {
-        for (let session of experiment.sessions) {
-          for (let dataset of session.datasets) {
-            if (dataset === getters.currentDataset) {
-              return session;
-            }
-          }
-        }
-      }
+    currentSession(state) {
+      return state.currentDataset ? state.currentDataset.session : null;
     },
-    firstDatasetInPreviousSession(state, getters) {
-      if (!getters.currentDataset || !state.sessionTree) {
-        return;
-      }
-      let takeNext = false;
-      for (let i = state.sessionTree.length - 1; i >= 0; i--) {
-        let experiment = state.sessionTree[i];
-        for (let j = experiment.sessions.length - 1; j >= 0; j--) {
-          let session = experiment.sessions[j];
-          for (let dataset of session.datasets) {
-            if (takeNext) {
-              return dataset;
-            }
-            if (dataset === getters.currentDataset) {
-              takeNext = true;
-              break;
-            }
-          }
-        }
-      }
+    firstDatasetInPreviousSession(state) {
+      return state.currentDataset
+        ? state.currentDataset.firstDatasetInPreviousSession
+        : null;
     },
-    firstDatasetInNextSession(state, getters) {
-      if (!getters.currentDataset || !state.sessionTree) {
-        return;
-      }
-      let takeNext = false;
-      for (let experiment of state.sessionTree) {
-        for (let session of experiment.sessions) {
-          for (let dataset of session.datasets) {
-            if (takeNext) {
-              return dataset;
-            }
-            if (dataset === getters.currentDataset) {
-              takeNext = true;
-              break;
-            }
-          }
-        }
-      }
+    firstDatasetInNextSession(state) {
+      return state.currentDataset
+        ? state.currentDataset.firstDatasetInNextSession
+        : null;
     },
     siteMap(state) {
       if (!state.sites) {
@@ -185,23 +118,59 @@ const store = new Vuex.Store({
           }
         };
       });
+
+      // Build navigation links throughout the dataset to improve performance.
+
+      // First iterate through the session tree forwards to build up "previous" links
+      let previousDataset = null;
+      let firstInPrev = null;
+
+      for (let i = 0; i < state.sessionTree.length; i++) {
+        let experiment = state.sessionTree[i];
+        for (let j = 0; j < experiment.sessions.length; j++) {
+          let session = experiment.sessions[j];
+          for (let k = 0; k < session.datasets.length; k++) {
+            let dataset = session.datasets[k];
+            dataset.session = session;
+            dataset.index = k;
+            dataset.previousDataset = previousDataset;
+            dataset.firstDatasetInPreviousSession = firstInPrev;
+            previousDataset = dataset;
+          }
+          firstInPrev = session.datasets[0];
+        }
+      }
+
+      // Now iterate through the session tree backwards to build up "next" links
+      let nextDataset = null;
+      let firstInNext = null;
+
+      for (let i = state.sessionTree.length - 1; i >= 0; i--) {
+        let experiment = state.sessionTree[i];
+        for (let j = experiment.sessions.length - 1; j >= 0; j--) {
+          let session = experiment.sessions[j];
+          for (let k = session.datasets.length - 1; k >= 0; k--) {
+            let dataset = session.datasets[k];
+            dataset.nextDataset = nextDataset;
+            dataset.firstDatasetInNextSession = firstInNext;
+            nextDataset = dataset;
+          }
+          firstInNext = session.datasets[0];
+        }
+      }
     },
     async swapToDataset({ state, getters }, dataset) {
       if (!dataset) {
         throw new Error(`dataset id doesn't exist`);
       }
-      if (getters.currentDataset === dataset) {
+      // console.log('debug here');
+      if (state.currentDataset === dataset) {
         return;
       }
       state.loadingDataset = true;
       state.errorLoadingDataset = false;
       var oldSession = getters.currentSession;
-      var temp = state.currentDatasetId;
-      // Use side effect to get the new session, logically correct but should be improved
-      state.currentDatasetId = dataset["_id"];
-      var newSession = getters.currentSession;
-      // Use currentDataset to detect the change of proxyManager, logically correct but should be improved
-      state.currentDatasetId = temp;
+      const newSession = dataset.session;
       var newProxyManager = false;
       if (oldSession !== newSession && state.proxyManager) {
         // At this moment. use new proxyManger between session could avoid a not showing issue.
@@ -247,7 +216,7 @@ const store = new Vuex.Store({
         state.vtkViews = [];
         state.errorLoadingDataset = true;
       } finally {
-        state.currentDatasetId = dataset["_id"];
+        state.currentDataset = dataset;
         state.loadingDataset = false;
       }
     },

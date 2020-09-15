@@ -49,6 +49,7 @@ export default {
   }),
   computed: {
     ...mapState([
+      "currentDataset",
       "vtkViews",
       "loadingDataset",
       "errorLoadingDataset",
@@ -58,8 +59,8 @@ export default {
     ]),
     ...mapGetters([
       "nextDataset",
-      "currentDataset",
       "getDataset",
+      "currentDatasetId",
       "currentSession",
       "previousDataset",
       "firstDatasetInPreviousSession",
@@ -239,7 +240,7 @@ export default {
       }
       await this.save();
       if (this.firstDatasetInNextSession) {
-        var currentDatasetId = this.currentDataset._id;
+        var currentDatasetId = this.currentDatasetId;
         this.$router
           .push(this.firstDatasetInNextSession._id)
           .catch(this.handleNavigationError);
@@ -363,10 +364,8 @@ export default {
                 </v-flex>
                 <v-flex style="text-align: center;">
                   <span
-                    >{{
-                      currentSession.datasets.indexOf(currentDataset) + 1
-                    }}
-                    of {{ currentSession.datasets.length }}</span
+                    >{{ currentDataset.index + 1 }} of
+                    {{ currentSession.datasets.length }}</span
                   >
                 </v-flex>
                 <v-flex shrink>
@@ -405,7 +404,7 @@ export default {
                     "
                     :disabled="currentSession.datasets.length === 1"
                     :height="24"
-                    :value="currentSession.datasets.indexOf(currentDataset) + 1"
+                    :value="currentDataset.index + 1"
                     @input="debouncedDatasetSliderChange($event - 1)"
                   ></v-slider>
                 </v-flex>
