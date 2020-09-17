@@ -28,7 +28,7 @@ static_public_path = \"${GIRDER_STATIC_PUBLIC_PATH}\"\n"\
 
 # Install girder
 RUN mkdir /miqa
-COPY server /miqa/server
+COPY server/ /miqa/server/
 RUN pip install /miqa/server
 RUN girder build
 
@@ -41,7 +41,7 @@ RUN npm install \
 
 # Add sample data
 COPY sample_data /miqa/sample_data
-RUN sed -i 's/~//g' /miqa/sample_data/sample.csv
+RUN sed -i 's/~//g' /miqa/sample_data/sample.json
 
 RUN git clone https://github.com/girder/girder.git girder_repo \
     && pip install ansible \
