@@ -89,6 +89,7 @@ export default {
     );
     await Promise.all([this.loadSessions(), this.loadSites()]);
     var datasetId = this.$route.params.datasetId;
+    console.log("Dataset.created(), about to call getDataset");
     var dataset = this.getDataset(datasetId);
     if (dataset) {
       await this.swapToDataset(dataset);
@@ -108,6 +109,7 @@ export default {
     }
   },
   async beforeRouteUpdate(to, from, next) {
+    console.log("beforeRouteUpdate(), about to call getDataset");
     let toDataset = this.getDataset(to.params.datasetId);
     let result = await this.beforeLeaveSession(toDataset);
     next(result);

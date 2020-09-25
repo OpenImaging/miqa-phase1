@@ -35,6 +35,7 @@ const store = new Vuex.Store({
       return state.currentDataset ? state.currentDataset["_id"] : null;
     },
     allDatasets(state) {
+      console.log("allDatasets");
       if (!state.sessionTree) {
         return;
       }
@@ -49,7 +50,9 @@ const store = new Vuex.Store({
       return state.currentDataset ? state.currentDataset.nextDataset : null;
     },
     getDataset(state, getters) {
+      console.log("getDataset");
       return function(datasetId) {
+        console.log("inner getDataset");
         if (!datasetId || !getters.allDatasets) {
           return;
         }
@@ -167,6 +170,19 @@ const store = new Vuex.Store({
       if (state.currentDataset === dataset) {
         return;
       }
+      let windowLevel = null;
+      let windowWidth = null;
+      if (state.proxyManager) {
+        const repList = state.proxyManager.getRepresentations();
+        if (repList.length > 0) {
+          const rep = repList[0];
+          windowLevel = rep.getWindowLevel();
+          windowWidth = rep.getWindowWidth();
+          console.log(`
+            Current values are windowLevel = ${windowLevel}, windowWidth = ${windowWidth}
+          `);
+        }
+      }
       state.loadingDataset = true;
       state.errorLoadingDataset = false;
       var oldSession = getters.currentSession;
@@ -182,12 +198,13 @@ const store = new Vuex.Store({
         });
         readDataQueue = [];
       }
-
+      let restoreWindowParams = true;
       if (!state.proxyManager || newProxyManager) {
         state.proxyManager = vtkProxyManager.newInstance({
           proxyConfiguration: proxy
         });
         state.vtkViews = [];
+        restoreWindowParams = false;
       }
 
       let sourceProxy = state.proxyManager.getActiveSource();
@@ -218,6 +235,15 @@ const store = new Vuex.Store({
       } finally {
         state.currentDataset = dataset;
         state.loadingDataset = false;
+      }
+
+      if (restoreWindowParams && windowLevel) {
+        const rep = state.proxyManager.getRepresentations()[0];
+        rep.setWindowLevel(windowLevel);
+        rep.setWindowWidth(windowWidth);
+        console.log(`
+          Reset values to windowLevel = ${windowLevel}, windowWidth = ${windowWidth}
+        `);
       }
     },
     async loadSites({ state }) {

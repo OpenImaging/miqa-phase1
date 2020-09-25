@@ -10,6 +10,7 @@ export default {
   computed: {
     ...mapState(["proxyManager", "currentDataset"]),
     representation() {
+      console.log("goop");
       return this.currentDataset && this.proxyManager.getRepresentations()[0];
     },
     windowWidthDomain() {
@@ -21,9 +22,11 @@ export default {
   },
   watch: {
     windowWidth(value) {
+      console.log(`watcher: representation.setWindowWidth(${value})`);
       this.representation.setWindowWidth(value);
     },
     windowLevel(value) {
+      console.log(`watcher: representation.setWindowLevel(${value})`);
       this.representation.setWindowLevel(value);
     },
     proxyManager() {
@@ -41,9 +44,24 @@ export default {
     bindWindow() {
       this.windowWidth = this.representation.getWindowWidth();
       this.windowLevel = this.representation.getWindowLevel();
+      console.log(
+        `bindWindow: w = ${this.windowWidth}, l = ${this.windowLevel}`
+      );
       this.modifiedSubscription = this.representation.onModified(() => {
-        this.windowWidth = this.representation.getWindowWidth();
-        this.windowLevel = this.representation.getWindowLevel();
+        console.log(
+          `representation modified: w = ${this.windowWidth}, l = ${this.windowLevel}`
+        );
+        // const ratio =
+        //   (this.representation.getWindowWidth() - this.windowWidthDomain.min) /
+        //   (this.windowWidthDomain.max - this.windowWidthDomain.min);
+        console.log(
+          `width min: ${this.windowWidthDomain.min}, width max: ${this.windowWidthDomain.max}`
+        );
+        console.log(
+          `level min: ${this.windowLevelDomain.min}, level max: ${this.windowLevelDomain.max}`
+        );
+        // this.windowWidth = this.representation.getWindowWidth();
+        // this.windowLevel = this.representation.getWindowLevel();
       });
     },
     increaseWindowWidth() {
