@@ -20,8 +20,8 @@ export default {
     fullscreen: false
   }),
   computed: {
-    ...mapState(["proxyManager", "loadingDataset"]),
-    ...mapGetters(["currentSession", "currentDataset", "currentSession"]),
+    ...mapState(["proxyManager", "currentDataset", "loadingDataset"]),
+    ...mapGetters(["currentSession", "currentSession"]),
     representation() {
       return (
         // force add dependancy on currentDataset

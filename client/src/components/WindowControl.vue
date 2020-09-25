@@ -1,5 +1,5 @@
 <script>
-import { mapState, mapGetters } from "vuex";
+import { mapState } from "vuex";
 
 export default {
   name: "WindowControl",
@@ -8,8 +8,7 @@ export default {
     windowLevel: 0
   }),
   computed: {
-    ...mapState(["proxyManager"]),
-    ...mapGetters(["currentDataset"]),
+    ...mapState(["proxyManager", "currentDataset"]),
     representation() {
       return this.currentDataset && this.proxyManager.getRepresentations()[0];
     },

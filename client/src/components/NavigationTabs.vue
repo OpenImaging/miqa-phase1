@@ -1,5 +1,5 @@
 <script>
-import { mapState, mapMutations } from "vuex";
+import { mapGetters, mapMutations } from "vuex";
 
 import { GIRDER_URL } from "../constants";
 
@@ -10,7 +10,7 @@ export default {
     GIRDER_URL
   }),
   computed: {
-    ...mapState(["currentDatasetId"])
+    ...mapGetters(["currentDatasetId"])
   },
   methods: {
     ...mapMutations(["setDrawer"]),
