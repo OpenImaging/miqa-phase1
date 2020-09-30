@@ -49,24 +49,28 @@ export default {
   }),
   computed: {
     ...mapState([
-      "currentDataset",
+      "currentDatasetId",
       "vtkViews",
       "loadingDataset",
       "errorLoadingDataset",
       "drawer",
       "screenshots",
-      "sessionCachedPercentage"
+      "sessionCachedPercentage",
+      "sessionDatasets"
     ]),
     ...mapGetters([
       "nextDataset",
       "getDataset",
-      "currentDatasetId",
+      "currentDataset",
       "currentSession",
       "previousDataset",
       "firstDatasetInPreviousSession",
       "firstDatasetInNextSession",
       "getSiteDisplayName"
     ]),
+    currentSessionDatasets() {
+      return this.sessionDatasets[this.currentSession.id];
+    },
     note() {
       if (this.currentSession && this.currentSession.meta) {
         return this.currentSession.meta.note;
@@ -89,7 +93,6 @@ export default {
     );
     await Promise.all([this.loadSessions(), this.loadSites()]);
     var datasetId = this.$route.params.datasetId;
-    console.log("Dataset.created(), about to call getDataset");
     var dataset = this.getDataset(datasetId);
     if (dataset) {
       await this.swapToDataset(dataset);
@@ -109,7 +112,6 @@ export default {
     }
   },
   async beforeRouteUpdate(to, from, next) {
-    console.log("beforeRouteUpdate(), about to call getDataset");
     let toDataset = this.getDataset(to.params.datasetId);
     let result = await this.beforeLeaveSession(toDataset);
     next(result);
@@ -244,7 +246,7 @@ export default {
       if (this.firstDatasetInNextSession) {
         var currentDatasetId = this.currentDatasetId;
         this.$router
-          .push(this.firstDatasetInNextSession._id)
+          .push(this.firstDatasetInNextSession)
           .catch(this.handleNavigationError);
         this.$snackbar({
           text: "Proceeded to next session",
@@ -264,8 +266,8 @@ export default {
       e.preventDefault();
     },
     debouncedDatasetSliderChange(index) {
-      var dataset = this.currentSession.datasets[index];
-      this.$router.push(dataset._id).catch(this.handleNavigationError);
+      var datasetId = this.currentSessionDatasets[index];
+      this.$router.push(datasetId).catch(this.handleNavigationError);
     }
   }
 };
@@ -350,14 +352,14 @@ export default {
                     small
                     class="primary--text my-0 elevation-2 smaller"
                     :disabled="!previousDataset"
-                    :to="previousDataset ? previousDataset._id : ''"
+                    :to="previousDataset ? previousDataset : ''"
                     v-mousetrap="{
                       bind: 'left',
                       disabled:
                         !previousDataset || unsavedDialog || loadingDataset,
                       handler: () =>
                         $router
-                          .push(previousDataset ? previousDataset._id : '')
+                          .push(previousDataset ? previousDataset : '')
                           .catch(this.handleNavigationError)
                     }"
                   >
@@ -367,7 +369,7 @@ export default {
                 <v-flex style="text-align: center;">
                   <span
                     >{{ currentDataset.index + 1 }} of
-                    {{ currentSession.datasets.length }}</span
+                    {{ currentSessionDatasets.length }}</span
                   >
                 </v-flex>
                 <v-flex shrink>
@@ -376,13 +378,13 @@ export default {
                     small
                     class="primary--text my-0 elevation-2 smaller"
                     :disabled="!nextDataset"
-                    :to="nextDataset ? nextDataset._id : ''"
+                    :to="nextDataset ? nextDataset : ''"
                     v-mousetrap="{
                       bind: 'right',
                       disabled: !nextDataset || unsavedDialog || loadingDataset,
                       handler: () =>
                         $router
-                          .push(nextDataset ? nextDataset._id : '')
+                          .push(nextDataset ? nextDataset : '')
                           .catch(this.handleNavigationError)
                     }"
                   >
@@ -400,11 +402,11 @@ export default {
                     thumb-size="28"
                     :min="1"
                     :max="
-                      currentSession.datasets.length === 1
+                      currentSessionDatasets.length === 1
                         ? 2
-                        : currentSession.datasets.length
+                        : currentSessionDatasets.length
                     "
-                    :disabled="currentSession.datasets.length === 1"
+                    :disabled="currentSessionDatasets.length === 1"
                     :height="24"
                     :value="currentDataset.index + 1"
                     @input="debouncedDatasetSliderChange($event - 1)"
@@ -423,7 +425,7 @@ export default {
                     :disabled="!firstDatasetInPreviousSession"
                     :to="
                       firstDatasetInPreviousSession
-                        ? firstDatasetInPreviousSession._id
+                        ? firstDatasetInPreviousSession
                         : ''
                     "
                   >
@@ -438,9 +440,7 @@ export default {
                     class="primary--text mb-0 elevation-2 smaller"
                     :disabled="!firstDatasetInNextSession"
                     :to="
-                      firstDatasetInNextSession
-                        ? firstDatasetInNextSession._id
-                        : ''
+                      firstDatasetInNextSession ? firstDatasetInNextSession : ''
                     "
                   >
                     <v-icon>fast_forward</v-icon>

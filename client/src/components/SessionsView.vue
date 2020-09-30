@@ -15,10 +15,29 @@ export default {
     API_URL
   }),
   computed: {
-    ...mapState(["sessionTree"]),
-    ...mapGetters(["currentSession"])
+    ...mapState([
+      "experiments",
+      "experimentIds",
+      "experimentSessions",
+      "sessions",
+      "sessionDatasets",
+      "datasets"
+    ]),
+    ...mapGetters(["currentSession"]),
+    orderedExperiments() {
+      const allExperiments = this.experiments;
+      return this.experimentIds.map(expId => allExperiments[expId]);
+    }
   },
   methods: {
+    sessionsForExperiment(expId) {
+      const expSessionIds = this.experimentSessions[expId];
+      const allSessions = this.sessions;
+      return expSessionIds.map(sessionId => allSessions[sessionId]);
+    },
+    getIdOfFirstDatasetInSession(sessionId) {
+      return this.sessionDatasets[sessionId][0];
+    },
     ratingToLabel(rating) {
       switch (rating) {
         case "questionable":
@@ -37,18 +56,21 @@ export default {
 
 <template>
   <div class="sessions-view">
-    <ul class="experiment" v-if="sessionTree && sessionTree.length">
+    <ul
+      class="experiment"
+      v-if="orderedExperiments && orderedExperiments.length"
+    >
       <li
-        v-for="experiment of sessionTree"
+        v-for="experiment of orderedExperiments"
         class="body-2"
-        :key="experiment.folderId"
+        :key="experiment.id"
       >
         {{ experiment.name }}
         <ul class="sessions">
           <li
-            v-for="session of experiment.sessions"
+            v-for="session of sessionsForExperiment(experiment.id)"
             class="body-1"
-            :key="session.folderId"
+            :key="session.id"
             :class="{ current: session === currentSession }"
           >
             <v-btn
@@ -56,7 +78,7 @@ export default {
               href
               text
               small
-              :to="session.datasets[0]._id"
+              :to="getIdOfFirstDatasetInSession(session.id)"
               active-class=""
               >{{ session.name
               }}<span small v-if="session.meta && session.meta.rating"
