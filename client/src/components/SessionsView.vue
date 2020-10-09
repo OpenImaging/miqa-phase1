@@ -63,14 +63,14 @@ export default {
       <li
         v-for="experiment of orderedExperiments"
         class="body-2"
-        :key="experiment.id"
+        :key="`e.${experiment.id}`"
       >
         {{ experiment.name }}
         <ul class="sessions">
           <li
             v-for="session of sessionsForExperiment(experiment.id)"
             class="body-1"
-            :key="session.id"
+            :key="`s.${session.id}`"
             :class="{ current: session === currentSession }"
           >
             <v-btn

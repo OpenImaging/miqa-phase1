@@ -268,7 +268,33 @@ export default {
     debouncedDatasetSliderChange(index) {
       var datasetId = this.currentSessionDatasets[index];
       this.$router.push(datasetId).catch(this.handleNavigationError);
-    }
+    },
+    updateImage(animTime) {
+      if (animTime - this.lastAnimTime >= 100) {
+        if (this.direction === 'back') {
+          this.$router
+            .push(this.previousDataset ? this.previousDataset : '')
+            .catch(this.handleNavigationError);
+        } else {
+          this.$router
+            .push(this.nextDataset ? this.nextDataset : '')
+            .catch(this.handleNavigationError);
+        }
+        this.lastAnimTime = animTime
+      }
+      if (this.scanning) {
+        window.requestAnimationFrame(this.updateImage)
+      }
+    },
+    handleMouseDown(direction) {
+      this.direction = direction;
+      this.scanning = true;
+      this.lastAnimTime = 0;
+      window.requestAnimationFrame(this.updateImage)
+    },
+    handleMouseUp() {
+      this.scanning = false;
+    },
   }
 };
 </script>
@@ -352,6 +378,8 @@ export default {
                     small
                     class="primary--text my-0 elevation-2 smaller"
                     :disabled="!previousDataset"
+                    v-on:mousedown="handleMouseDown('back')"
+                    v-on:mouseup="handleMouseUp()"
                     :to="previousDataset ? previousDataset : ''"
                     v-mousetrap="{
                       bind: 'left',
@@ -378,6 +406,8 @@ export default {
                     small
                     class="primary--text my-0 elevation-2 smaller"
                     :disabled="!nextDataset"
+                    v-on:mousedown="handleMouseDown('forward')"
+                    v-on:mouseup="handleMouseUp()"
                     :to="nextDataset ? nextDataset : ''"
                     v-mousetrap="{
                       bind: 'right',

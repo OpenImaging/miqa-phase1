@@ -116,6 +116,13 @@ const store = new Vuex.Store({
 
       console.log("breakpoint sessionTree");
 
+      state.experimentIds = [];
+      state.experiments = {};
+      state.experimentSessions = {};
+      state.sessions = {};
+      state.sessionDatasets = {};
+      state.datasets = {};
+
       // Build navigation links throughout the dataset to improve performance.
       let firstInPrev = null;
 
@@ -346,7 +353,7 @@ function getData(id, file) {
         .getPointData()
         .getArray(0)
         .getRange();
-      console.log(`vtkImageData array range ${dataRange}`);
+      // console.log(`vtkImageData array range ${dataRange}`);
       datasetCache.set(id, imageData);
       return imageData;
     });
