@@ -255,7 +255,9 @@ const store = new Vuex.Store({
         if (!state.vtkViews.length) {
           state.vtkViews = state.proxyManager.getViews();
         }
-      } catch {
+      } catch (err) {
+        console.log("Caught exception loading next image");
+        console.log(err);
         state.vtkViews = [];
         state.errorLoadingDataset = true;
       } finally {
@@ -306,9 +308,9 @@ store.watch(
 
 function prepareProxyManager(proxyManager) {
   if (!proxyManager.getViews().length) {
-    var handler = null;
+    // var handler = null;
     var update = () => {
-      proxyManager.renderAllViews();
+      proxyManager.renderAllViews(true);
       // proxyManager.autoAnimateViews();
     };
     ["View2D_Z:z", "View2D_X:x", "View2D_Y:y"].forEach(type => {
@@ -316,8 +318,9 @@ function prepareProxyManager(proxyManager) {
       view.setOrientationAxesVisibility(false);
       view.getRepresentations().forEach(representation => {
         representation.onModified(() => {
-          clearTimeout(handler);
-          handler = setTimeout(update);
+          // clearTimeout(handler);
+          // handler = setTimeout(update);
+          update()
         });
       });
     });

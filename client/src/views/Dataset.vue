@@ -45,7 +45,9 @@ export default {
     editingNoteDialog: false,
     editingNote: "",
     showNotePopup: false,
-    keyboardShortcutDialog: false
+    keyboardShortcutDialog: false,
+    scanning: false,
+    direction: 'forward',
   }),
   computed: {
     ...mapState([
@@ -269,8 +271,8 @@ export default {
       var datasetId = this.currentSessionDatasets[index];
       this.$router.push(datasetId).catch(this.handleNavigationError);
     },
-    updateImage(animTime) {
-      if (animTime - this.lastAnimTime >= 100) {
+    updateImage() {
+      if (this.scanning) {
         if (this.direction === 'back') {
           this.$router
             .push(this.previousDataset ? this.previousDataset : '')
@@ -280,17 +282,15 @@ export default {
             .push(this.nextDataset ? this.nextDataset : '')
             .catch(this.handleNavigationError);
         }
-        this.lastAnimTime = animTime
-      }
-      if (this.scanning) {
-        window.requestAnimationFrame(this.updateImage)
+        window.requestAnimationFrame(this.updateImage);
       }
     },
     handleMouseDown(direction) {
-      this.direction = direction;
-      this.scanning = true;
-      this.lastAnimTime = 0;
-      window.requestAnimationFrame(this.updateImage)
+      if (!this.scanning) {
+        this.direction = direction;
+        this.scanning = true;
+        window.requestAnimationFrame(this.updateImage);
+      }
     },
     handleMouseUp() {
       this.scanning = false;
@@ -380,15 +380,16 @@ export default {
                     :disabled="!previousDataset"
                     v-on:mousedown="handleMouseDown('back')"
                     v-on:mouseup="handleMouseUp()"
-                    :to="previousDataset ? previousDataset : ''"
                     v-mousetrap="{
                       bind: 'left',
                       disabled:
                         !previousDataset || unsavedDialog || loadingDataset,
-                      handler: () =>
-                        $router
-                          .push(previousDataset ? previousDataset : '')
-                          .catch(this.handleNavigationError)
+                      handler: {
+                        'keydown': function() {
+                          handleMouseDown('back');
+                        },
+                        'keyup': handleMouseUp,
+                      },
                     }"
                   >
                     <v-icon>keyboard_arrow_left</v-icon>
@@ -408,14 +409,15 @@ export default {
                     :disabled="!nextDataset"
                     v-on:mousedown="handleMouseDown('forward')"
                     v-on:mouseup="handleMouseUp()"
-                    :to="nextDataset ? nextDataset : ''"
                     v-mousetrap="{
                       bind: 'right',
                       disabled: !nextDataset || unsavedDialog || loadingDataset,
-                      handler: () =>
-                        $router
-                          .push(nextDataset ? nextDataset : '')
-                          .catch(this.handleNavigationError)
+                      handler: {
+                        'keydown': function() {
+                          handleMouseDown('forward');
+                        },
+                        'keyup': handleMouseUp,
+                      },
                     }"
                   >
                     <v-icon>chevron_right</v-icon>
