@@ -18,13 +18,8 @@ def find_common_prefix(p1, p2):
     return p1[:firstNotMatch]
 
 
-def convert_standard_csv_to_json(csvFilePath, jsonFilePath):
-    print('Reading input csv from {0}'.format(csvFilePath))
-
-    with open(csvFilePath) as fd:
-        csv_content = fd.read()
-
-    csvReader = csv.DictReader(io.StringIO(csv_content))
+def csvContentToJsonObject(csvContent):
+    csvReader = csv.DictReader(io.StringIO(csvContent))
 
     print('field names: {0}'.format(csvReader.fieldnames))
 
@@ -81,10 +76,21 @@ def convert_standard_csv_to_json(csvFilePath, jsonFilePath):
     outputObject['experiments'] = experiments
     outputObject['sites'] = [{'id': site} for site in site_set]
 
+    return outputObject
+
+
+def csvToJson(csvFilePath, jsonFilePath):
+    print('Reading input csv from {0}'.format(csvFilePath))
+
+    with open(csvFilePath) as fd:
+        csvContent = fd.read()
+
+    jsonObject = csvContentToJsonObject(csvContent)
+
     print('Writing output json to {0}'.format(jsonFilePath))
 
     with open(jsonFilePath, 'w') as fd:
-        json.dump(outputObject, fd)
+        json.dump(jsonObject, fd)
 
 
 if __name__ == '__main__':
@@ -115,4 +121,4 @@ if __name__ == '__main__':
         nameWithoutExtension = fileName[:fileName.rindex('.')]
         outputFilePath = os.path.join(filePath, '{0}.json'.format(nameWithoutExtension))
 
-    convert_standard_csv_to_json(inputFilePath, outputFilePath)
+    csvToJson(inputFilePath, outputFilePath)
