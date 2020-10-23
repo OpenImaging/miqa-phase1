@@ -21,7 +21,8 @@ export default {
       "experimentSessions",
       "sessions",
       "sessionDatasets",
-      "datasets"
+      "sessionsModifiedTime",
+      "datasets",
     ]),
     ...mapGetters(["currentSession"]),
     orderedExperiments() {
@@ -70,8 +71,11 @@ export default {
           <li
             v-for="session of sessionsForExperiment(experiment.id)"
             class="body-1"
-            :key="`s.${session.id}`"
-            :class="{ current: session === currentSession }"
+            :key="`s.${session.id}-${sessionsModifiedTime}`"
+            :class="{
+              current: session === currentSession,
+              cached: session.cached,
+            }"
           >
             <v-btn
               class="ml-0 px-1 session-name"
@@ -96,6 +100,10 @@ export default {
 <style lang="scss" scoped>
 .current {
   background: rgb(206, 206, 206);
+}
+
+li.cached {
+  list-style-type: disc;
 }
 
 ul.experiment {

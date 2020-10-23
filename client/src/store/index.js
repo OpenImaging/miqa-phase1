@@ -33,7 +33,8 @@ const store = new Vuex.Store({
     currentScreenshot: null,
     screenshots: [],
     sites: null,
-    sessionCachedPercentage: 0
+    sessionCachedPercentage: 0,
+    sessionsModifiedTime: (new Date()).toISOString(),
   },
   getters: {
     currentDataset(state) {
@@ -64,6 +65,29 @@ const store = new Vuex.Store({
       }
       return null;
     },
+    currentExperiment(state, getters) {
+      if (getters.currentSession) {
+        const curExperimentId = getters.currentSession.experiment;
+        return state.experiments[curExperimentId];
+      }
+      return null;
+    },
+    experimentDatasets(state, getters) {
+      return function(expId) {
+        const experimentSessions = state.experimentSessions[expId];
+        const expDatasets = [];
+        experimentSessions.forEach(sessionId => {
+          const sessionDatasets = state.sessionDatasets[sessionId];
+          sessionDatasets.forEach(datasetId => {
+            expDatasets.push(datasetId);
+          });
+        });
+        return expDatasets;
+      }
+    },
+    getTodoById: (state) => (id) => {
+      return state.todos.find(todo => todo.id === id)
+    },
     firstDatasetInPreviousSession(state, getters) {
       return getters.currentDataset
         ? getters.currentDataset.firstDatasetInPreviousSession
@@ -73,6 +97,30 @@ const store = new Vuex.Store({
       return getters.currentDataset
         ? getters.currentDataset.firstDatasetInNextSession
         : null;
+    },
+    firstDatasetInPreviousExeriment(state, getters) {
+      if (getters.currentExperiment) {
+        const expIdx = getters.currentExperiment.index;
+        if (expIdx >= 1) {
+          const prevExp = state.experiments[state.experimentIds[expIdx - 1]];
+          const prevExpSessions = state.experimentSessions[prevExp.id];
+          const prevExpSessionDatasets = state.sessionDatasets[prevExpSessions[0].id];
+          return prevExpSessionDatasets[0];
+        }
+      }
+      return null;
+    },
+    firstDatasetInNextExeriment(state, getters) {
+      if (getters.currentExperiment) {
+        const expIdx = getters.currentExperiment.index;
+        if (expIdx < (state.experimentIds.length - 1)) {
+          const nextExp = state.experiments[state.experimentIds[expIdx + 1]];
+          const nextExpSessions = state.experimentSessions[nextExp.id];
+          const nextExpSessionDatasets = state.sessionDatasets[nextExpSessions[0].id];
+          return nextExpSessionDatasets[0];
+        }
+      }
+      return null;
     },
     siteMap(state) {
       if (!state.sites) {
@@ -134,7 +182,8 @@ const store = new Vuex.Store({
         state.experiments[experimentId] = {
           id: experimentId,
           folderId: experimentId,
-          name: experiment.name
+          name: experiment.name,
+          index: i,
         };
 
         let sessions = experiment.sessions.sort(
@@ -155,8 +204,11 @@ const store = new Vuex.Store({
             meta: Object.assign({}, session.meta),
             numDatasets: session.datasets.length,
             cumulativeRange: [Number.MAX_VALUE, -Number.MAX_VALUE], // [null, null],
-            experiment: experimentId
+            experiment: experimentId,
+            cached: false,
           };
+
+          state.sessionsModifiedTime = (new Date()).toISOString();
 
           state.sessionDatasets[sessionId] = [];
 
@@ -165,12 +217,7 @@ const store = new Vuex.Store({
             let datasetId = dataset._id;
 
             state.sessionDatasets[sessionId].push(datasetId);
-            state.datasets[datasetId] = Object.assign(
-              {
-                cached: false
-              },
-              dataset
-            );
+            state.datasets[datasetId] = Object.assign({}, dataset);
             state.datasets[datasetId].session = sessionId;
             state.datasets[datasetId].index = k;
             state.datasets[datasetId].previousDataset =
@@ -247,6 +294,7 @@ const store = new Vuex.Store({
       // This try catch and within logic are mainly for handling data doesn't exist issue
       try {
         var imagedata = await loadFileAndGetData(dataset._id);
+        // console.log("swapping datasets, here we setInputData()");
         sourceProxy.setInputData(imagedata);
         if (needPrep || !state.proxyManager.getViews().length) {
           prepareProxyManager(state.proxyManager);
@@ -272,9 +320,10 @@ const store = new Vuex.Store({
   }
 });
 
-// cache datasets of current session and first dataset of next session
+// cache datasets associated with sessions of current experiment and first
+// dataset of next experiment
 store.watch(
-  (state, getters) => getters.currentSession,
+  (state, getters) => getters.currentExperiment,
   (newValue, oldValue) => {
     if (
       !newValue ||
@@ -284,19 +333,34 @@ store.watch(
       return;
     }
     if (oldValue) {
-      const oldSessionDatasets = store.state.sessionDatasets[oldValue.id];
-      oldSessionDatasets.forEach(datasetId => {
-        fileCache.delete(datasetId);
-        datasetCache.delete(datasetId);
+      const oldExperimentSessions = store.state.experimentSessions[oldValue.id];
+      oldExperimentSessions.forEach(sessionId => {
+        const sessionDatasets = store.state.sessionDatasets[sessionId];
+        sessionDatasets.forEach(datasetId => {
+          fileCache.delete(datasetId);
+          datasetCache.delete(datasetId);
+        });
+        const session = store.state.sessions[sessionId]
+        console.log(`session ${session.name} is now deleted from cache`);
+        session.cached = false;
+        store.state.sessionsModifiedTime = (new Date()).toISOString();
       });
       readDataQueue = [];
     }
-    const newSessionDatasets = store.state.sessionDatasets[newValue.id];
-    readDataQueue = newSessionDatasets.map(datasetId => {
-      return loadFile(datasetId);
+    readDataQueue = [];
+    const newExperimentSessions = store.state.experimentSessions[newValue.id];
+    newExperimentSessions.forEach(sessionId => {
+      const sessionDatasets = store.state.sessionDatasets[sessionId];
+      sessionDatasets.forEach(datasetId => {
+        readDataQueue.push(loadFile(datasetId));
+      });
+      readDataQueue.push({
+        status: 'sessionLoaded',
+        sessionId,
+      });
     });
     if (store.getters.firstDatasetInNextSession) {
-      readDataQueue.unshift(loadFile(store.getters.firstDatasetInNextSession));
+      readDataQueue.unshift(loadFile(store.getters.firstDatasetInNextExperiment));
     }
     var concurrency = navigator.hardwareConcurrency + 1 || 2;
     calculateCachedPercentage();
@@ -318,9 +382,14 @@ function prepareProxyManager(proxyManager) {
       view.setOrientationAxesVisibility(false);
       view.getRepresentations().forEach(representation => {
         representation.onModified(() => {
+          // console.log(`nuther representation modified handler (${
+          //   type
+          // }), will proxyManager.renderAllViews()`);
+          // console.log(view);
           // clearTimeout(handler);
           // handler = setTimeout(update);
-          update()
+          // update();
+          view.render(true);
         });
       });
     });
@@ -358,6 +427,7 @@ function getData(id, file) {
         .getRange();
       // console.log(`vtkImageData array range ${dataRange}`);
       datasetCache.set(id, imageData);
+      expandSessionRange(id, dataRange);
       return imageData;
     });
 }
@@ -374,15 +444,27 @@ function loadFileAndGetData(id) {
 }
 
 var calculateCachedPercentage = _.throttle(() => {
-  if (!store.getters.currentSession) {
+  if (!store.getters.currentExperiment) {
     return;
   }
-  const currentSession = store.getters.currentSession;
-  const sessionDatasets = store.state.sessionDatasets[currentSession.id];
+
+  const currentExpId = store.getters.currentExperiment.id;
+
+  const expDatasets = store.getters.experimentDatasets(currentExpId);
+
+  // const experimentSessions = store.state.experimentSessions[currentExpId];
+  // const expDatasets = [];
+  // experimentSessions.forEach(sessionId => {
+  //   const sessionDatasets = store.state.sessionDatasets[sessionId];
+  //   sessionDatasets.forEach(datasetId => {
+  //     expDatasets.push(datasetId);
+  //   });
+  // });
+
   var percentage =
-    sessionDatasets.reduce((total, datasetId) => {
+    expDatasets.reduce((total, datasetId) => {
       return total + (datasetCache.has(datasetId) ? 1 : 0);
-    }, 0) / sessionDatasets.length;
+    }, 0) / expDatasets.length;
   store.state.sessionCachedPercentage = percentage;
 }, 500);
 
@@ -391,14 +473,33 @@ async function startReaderWorker() {
   if (!data) {
     return;
   }
-  var { id, fileP } = data;
-  var file = await fileP;
-  await getData(id, file);
+  if ('status' in data) {
+    const { status, sessionId } = data;
+    const session = store.state.sessions[sessionId];
+    session.cached = true;
+    store.state.sessionsModifiedTime = (new Date()).toISOString();
+    console.log(`Session ${session.name} is now loaded into cache`);
+  } else {
+    var { id, fileP } = data;
+    var file = await fileP;
+    await getData(id, file);
+  }
   calculateCachedPercentage();
   if (readDataQueue.length) {
     setTimeout(() => {
       startReaderWorker();
     });
+  }
+}
+
+function expandSessionRange(datasetId, dataRange) {
+  const sessionId = store.state.datasets[datasetId].session;
+  const session = store.state.sessions[sessionId];
+  if (dataRange[0] < session.cumulativeRange[0]) {
+    session.cumulativeRange[0] = dataRange[0];
+  }
+  if (dataRange[1] > session.cumulativeRange[1]) {
+    session.cumulativeRange[1] = dataRange[1];
   }
 }
 

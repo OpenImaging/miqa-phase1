@@ -42,9 +42,17 @@ export default {
     bindWindow() {
       this.windowWidth = this.representation.getWindowWidth();
       this.windowLevel = this.representation.getWindowLevel();
+      console.log("WindowControl subscribing representation 'modified' event");
       this.modifiedSubscription = this.representation.onModified(() => {
         this.windowWidth = this.representation.getWindowWidth();
         this.windowLevel = this.representation.getWindowLevel();
+        // console.log(`reprensentation modified, width: ${this.windowWidth} (range: [
+        //   ${this.windowWidthDomain.min}, ${this.windowWidthDomain.max}
+        // ]), new level: ${this.windowLevel} (range: [
+        //   ${this.windowLevelDomain.min}, ${this.windowLevelDomain.max}
+        // ])`);
+        // const arrayRange = this.representation.getInputDataSet().getPointData().getArray(0).getRange();
+        // console.log(`Image data array range: [${arrayRange[0]}, ${arrayRange[1]}]`);
       });
     },
     increaseWindowWidth() {
@@ -91,6 +99,8 @@ export default {
           class="mr-4 verticalOffset"
           hide-details
           label="Window"
+          thumb-label
+          :thumb-size=48
           :min="windowWidthDomain.min"
           :max="windowWidthDomain.max"
           :step="windowWidthDomain.step"
@@ -117,6 +127,8 @@ export default {
           class="mr-4 verticalOffset"
           hide-details
           label="Level"
+          thumb-label
+          :thumb-size=48
           :min="windowLevelDomain.min"
           :max="windowLevelDomain.max"
           :step="windowLevelDomain.step"

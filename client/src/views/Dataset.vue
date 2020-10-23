@@ -47,7 +47,7 @@ export default {
     showNotePopup: false,
     keyboardShortcutDialog: false,
     scanning: false,
-    direction: 'forward',
+    direction: "forward"
   }),
   computed: {
     ...mapState([
@@ -140,6 +140,7 @@ export default {
       } else if (isNavigationFailure(fail, NavigationFailureType.duplicated)) {
         failureType = "duplicated";
       }
+      this.scanning = false;
       console.log(`Caught navigation error (${failureType})`);
     },
     async beforeLeaveSession(toDataset) {
@@ -273,28 +274,29 @@ export default {
     },
     updateImage() {
       if (this.scanning) {
-        if (this.direction === 'back') {
+        if (this.direction === "back") {
           this.$router
-            .push(this.previousDataset ? this.previousDataset : '')
+            .push(this.previousDataset ? this.previousDataset : "")
             .catch(this.handleNavigationError);
         } else {
           this.$router
-            .push(this.nextDataset ? this.nextDataset : '')
+            .push(this.nextDataset ? this.nextDataset : "")
             .catch(this.handleNavigationError);
         }
-        window.requestAnimationFrame(this.updateImage);
+        this.nextAnimRequest = window.requestAnimationFrame(this.updateImage);
       }
     },
     handleMouseDown(direction) {
       if (!this.scanning) {
         this.direction = direction;
         this.scanning = true;
-        window.requestAnimationFrame(this.updateImage);
+        this.nextAnimRequest = window.requestAnimationFrame(this.updateImage);
       }
     },
     handleMouseUp() {
       this.scanning = false;
-    },
+      window.cancelAnimationFrame(this.nextAnimRequest);
+    }
   }
 };
 </script>
@@ -385,11 +387,11 @@ export default {
                       disabled:
                         !previousDataset || unsavedDialog || loadingDataset,
                       handler: {
-                        'keydown': function() {
+                        keydown: function() {
                           handleMouseDown('back');
                         },
-                        'keyup': handleMouseUp,
-                      },
+                        keyup: handleMouseUp
+                      }
                     }"
                   >
                     <v-icon>keyboard_arrow_left</v-icon>
@@ -413,11 +415,11 @@ export default {
                       bind: 'right',
                       disabled: !nextDataset || unsavedDialog || loadingDataset,
                       handler: {
-                        'keydown': function() {
+                        keydown: function() {
                           handleMouseDown('forward');
                         },
-                        'keyup': handleMouseUp,
-                      },
+                        keyup: handleMouseUp
+                      }
                     }"
                   >
                     <v-icon>chevron_right</v-icon>
