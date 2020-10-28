@@ -100,7 +100,7 @@ export default {
           hide-details
           label="Window"
           thumb-label
-          :thumb-size=48
+          :thumb-size="48"
           :min="windowWidthDomain.min"
           :max="windowWidthDomain.max"
           :step="windowWidthDomain.step"
@@ -128,7 +128,7 @@ export default {
           hide-details
           label="Level"
           thumb-label
-          :thumb-size=48
+          :thumb-size="48"
           :min="windowLevelDomain.min"
           :max="windowLevelDomain.max"
           :step="windowLevelDomain.step"

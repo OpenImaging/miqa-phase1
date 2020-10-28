@@ -22,7 +22,7 @@ export default {
       "sessions",
       "sessionDatasets",
       "sessionsModifiedTime",
-      "datasets",
+      "datasets"
     ]),
     ...mapGetters(["currentSession"]),
     orderedExperiments() {
@@ -74,7 +74,7 @@ export default {
             :key="`s.${session.id}-${sessionsModifiedTime}`"
             :class="{
               current: session === currentSession,
-              cached: session.cached,
+              cached: session.cached
             }"
           >
             <v-btn

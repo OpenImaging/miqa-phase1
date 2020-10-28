@@ -34,7 +34,7 @@ const store = new Vuex.Store({
     screenshots: [],
     sites: null,
     sessionCachedPercentage: 0,
-    sessionsModifiedTime: (new Date()).toISOString(),
+    sessionsModifiedTime: new Date().toISOString()
   },
   getters: {
     currentDataset(state) {
@@ -72,7 +72,7 @@ const store = new Vuex.Store({
       }
       return null;
     },
-    experimentDatasets(state, getters) {
+    experimentDatasets(state) {
       return function(expId) {
         const experimentSessions = state.experimentSessions[expId];
         const expDatasets = [];
@@ -83,10 +83,10 @@ const store = new Vuex.Store({
           });
         });
         return expDatasets;
-      }
+      };
     },
-    getTodoById: (state) => (id) => {
-      return state.todos.find(todo => todo.id === id)
+    getTodoById: state => id => {
+      return state.todos.find(todo => todo.id === id);
     },
     firstDatasetInPreviousSession(state, getters) {
       return getters.currentDataset
@@ -104,7 +104,8 @@ const store = new Vuex.Store({
         if (expIdx >= 1) {
           const prevExp = state.experiments[state.experimentIds[expIdx - 1]];
           const prevExpSessions = state.experimentSessions[prevExp.id];
-          const prevExpSessionDatasets = state.sessionDatasets[prevExpSessions[0].id];
+          const prevExpSessionDatasets =
+            state.sessionDatasets[prevExpSessions[0].id];
           return prevExpSessionDatasets[0];
         }
       }
@@ -113,10 +114,11 @@ const store = new Vuex.Store({
     firstDatasetInNextExeriment(state, getters) {
       if (getters.currentExperiment) {
         const expIdx = getters.currentExperiment.index;
-        if (expIdx < (state.experimentIds.length - 1)) {
+        if (expIdx < state.experimentIds.length - 1) {
           const nextExp = state.experiments[state.experimentIds[expIdx + 1]];
           const nextExpSessions = state.experimentSessions[nextExp.id];
-          const nextExpSessionDatasets = state.sessionDatasets[nextExpSessions[0].id];
+          const nextExpSessionDatasets =
+            state.sessionDatasets[nextExpSessions[0].id];
           return nextExpSessionDatasets[0];
         }
       }
@@ -162,8 +164,6 @@ const store = new Vuex.Store({
     async loadSessions({ state }) {
       let { data: sessionTree } = await girder.rest.get(`miqa/sessions`);
 
-      console.log("breakpoint sessionTree");
-
       state.experimentIds = [];
       state.experiments = {};
       state.experimentSessions = {};
@@ -183,7 +183,7 @@ const store = new Vuex.Store({
           id: experimentId,
           folderId: experimentId,
           name: experiment.name,
-          index: i,
+          index: i
         };
 
         let sessions = experiment.sessions.sort(
@@ -205,10 +205,10 @@ const store = new Vuex.Store({
             numDatasets: session.datasets.length,
             cumulativeRange: [Number.MAX_VALUE, -Number.MAX_VALUE], // [null, null],
             experiment: experimentId,
-            cached: false,
+            cached: false
           };
 
-          state.sessionsModifiedTime = (new Date()).toISOString();
+          state.sessionsModifiedTime = new Date().toISOString();
 
           state.sessionDatasets[sessionId] = [];
 
@@ -340,10 +340,9 @@ store.watch(
           fileCache.delete(datasetId);
           datasetCache.delete(datasetId);
         });
-        const session = store.state.sessions[sessionId]
-        console.log(`session ${session.name} is now deleted from cache`);
+        const session = store.state.sessions[sessionId];
         session.cached = false;
-        store.state.sessionsModifiedTime = (new Date()).toISOString();
+        store.state.sessionsModifiedTime = new Date().toISOString();
       });
       readDataQueue = [];
     }
@@ -355,12 +354,14 @@ store.watch(
         readDataQueue.push(loadFile(datasetId));
       });
       readDataQueue.push({
-        status: 'sessionLoaded',
-        sessionId,
+        status: "sessionLoaded",
+        sessionId
       });
     });
     if (store.getters.firstDatasetInNextSession) {
-      readDataQueue.unshift(loadFile(store.getters.firstDatasetInNextExperiment));
+      readDataQueue.unshift(
+        loadFile(store.getters.firstDatasetInNextExperiment)
+      );
     }
     var concurrency = navigator.hardwareConcurrency + 1 || 2;
     calculateCachedPercentage();
@@ -372,23 +373,11 @@ store.watch(
 
 function prepareProxyManager(proxyManager) {
   if (!proxyManager.getViews().length) {
-    // var handler = null;
-    var update = () => {
-      proxyManager.renderAllViews(true);
-      // proxyManager.autoAnimateViews();
-    };
     ["View2D_Z:z", "View2D_X:x", "View2D_Y:y"].forEach(type => {
       let view = getView(proxyManager, type);
       view.setOrientationAxesVisibility(false);
       view.getRepresentations().forEach(representation => {
         representation.onModified(() => {
-          // console.log(`nuther representation modified handler (${
-          //   type
-          // }), will proxyManager.renderAllViews()`);
-          // console.log(view);
-          // clearTimeout(handler);
-          // handler = setTimeout(update);
-          // update();
           view.render(true);
         });
       });
@@ -452,15 +441,6 @@ var calculateCachedPercentage = _.throttle(() => {
 
   const expDatasets = store.getters.experimentDatasets(currentExpId);
 
-  // const experimentSessions = store.state.experimentSessions[currentExpId];
-  // const expDatasets = [];
-  // experimentSessions.forEach(sessionId => {
-  //   const sessionDatasets = store.state.sessionDatasets[sessionId];
-  //   sessionDatasets.forEach(datasetId => {
-  //     expDatasets.push(datasetId);
-  //   });
-  // });
-
   var percentage =
     expDatasets.reduce((total, datasetId) => {
       return total + (datasetCache.has(datasetId) ? 1 : 0);
@@ -473,12 +453,11 @@ async function startReaderWorker() {
   if (!data) {
     return;
   }
-  if ('status' in data) {
-    const { status, sessionId } = data;
+  if ("status" in data) {
+    const { sessionId } = data;
     const session = store.state.sessions[sessionId];
     session.cached = true;
-    store.state.sessionsModifiedTime = (new Date()).toISOString();
-    console.log(`Session ${session.name} is now loaded into cache`);
+    store.state.sessionsModifiedTime = new Date().toISOString();
   } else {
     var { id, fileP } = data;
     var file = await fileP;
