@@ -294,7 +294,7 @@ const store = new Vuex.Store({
       // This try catch and within logic are mainly for handling data doesn't exist issue
       try {
         var imagedata = await loadFileAndGetData(dataset._id);
-        // console.log("swapping datasets, here we setInputData()");
+        console.log("swapping datasets, here we setInputData()");
         sourceProxy.setInputData(imagedata);
         if (needPrep || !state.proxyManager.getViews().length) {
           prepareProxyManager(state.proxyManager);
