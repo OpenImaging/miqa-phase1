@@ -230,14 +230,15 @@ export default {
 
 <template>
   <div class="component">
-    <v-container>
-      <v-row align="center" class="headerRow">
+    <v-container class="pb-0 pt-0">
+      <v-row align="start" class="headerRow">
         <v-col class="pb-1 pt-0">
           <div class="componentLabel">Window Controls</div>
         </v-col>
         <v-col class="pb-1 pt-0">
           <div>
             <v-switch
+              class="mt-0 customSwitch"
               v-model="userDefinedValues"
               label="User Defined Values"
             ></v-switch>
@@ -362,6 +363,10 @@ export default {
 .noTopPad {
   padding-top: 3px;
   padding-bottom: 3px;
+}
+
+.customSwitch {
+  max-height: 40px;
 }
 
 .componentLabel {
