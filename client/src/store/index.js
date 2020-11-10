@@ -294,7 +294,7 @@ const store = new Vuex.Store({
       // This try catch and within logic are mainly for handling data doesn't exist issue
       try {
         var imagedata = await loadFileAndGetData(dataset._id);
-        console.log("swapping datasets, here we setInputData()");
+        // console.log("swapping datasets, here we setInputData()");
         sourceProxy.setInputData(imagedata);
         if (needPrep || !state.proxyManager.getViews().length) {
           prepareProxyManager(state.proxyManager);
@@ -346,23 +346,23 @@ store.watch(
       });
       readDataQueue = [];
     }
-    readDataQueue = [];
+    const curSesh = store.getters.currentSession;
+    console.log(`current session: ${curSesh.experiment}/${curSesh.name}`);
+    const firstDatasetToLoad = store.state.sessionDatasets[curSesh.id][0];
+    readDataQueue = [loadFile(firstDatasetToLoad)];
     const newExperimentSessions = store.state.experimentSessions[newValue.id];
     newExperimentSessions.forEach(sessionId => {
       const sessionDatasets = store.state.sessionDatasets[sessionId];
       sessionDatasets.forEach(datasetId => {
-        readDataQueue.push(loadFile(datasetId));
+        if (datasetId !== firstDatasetToLoad) {
+          readDataQueue.push(loadFile(datasetId));
+        }
       });
       readDataQueue.push({
         status: "sessionLoaded",
         sessionId
       });
     });
-    if (store.getters.firstDatasetInNextSession) {
-      readDataQueue.unshift(
-        loadFile(store.getters.firstDatasetInNextExperiment)
-      );
-    }
     var concurrency = navigator.hardwareConcurrency + 1 || 2;
     calculateCachedPercentage();
     for (var i = 0; i < concurrency; i++) {

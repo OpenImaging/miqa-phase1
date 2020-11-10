@@ -70,7 +70,7 @@ export default {
           this.active.levelDomain.step !== this.default.levelDomain.step
         );
       },
-      set: function (newValue) {
+      set: function(newValue) {
         if (!newValue) {
           this.active.width = this.default.width;
           this.active.widthDomain.min = this.default.widthDomain.min;
@@ -82,7 +82,7 @@ export default {
           this.active.levelDomain.step = this.default.levelDomain.step;
         }
       }
-    },
+    }
   },
   watch: {
     currentDataset() {
@@ -102,12 +102,12 @@ export default {
         repr.setWindowLevel(activeLevel);
       }, 0);
     },
-    'active.width': function (value) {
+    "active.width": function(value) {
       if (value !== this.representation.getWindowWidth()) {
         this.representation.setWindowWidth(value);
       }
     },
-    'active.level': function (value) {
+    "active.level": function(value) {
       if (value !== this.representation.getWindowLevel()) {
         this.representation.setWindowLevel(value);
       }
@@ -125,8 +125,12 @@ export default {
   },
   methods: {
     updateDefaults() {
-      const widthDomain = this.representation.getPropertyDomainByName("windowWidth");
-      const levelDomain = this.representation.getPropertyDomainByName("windowLevel");
+      const widthDomain = this.representation.getPropertyDomainByName(
+        "windowWidth"
+      );
+      const levelDomain = this.representation.getPropertyDomainByName(
+        "windowLevel"
+      );
 
       this.default.widthDomain.min = widthDomain.min;
       this.default.widthDomain.max = widthDomain.max;
@@ -189,7 +193,7 @@ export default {
         this.active.levelDomain.min
       );
       this.active.level = windowLevel;
-    },
+    }
   }
 };
 </script>
