@@ -59,42 +59,16 @@ export default {
     },
     userDefinedValues: {
       get: function() {
-        // return (
-        //   this.active.width !== this.default.width ||
-        //   this.active.widthDomain.min !== this.default.widthDomain.min ||
-        //   this.active.widthDomain.max !== this.default.widthDomain.max ||
-        //   this.active.widthDomain.step !== this.default.widthDomain.step ||
-        //   this.active.level !== this.default.level ||
-        //   this.active.levelDomain.min !== this.default.levelDomain.min ||
-        //   this.active.levelDomain.max !== this.default.levelDomain.max ||
-        //   this.active.levelDomain.step !== this.default.levelDomain.step
-        // );
-        if (this.active.width !== this.default.width) {
-          console.log(`width mismatch: ${this.active.width} - ${this.default.width}`);
-          return true;
-        } else if (this.active.widthDomain.min !== this.default.widthDomain.min) {
-          console.log(`width domain min mismatch: ${this.active.widthDomain.min} - ${this.default.widthDomain.min}`);
-          return true;
-        } else if (this.active.widthDomain.max !== this.default.widthDomain.max) {
-          console.log(`width domain max mismatch: ${this.active.widthDomain.max} - ${this.default.widthDomain.max}`);
-          return true;
-        } else if (this.active.widthDomain.step !== this.default.widthDomain.step) {
-          console.log(`width domain step mismatch: ${this.active.widthDomain.step} - ${this.default.widthDomain.step}`);
-          return true;
-        } else if (this.active.level !== this.default.level) {
-          console.log(`level mismatch: ${this.active.level} - ${this.default.level}`);
-          return true;
-        } else if (this.active.levelDomain.min !== this.default.levelDomain.min) {
-          console.log(`level domain min mismatch: ${this.active.levelDomain.min} - ${this.default.levelDomain.min}`);
-          return true;
-        } else if (this.active.levelDomain.max !== this.default.levelDomain.max) {
-          console.log(`level domain max mismatch: ${this.active.levelDomain.max} - ${this.default.levelDomain.max}`);
-          return true;
-        } else if (this.active.levelDomain.step !== this.default.levelDomain.step) {
-          console.log(`level domain step mismatch: ${this.active.levelDomain.step} - ${this.default.levelDomain.step}`);
-          return true;
-        }
-        return false;
+        return (
+          this.active.width !== this.default.width ||
+          this.active.widthDomain.min !== this.default.widthDomain.min ||
+          this.active.widthDomain.max !== this.default.widthDomain.max ||
+          this.active.widthDomain.step !== this.default.widthDomain.step ||
+          this.active.level !== this.default.level ||
+          this.active.levelDomain.min !== this.default.levelDomain.min ||
+          this.active.levelDomain.max !== this.default.levelDomain.max ||
+          this.active.levelDomain.step !== this.default.levelDomain.step
+        );
       },
       set: function (newValue) {
         if (!newValue) {
@@ -113,24 +87,27 @@ export default {
   watch: {
     currentDataset() {
       const userDefs = this.userDefinedValues;
-      console.log(`currentDataset changed, user is ${userDefs ? 'IN' : 'NOT IN'} control`);
       this.updateDefaults();
+
       if (!userDefs) {
-        console.log('setting active values to match defaults of new dataset');
         this.updateActive();
       }
-      console.log('taking component width/level and setting them on the repr');
-      this.representation.setWindowWidth(this.active.width);
-      this.representation.setWindowLevel(this.active.level);
+
+      const repr = this.representation;
+      const activeWidth = this.active.width;
+      const activeLevel = this.active.level;
+
+      window.setTimeout(function() {
+        repr.setWindowWidth(activeWidth);
+        repr.setWindowLevel(activeLevel);
+      }, 0);
     },
     'active.width': function (value) {
-      console.log(`Watcher: active width = ${value}`);
       if (value !== this.representation.getWindowWidth()) {
         this.representation.setWindowWidth(value);
       }
     },
     'active.level': function (value) {
-      console.log(`Watcher: active level = ${value}`);
       if (value !== this.representation.getWindowLevel()) {
         this.representation.setWindowLevel(value);
       }
@@ -148,7 +125,6 @@ export default {
   },
   methods: {
     updateDefaults() {
-      console.log('Updating default values');
       const widthDomain = this.representation.getPropertyDomainByName("windowWidth");
       const levelDomain = this.representation.getPropertyDomainByName("windowLevel");
 
@@ -163,7 +139,6 @@ export default {
       this.default.width = this.representation.getWindowWidth();
     },
     updateActive() {
-      console.log('Updating active values');
       this.active.widthDomain.min = this.default.widthDomain.min;
       this.active.widthDomain.max = this.default.widthDomain.max;
       this.active.widthDomain.step = this.default.widthDomain.step;
@@ -175,17 +150,11 @@ export default {
       this.active.level = this.default.level;
     },
     bindWindow() {
-      console.log("WindowControl bindWindow: subscribe representation 'modified'");
       this.updateDefaults();
       this.updateActive();
       this.modifiedSubscription = this.representation.onModified(() => {
         if (!this.loadingDataset && !this.userDefinedValues) {
-          console.log('repr modified, UPDATE');
           this.updateActive();
-        } else {
-          console.log(`repr modified, IGNORE (loading = ${
-            this.loadingDataset
-          }, userDefined = ${this.userDefinedValues})`);
         }
       });
     },
@@ -221,9 +190,6 @@ export default {
       );
       this.active.level = windowLevel;
     },
-    validateWindowWidth(val) {
-      console.log(`blur: ${val}`);
-    }
   }
 };
 </script>
@@ -283,8 +249,8 @@ export default {
             :step="active.widthDomain.step"
             v-model="active.width"
             v-mousetrap="[
-              { bind: ']', handler: increaseWindowWidth },
-              { bind: '[', handler: decreaseWindowWidth }
+              { bind: '=', handler: increaseWindowWidth },
+              { bind: '-', handler: decreaseWindowWidth }
             ]"
           ></v-slider>
         </v-col>

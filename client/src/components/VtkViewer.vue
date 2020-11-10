@@ -73,11 +73,6 @@ export default {
       this.initializeView();
     },
     currentDataset() {
-      // console.log(
-      //   `vtkviewer override ${this.representation.getProxyName()} to ${
-      //     this.slice
-      //   }`
-      // );
       this.representation.setSlice(this.slice);
     },
     currentSession() {
@@ -103,9 +98,6 @@ export default {
       fill2DView(this.view);
       if (this.name !== "default") {
         this.modifiedSubscription = this.representation.onModified(() => {
-          // console.log(
-          //   `VtkViewer representation modified ${this.representation.getProxyName()}: ${this.representation.getSlice()}`
-          // );
           if (!this.loadingDataset) {
             this.slice = this.representation.getSlice();
           }
