@@ -246,7 +246,6 @@ export default {
         <v-col align-self="end" cols="6" class="pb-1 pt-0">
           <v-slider
             hide-details
-            thumb-label
             :thumb-size="48"
             :min="active.widthDomain.min"
             :max="active.widthDomain.max"
@@ -301,8 +300,6 @@ export default {
         <v-col align-self="end" cols="6" class="pb-1 pt-0">
           <v-slider
             hide-details
-            thumb-label
-            :thumb-size="48"
             :min="active.levelDomain.min"
             :max="active.levelDomain.max"
             :step="active.levelDomain.step"
