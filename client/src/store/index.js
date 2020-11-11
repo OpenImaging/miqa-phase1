@@ -294,7 +294,6 @@ const store = new Vuex.Store({
       // This try catch and within logic are mainly for handling data doesn't exist issue
       try {
         var imagedata = await loadFileAndGetData(dataset._id);
-        // console.log("swapping datasets, here we setInputData()");
         sourceProxy.setInputData(imagedata);
         if (needPrep || !state.proxyManager.getViews().length) {
           prepareProxyManager(state.proxyManager);
@@ -347,7 +346,6 @@ store.watch(
       readDataQueue = [];
     }
     const curSesh = store.getters.currentSession;
-    console.log(`current session: ${curSesh.experiment}/${curSesh.name}`);
     const firstDatasetToLoad = store.state.sessionDatasets[curSesh.id][0];
     readDataQueue = [loadFile(firstDatasetToLoad)];
     const newExperimentSessions = store.state.experimentSessions[newValue.id];
@@ -414,7 +412,6 @@ function getData(id, file) {
         .getPointData()
         .getArray(0)
         .getRange();
-      // console.log(`vtkImageData array range ${dataRange}`);
       datasetCache.set(id, imageData);
       expandSessionRange(id, dataRange);
       return imageData;
