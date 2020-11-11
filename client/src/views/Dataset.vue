@@ -86,6 +86,15 @@ export default {
       } else {
         return [];
       }
+    },
+    lastNoteTruncated() {
+      const segments = this.noteSegments;
+      if (segments.length > 0) {
+        const lastSeg = segments.slice(-1)[0];
+        console.log(`last note: ${lastSeg}`);
+        return `${lastSeg.substring(0, 32)}...`;
+      }
+      return "";
     }
   },
   async created() {
@@ -450,7 +459,7 @@ export default {
                   {{ Math.round(sessionCachedPercentage * 100) }}%
                 </v-flex>
               </v-layout>
-              <v-layout class="bottom-row">
+              <v-layout align-center class="bottom-row">
                 <v-flex shrink>
                   <v-btn
                     fab
@@ -483,198 +492,208 @@ export default {
               </v-layout>
             </v-flex>
             <v-flex xs4 class="mx-2">
-              <v-layout align-center justify-center class="body-2">
-                <v-flex>
-                  {{ getSiteDisplayName(currentSession.meta.site) }},
-                  <a
-                    :href="
-                      `/xnat/app/action/DisplayItemAction/search_value/${currentSession.meta.experimentId}/search_element/xnat:mrSessionData/search_field/xnat:mrSessionData.ID`
-                    "
-                    target="_blank"
-                    >{{ currentSession.meta.experimentId }}</a
-                  >
-                  (<a
-                    :href="
-                      `/redcap/redcap_v8.4.0/DataEntry/record_home.php?pid=20&arm=1&id=${currentSession.meta.experimentId2}`
-                    "
-                    target="_blank"
-                    >{{ currentSession.meta.experimentId2 }}</a
-                  >),
-                  {{ currentSession.name }}
-                </v-flex>
-                <v-spacer />
-                <v-flex
-                  shrink
-                  class="experiment-note"
-                  v-if="currentSession.meta.experimentNote"
-                >
-                  <v-tooltip top>
-                    <template v-slot:activator="{ on }">
-                      <span v-on="on">{{
-                        currentSession.meta.experimentNote
-                      }}</span>
-                    </template>
-                    Experiment note: {{ currentSession.meta.experimentNote }}
-                  </v-tooltip>
-                </v-flex>
-              </v-layout>
-              <v-layout align-center v-if="noteSegments.length">
-                <v-flex shrink>
-                  Note history: {{ noteSegments.slice(-1)[0] }}
-                </v-flex>
-                <v-flex shrink class="pa-0" v-if="noteSegments.length > 1">
-                  <v-menu
-                    v-model="showNotePopup"
-                    :close-on-content-click="false"
-                    :nudge-right="250"
-                    offset-y
-                    open-on-hover
-                    top
-                    left
-                    ref="historyMenu"
-                  >
-                    <template v-slot:activator="{ on }">
+              <v-container class="pa-0">
+                <v-row>
+                  <v-col cols="12" class="pb-1 pt-0">
+                    <v-container class="pa-0">
+                      <v-row>
+                        <v-col cols="3" class="pb-1 pt-0">
+                          Site
+                        </v-col>
+                        <v-col cols="9" class="pb-1 pt-0 justifyRight">
+                          {{ getSiteDisplayName(currentSession.meta.site) }}
+                        </v-col>
+                      </v-row>
+                      <v-row>
+                        <v-col cols="3" class="pb-1 pt-0">
+                          Experiment
+                        </v-col>
+                        <v-col cols="9" class="pb-1 pt-0 justifyRight">
+                          <a
+                            :href="
+                              `/xnat/app/action/DisplayItemAction/search_value/${currentSession.meta.experimentId}/search_element/  xnat:mrSessionData/      search_field/xnat:mrSessionData.ID`
+                            "
+                            target="_blank"
+                            >{{ currentSession.meta.experimentId }}</a
+                          >
+                        </v-col>
+                      </v-row>
+                      <v-row>
+                        <v-col cols="3" class="pb-1 pt-0">
+                          Session
+                        </v-col>
+                        <v-col cols="9" class="pb-1 pt-0 justifyRight">
+                          {{ currentSession.name }}
+                        </v-col>
+                      </v-row>
+                    </v-container>
+                  </v-col>
+                </v-row>
+                <v-row>
+                  <v-col class="pb-1 pt-0" cols="10">
+                    Note history: {{ lastNoteTruncated }}
+                  </v-col>
+                  <v-col class="pb-1 pt-0" cols="1">
+                    <v-menu
+                      v-model="showNotePopup"
+                      :close-on-content-click="false"
+                      :nudge-right="250"
+                      offset-y
+                      open-on-hover
+                      top
+                      left
+                      ref="historyMenu"
+                    >
+                      <template v-slot:activator="{ on }">
+                        <v-btn
+                          text
+                          small
+                          icon
+                          :disabled="noteSegments.length < 1"
+                          class="ma-0"
+                          v-on="on"
+                          v-mousetrap="{
+                            bind: 'h',
+                            handler: () => (showNotePopup = !showNotePopup)
+                          }"
+                          ><v-icon>arrow_drop_up</v-icon></v-btn
+                        >
+                      </template>
+                      <v-card>
+                        <v-card-text class="note-history">
+                          <pre>{{ note }}</pre>
+                        </v-card-text>
+                      </v-card>
+                    </v-menu>
+                  </v-col>
+                  <v-col class="pb-1 pt-0" cols="1">
+                    <v-btn
+                      text
+                      small
+                      icon
+                      class="ma-0"
+                      :disabled="userLevel.value > 1"
+                      @click="enableEditHistroy"
+                      ><v-icon style="font-size: 18px;">edit</v-icon></v-btn
+                    >
+                  </v-col>
+                </v-row>
+                <v-row class="pb-1 pt-1">
+                  <v-col cols="11" class="pb-1 pt-0 pr-0">
+                    <v-text-field
+                      class="note-field"
+                      label="Note"
+                      solo
+                      hide-details
+                      @blur="setNote($event)"
+                      @input="reviewChanged = true"
+                      :value="this.newNote"
+                      ref="note"
+                      v-mousetrap="{ bind: 'n', handler: focusNote }"
+                      v-mousetrap.element="{
+                        bind: 'esc',
+                        handler: () => $refs.note.blur()
+                      }"
+                    ></v-text-field>
+                  </v-col>
+                  <v-col cols="1" class="pb-1 pt-0">
+                    <v-tooltip top>
+                      <template v-slot:activator="{ on }">
+                        <v-btn
+                          text
+                          icon
+                          small
+                          color="grey"
+                          class="my-0"
+                          :disabled="!reviewChanged"
+                          v-on="on"
+                          @click="loadSessionMeta"
+                        >
+                          <v-icon>undo</v-icon>
+                        </v-btn>
+                      </template>
+                      <span>Revert</span>
+                    </v-tooltip>
+                  </v-col>
+                </v-row>
+                <v-row no-gutters class="pb-1">
+                  <v-col cols="6" class="pb-1 pt-0" v-if="userLevel.value <= 2">
+                    <v-btn-toggle
+                      class="buttons"
+                      v-model="rating"
+                      @change="ratingChanged"
+                    >
                       <v-btn
+                        v-if="userLevel.value <= 1"
                         text
                         small
-                        icon
-                        class="ma-0"
-                        v-on="on"
+                        value="bad"
+                        color="red"
+                        :disabled="!newNote && !note"
                         v-mousetrap="{
-                          bind: 'h',
-                          handler: () => (showNotePopup = !showNotePopup)
+                          bind: 'b',
+                          handler: () => setRating('bad')
                         }"
-                        ><v-icon>arrow_drop_up</v-icon></v-btn
+                        >Bad</v-btn
                       >
-                    </template>
-                    <v-card>
-                      <v-card-text class="note-history">
-                        <pre>{{ note }}</pre>
-                      </v-card-text>
-                    </v-card>
-                  </v-menu>
-                </v-flex>
-                <v-flex shrink class="pa-0" v-if="userLevel.value <= 1">
-                  <v-btn text small icon class="ma-0" @click="enableEditHistroy"
-                    ><v-icon style="font-size: 18px;">edit</v-icon></v-btn
-                  >
-                </v-flex>
-              </v-layout>
-              <div v-else style="height:28px;"></div>
-              <v-layout align-center>
-                <v-flex>
-                  <v-text-field
-                    class="note-field"
-                    label="Note"
-                    solo
-                    hide-details
-                    @blur="setNote($event)"
-                    @input="reviewChanged = true"
-                    :value="this.newNote"
-                    ref="note"
-                    v-mousetrap="{ bind: 'n', handler: focusNote }"
-                    v-mousetrap.element="{
-                      bind: 'esc',
-                      handler: () => $refs.note.blur()
-                    }"
-                  ></v-text-field>
-                </v-flex>
-                <v-flex shrink v-if="reviewChanged">
-                  <v-tooltip top>
-                    <template v-slot:activator="{ on }">
                       <v-btn
                         text
-                        icon
                         small
-                        color="grey"
-                        class="my-0"
-                        v-on="on"
-                        @click="loadSessionMeta"
+                        value="questionable"
+                        color="orange"
+                        :disabled="!newNote && !note"
+                        ><b>?</b></v-btn
                       >
-                        <v-icon>undo</v-icon>
-                      </v-btn>
-                    </template>
-                    <span>Revert</span>
-                  </v-tooltip>
-                </v-flex>
-              </v-layout>
-              <v-layout>
-                <v-flex v-if="userLevel.value <= 2">
-                  <v-btn-toggle
-                    class="buttons"
-                    v-model="rating"
-                    @change="ratingChanged"
-                  >
+                      <v-btn
+                        text
+                        small
+                        value="good"
+                        color="green"
+                        v-mousetrap="{
+                          bind: 'g',
+                          handler: () => setRating('good')
+                        }"
+                        >Good</v-btn
+                      >
+                      <v-btn
+                        text
+                        small
+                        value="usableExtra"
+                        color="light-green"
+                        v-mousetrap="{
+                          bind: 'u',
+                          handler: () => setRating('usableExtra')
+                        }"
+                        >Extra</v-btn
+                      >
+                    </v-btn-toggle>
+                  </v-col>
+                  <v-col cols="4" class="pb-1 pt-0">
+                    <v-text-field
+                      class="small"
+                      label="Reviewer"
+                      solo
+                      disabled
+                      hide-details
+                      :value="reviewer"
+                    ></v-text-field>
+                  </v-col>
+                  <v-col cols="2" class="pb-1 pt-0">
                     <v-btn
-                      v-if="userLevel.value <= 1"
-                      text
+                      color="primary"
+                      class="ma-0"
+                      style="height: 36px"
                       small
-                      value="bad"
-                      color="red"
-                      :disabled="!newNote && !note"
-                      v-mousetrap="{
-                        bind: 'b',
-                        handler: () => setRating('bad')
-                      }"
-                      >Bad</v-btn
+                      :disabled="!reviewChanged"
+                      @click="save"
+                      v-mousetrap="{ bind: 'alt+s', handler: save }"
                     >
-                    <v-btn
-                      text
-                      small
-                      value="questionable"
-                      color="orange"
-                      :disabled="!newNote && !note"
-                      ><b>?</b></v-btn
-                    >
-                    <v-btn
-                      text
-                      small
-                      value="good"
-                      color="green"
-                      v-mousetrap="{
-                        bind: 'g',
-                        handler: () => setRating('good')
-                      }"
-                      >Good</v-btn
-                    >
-                    <v-btn
-                      text
-                      small
-                      value="usableExtra"
-                      color="light-green"
-                      v-mousetrap="{
-                        bind: 'u',
-                        handler: () => setRating('usableExtra')
-                      }"
-                      >Extra</v-btn
-                    >
-                  </v-btn-toggle>
-                </v-flex>
-                <v-flex shrink>
-                  <v-text-field
-                    class="small"
-                    label="Reviewer"
-                    solo
-                    disabled
-                    hide-details
-                    :value="reviewer"
-                  ></v-text-field>
-                </v-flex>
-                <v-flex shrink>
-                  <v-btn
-                    color="primary"
-                    class="ma-0"
-                    style="height: 36px"
-                    small
-                    :disabled="!reviewChanged"
-                    @click="save"
-                    v-mousetrap="{ bind: 'alt+s', handler: save }"
-                  >
-                    Save
-                    <v-icon right>save</v-icon>
-                  </v-btn>
-                </v-flex>
-              </v-layout>
+                      Save
+                      <v-icon right>save</v-icon>
+                    </v-btn>
+                  </v-col>
+                </v-row>
+              </v-container>
             </v-flex>
             <v-flex xs4 class="mx-2">
               <WindowControl v-if="vtkViews.length" class="py-0" />
@@ -803,6 +822,10 @@ export default {
 </style>
 
 <style lang="scss">
+.justifyRight {
+  text-align: right;
+}
+
 .dataset {
   .v-text-field.small .v-input__control {
     min-height: 36px !important;

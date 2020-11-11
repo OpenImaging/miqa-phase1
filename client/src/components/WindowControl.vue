@@ -200,7 +200,7 @@ export default {
 
 <template>
   <div class="component">
-    <v-container class="pb-0 pt-0">
+    <v-container class="pa-0">
       <v-row align="start" class="headerRow">
         <v-col class="pb-1 pt-0">
           <div class="componentLabel">Window Controls</div>
