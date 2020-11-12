@@ -262,17 +262,35 @@ const store = new Vuex.Store({
       state.errorLoadingDataset = false;
       var oldSession = getters.currentSession;
       const newSession = state.sessions[dataset.session];
+      const oldExperiment = getters.currentExperiment ? getters.currentExperiment.id : null;
+      const newExperiment = state.sessions[dataset.session].experiment
       var newProxyManager = false;
       if (oldSession !== newSession && state.proxyManager) {
-        // At this moment. use new proxyManger between session could avoid a not showing issue.
-        // However maybe unnecessary
+        // If we don't "shrinkProxyManager()" and reinitialize it between
+        // "sessions" (a.k.a "scans"), then we can end up with no image
+        // slices displayed, even though we have the data and attempted
+        // to render it.  This may be due to image extents changing between
+        // scans, which is not the case from one timestep of a single scan
+        // to tne next.
         shrinkProxyManager(state.proxyManager);
         newProxyManager = true;
-        readDataQueue.forEach(({ fileP }) => {
-          fileP.cancel();
-        });
-        readDataQueue = [];
+
+        if (oldExperiment !== newExperiment) {
+          // If we have changed experiments and there is anything left
+          // in the loading queue, it indicates the user interrupted the
+          // current loading process before it was finished.  So we need
+          // to cancel any outstanding loads and empty the queue.  The
+          // caches will be deleted in the experiment watcher which runs
+          // after this.
+          readDataQueue.forEach(({ fileP }) => {
+            if (fileP) {
+              fileP.cancel();
+            }
+          });
+          readDataQueue = [];
+        }
       }
+
       if (!state.proxyManager || newProxyManager) {
         state.proxyManager = vtkProxyManager.newInstance({
           proxyConfiguration: proxy
