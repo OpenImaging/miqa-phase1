@@ -10,9 +10,9 @@ import store from "./store";
 import Girder, { RestClient, utils } from "@girder/components/src";
 import { API_URL, STATIC_PATH } from "./constants";
 
-import vMousetrap from "vue-utilities/v-mousetrap";
-import snackbarService from "vue-utilities/snackbar-service";
-import promptService from "vue-utilities/prompt-service";
+import vMousetrap from "./vue-utilities/v-mousetrap";
+import snackbarService from "./vue-utilities/snackbar-service";
+import promptService from "./vue-utilities/prompt-service";
 import girder from "./girder";
 
 import "vuetify/dist/vuetify.min.css";

@@ -15,10 +15,30 @@ export default {
     API_URL
   }),
   computed: {
-    ...mapState(["sessionTree"]),
-    ...mapGetters(["currentSession"])
+    ...mapState([
+      "experiments",
+      "experimentIds",
+      "experimentSessions",
+      "sessions",
+      "sessionDatasets",
+      "sessionsModifiedTime",
+      "datasets"
+    ]),
+    ...mapGetters(["currentSession"]),
+    orderedExperiments() {
+      const allExperiments = this.experiments;
+      return this.experimentIds.map(expId => allExperiments[expId]);
+    }
   },
   methods: {
+    sessionsForExperiment(expId) {
+      const expSessionIds = this.experimentSessions[expId];
+      const allSessions = this.sessions;
+      return expSessionIds.map(sessionId => allSessions[sessionId]);
+    },
+    getIdOfFirstDatasetInSession(sessionId) {
+      return this.sessionDatasets[sessionId][0];
+    },
     ratingToLabel(rating) {
       switch (rating) {
         case "questionable":
@@ -37,26 +57,32 @@ export default {
 
 <template>
   <div class="sessions-view">
-    <ul class="experiment" v-if="sessionTree && sessionTree.length">
+    <ul
+      class="experiment"
+      v-if="orderedExperiments && orderedExperiments.length"
+    >
       <li
-        v-for="experiment of sessionTree"
+        v-for="experiment of orderedExperiments"
         class="body-2"
-        :key="experiment.folderId"
+        :key="`e.${experiment.id}`"
       >
         {{ experiment.name }}
         <ul class="sessions">
           <li
-            v-for="session of experiment.sessions"
+            v-for="session of sessionsForExperiment(experiment.id)"
             class="body-1"
-            :key="session.folderId"
-            :class="{ current: session === currentSession }"
+            :key="`s.${session.id}-${sessionsModifiedTime}`"
+            :class="{
+              current: session === currentSession,
+              cached: session.cached
+            }"
           >
             <v-btn
               class="ml-0 px-1 session-name"
               href
               text
               small
-              :to="session.datasets[0]._id"
+              :to="getIdOfFirstDatasetInSession(session.id)"
               active-class=""
               >{{ session.name
               }}<span small v-if="session.meta && session.meta.rating"
@@ -74,6 +100,10 @@ export default {
 <style lang="scss" scoped>
 .current {
   background: rgb(206, 206, 206);
+}
+
+li.cached {
+  list-style-type: disc;
 }
 
 ul.experiment {
