@@ -31,7 +31,7 @@ function bind(el, value, bindElement) {
 }
 
 function unbind(el) {
-  el.mousetrap.reset();
+  el.mousetrap.destroy();
 }
 
 export default function install(Vue) {
