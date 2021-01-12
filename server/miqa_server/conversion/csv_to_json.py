@@ -15,6 +15,11 @@ def find_common_prefix(p1, p2):
 
         firstNotMatch += 1
 
+    # Maybe need to backtrack to the nearest separator if we landed in the middle of a
+    # subdirectory name
+    while firstNotMatch > 0 and p1[firstNotMatch - 1] != os.path.sep:
+        firstNotMatch -= 1
+
     return p1[:firstNotMatch]
 
 
@@ -44,9 +49,18 @@ def csvContentToJsonObject(csvContent):
 
     # Produce final scans
     scans = []
+
     for scan in scans_raw:
-        subdir = scan['nifti_folder'].split(common_path_prefix)[1]
-        site = subdir[:subdir.index('_')]
+        nifti_folder = scan['nifti_folder']
+        subdir = nifti_folder.split(common_path_prefix)[1]
+        if 'site' in scan:
+            site = site['scan']
+        elif nifti_folder.startswith('/fs/storage/XNAT/archive/'):
+            # Special case handling to match previous implementation
+            splits = nifti_folder.split('/')
+            site = splits[5].split('_')[0]
+        else:
+            site = subdir[:subdir.index('_')]
         site_set.add(site)
         scan_obj = {
             'id': scan['scan_id'],
