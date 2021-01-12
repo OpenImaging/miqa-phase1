@@ -11,7 +11,7 @@
     "@girder/components": "git+https://github.com/girder/girder_web_components.git#v2.2.6",
     "bluebird": "^3.5.5",
     "itk": "^9.1.1",
-    "mousetrap": "~1.6.2",
+    "mousetrap": "scottwittenburg/mousetrap#fix-listener-leak",
     "vtk.js": "14.16.5",
     "vue": "^2.6.10",
     "vue-async-computed": "^3.5.1",
