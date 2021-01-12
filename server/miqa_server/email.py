@@ -12,7 +12,6 @@ from girder.settings import SettingKey
 from girder.exceptions import RestException
 from girder.models.setting import Setting
 
-
 class Email(Resource):
     def __init__(self):
         super(Email, self).__init__()
@@ -27,7 +26,7 @@ class Email(Resource):
         .errorResponse())
     def sendEmail(self, message, params):
         msg = MIMEMultipart('related')
-        msg['From'] = Setting().get(SettingKey.EMAIL_FROM_ADDRESS, 'Girder <no-reply@girder.org>')
+        msg['From'] = Setting().get(SettingKey.EMAIL_FROM_ADDRESS)
         msg['To'] = ', '.join(message['to'])
         msg['Cc'] = ', '.join(message['cc'])
         msg['Subject'] = message['subject']

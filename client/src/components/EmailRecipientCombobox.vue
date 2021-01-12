@@ -54,7 +54,7 @@ export default {
     <template #selection="{ item, parent, selected }">
       <v-chip
         :color="isValid(item) ? '' : 'error'"
-        :selected="selected"
+        :input-value="selected"
         small
         close
         @input="parent.selectItem(item)"
