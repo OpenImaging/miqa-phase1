@@ -57,8 +57,7 @@ export default {
       "errorLoadingDataset",
       "drawer",
       "screenshots",
-      "sessionCachedPercentage",
-      "sessionDatasets"
+      "sessionCachedPercentage"
     ]),
     ...mapGetters([
       "nextDataset",
@@ -68,7 +67,8 @@ export default {
       "previousDataset",
       "firstDatasetInPreviousSession",
       "firstDatasetInNextSession",
-      "getSiteDisplayName"
+      "getSiteDisplayName",
+      "sessionDatasets"
     ]),
     currentSessionDatasets() {
       return this.sessionDatasets[this.currentSession.id];
@@ -91,7 +91,6 @@ export default {
       const segments = this.noteSegments;
       if (segments.length > 0) {
         const lastSeg = segments.slice(-1)[0];
-        console.log(`last note: ${lastSeg}`);
         return `${lastSeg.substring(0, 32)}...`;
       }
       return "";
