@@ -14,19 +14,19 @@ Vue.use(Vuex);
 
 const fileCache = new Map();
 const datasetCache = new Map();
-let readDataQueue = [];
-let datasets = {};
-let sessionDatasets = {};
-let sessions = {};
-let experimentSessions = {};
-let experiments = {};
+var readDataQueue = [];
 
 const store = new Vuex.Store({
   state: {
     drawer: false,
+    experimentIds: [],
+    experiments: {},
+    experimentSessions: {},
+    sessions: {},
+    sessionDatasets: {},
+    datasets: {},
     proxyManager: null,
     vtkViews: [],
-    experimentIds: [],
     currentDatasetId: null,
     loadingDataset: false,
     errorLoadingDataset: false,
@@ -34,29 +34,13 @@ const store = new Vuex.Store({
     screenshots: [],
     sites: null,
     sessionCachedPercentage: 0,
-    sessionsLoadedTime: new Date().toISOString(),
     sessionsModifiedTime: new Date().toISOString()
   },
   getters: {
-    experiments() {
-      return function() {
-        return experiments;
-      };
-    },
-    experimentSessions() {
-      return experimentSessions;
-    },
-    sessions() {
-      return sessions;
-    },
-    sessionDatasets() {
-      return sessionDatasets;
-    },
-    datasets() {
-      return datasets;
-    },
     currentDataset(state) {
-      return state.currentDatasetId ? datasets[state.currentDatasetId] : null;
+      return state.currentDatasetId
+        ? state.datasets[state.currentDatasetId]
+        : null;
     },
     previousDataset(state, getters) {
       return getters.currentDataset
@@ -66,33 +50,35 @@ const store = new Vuex.Store({
     nextDataset(state, getters) {
       return getters.currentDataset ? getters.currentDataset.nextDataset : null;
     },
-    getDataset() {
+    getDataset(state) {
       return function(datasetId) {
-        if (!datasetId || !datasets[datasetId]) {
+        if (!datasetId || !state.datasets[datasetId]) {
           return;
         }
-        return datasets[datasetId];
+        return state.datasets[datasetId];
       };
     },
     currentSession(state, getters) {
       if (getters.currentDataset) {
         const curSessionId = getters.currentDataset.session;
-        return sessions[curSessionId];
+        return state.sessions[curSessionId];
       }
       return null;
     },
     currentExperiment(state, getters) {
       if (getters.currentSession) {
         const curExperimentId = getters.currentSession.experiment;
-        return experiments[curExperimentId];
+        return state.experiments[curExperimentId];
       }
       return null;
     },
-    experimentDatasets() {
+    experimentDatasets(state) {
       return function(expId) {
+        const experimentSessions = state.experimentSessions[expId];
         const expDatasets = [];
-        experimentSessions[expId].forEach(sessionId => {
-          sessionDatasets[sessionId].forEach(datasetId => {
+        experimentSessions.forEach(sessionId => {
+          const sessionDatasets = state.sessionDatasets[sessionId];
+          sessionDatasets.forEach(datasetId => {
             expDatasets.push(datasetId);
           });
         });
@@ -116,9 +102,10 @@ const store = new Vuex.Store({
       if (getters.currentExperiment) {
         const expIdx = getters.currentExperiment.index;
         if (expIdx >= 1) {
-          const prevExp = experiments[state.experimentIds[expIdx - 1]];
-          const prevExpSessions = experimentSessions[prevExp.id];
-          const prevExpSessionDatasets = sessionDatasets[prevExpSessions[0].id];
+          const prevExp = state.experiments[state.experimentIds[expIdx - 1]];
+          const prevExpSessions = state.experimentSessions[prevExp.id];
+          const prevExpSessionDatasets =
+            state.sessionDatasets[prevExpSessions[0].id];
           return prevExpSessionDatasets[0];
         }
       }
@@ -128,9 +115,10 @@ const store = new Vuex.Store({
       if (getters.currentExperiment) {
         const expIdx = getters.currentExperiment.index;
         if (expIdx < state.experimentIds.length - 1) {
-          const nextExp = experiments[state.experimentIds[expIdx + 1]];
-          const nextExpSessions = experimentSessions[nextExp.id];
-          const nextExpSessionDatasets = sessionDatasets[nextExpSessions[0].id];
+          const nextExp = state.experiments[state.experimentIds[expIdx + 1]];
+          const nextExpSessions = state.experimentSessions[nextExp.id];
+          const nextExpSessionDatasets =
+            state.sessionDatasets[nextExpSessions[0].id];
           return nextExpSessionDatasets[0];
         }
       }
@@ -177,11 +165,11 @@ const store = new Vuex.Store({
       let { data: sessionTree } = await girder.rest.get(`miqa/sessions`);
 
       state.experimentIds = [];
-      experiments = {};
-      experimentSessions = {};
-      sessions = {};
-      sessionDatasets = {};
-      datasets = {};
+      state.experiments = {};
+      state.experimentSessions = {};
+      state.sessions = {};
+      state.sessionDatasets = {};
+      state.datasets = {};
 
       // Build navigation links throughout the dataset to improve performance.
       let firstInPrev = null;
@@ -191,25 +179,25 @@ const store = new Vuex.Store({
         let experimentId = experiment.folderId;
 
         state.experimentIds.push(experimentId);
-        experiments[experimentId] = {
+        state.experiments[experimentId] = {
           id: experimentId,
           folderId: experimentId,
           name: experiment.name,
           index: i
         };
 
-        let expSessions = experiment.sessions.sort(
+        let sessions = experiment.sessions.sort(
           (a, b) => a.meta.scanId - b.meta.scanId
         );
 
-        experimentSessions[experimentId] = [];
+        state.experimentSessions[experimentId] = [];
 
-        for (let j = 0; j < expSessions.length; j++) {
-          let session = expSessions[j];
+        for (let j = 0; j < sessions.length; j++) {
+          let session = sessions[j];
           let sessionId = session.folderId;
 
-          experimentSessions[experimentId].push(sessionId);
-          sessions[sessionId] = {
+          state.experimentSessions[experimentId].push(sessionId);
+          state.sessions[sessionId] = {
             id: sessionId,
             folderId: sessionId,
             name: session.name,
@@ -222,23 +210,25 @@ const store = new Vuex.Store({
 
           state.sessionsModifiedTime = new Date().toISOString();
 
-          sessionDatasets[sessionId] = [];
+          state.sessionDatasets[sessionId] = [];
 
           for (let k = 0; k < session.datasets.length; k++) {
             let dataset = session.datasets[k];
             let datasetId = dataset._id;
 
-            sessionDatasets[sessionId].push(datasetId);
-            datasets[datasetId] = Object.assign({}, dataset);
-            datasets[datasetId].session = sessionId;
-            datasets[datasetId].index = k;
-            datasets[datasetId].previousDataset =
+            state.sessionDatasets[sessionId].push(datasetId);
+            state.datasets[datasetId] = Object.assign({}, dataset);
+            state.datasets[datasetId].session = sessionId;
+            state.datasets[datasetId].index = k;
+            state.datasets[datasetId].previousDataset =
               k > 0 ? session.datasets[k - 1]._id : null;
-            datasets[datasetId].nextDataset =
+            state.datasets[datasetId].nextDataset =
               k < session.datasets.length - 1
                 ? session.datasets[k + 1]._id
                 : null;
-            datasets[datasetId].firstDatasetInPreviousSession = firstInPrev;
+            state.datasets[
+              datasetId
+            ].firstDatasetInPreviousSession = firstInPrev;
           }
           firstInPrev = session.datasets[0]._id;
         }
@@ -254,14 +244,12 @@ const store = new Vuex.Store({
           let session = experiment.sessions[j];
           for (let k = session.datasets.length - 1; k >= 0; k--) {
             let datasetId = session.datasets[k]._id;
-            let dataset = datasets[datasetId];
+            let dataset = state.datasets[datasetId];
             dataset.firstDatasetInNextSession = firstInNext;
           }
           firstInNext = session.datasets[0]._id;
         }
       }
-
-      state.sessionsLoadedTime = new Date().toISOString();
     },
     async swapToDataset({ state, getters }, dataset) {
       if (!dataset) {
@@ -273,11 +261,9 @@ const store = new Vuex.Store({
       state.loadingDataset = true;
       state.errorLoadingDataset = false;
       var oldSession = getters.currentSession;
-      const newSession = sessions[dataset.session];
-      const oldExperiment = getters.currentExperiment
-        ? getters.currentExperiment.id
-        : null;
-      const newExperiment = sessions[dataset.session].experiment;
+      const newSession = state.sessions[dataset.session];
+      const oldExperiment = getters.currentExperiment ? getters.currentExperiment.id : null;
+      const newExperiment = state.sessions[dataset.session].experiment
       var newProxyManager = false;
       if (oldSession !== newSession && state.proxyManager) {
         // If we don't "shrinkProxyManager()" and reinitialize it between
@@ -364,24 +350,26 @@ store.watch(
       return;
     }
     if (oldValue) {
-      const oldExperimentSessions = experimentSessions[oldValue.id];
+      const oldExperimentSessions = store.state.experimentSessions[oldValue.id];
       oldExperimentSessions.forEach(sessionId => {
-        sessionDatasets[sessionId].forEach(datasetId => {
+        const sessionDatasets = store.state.sessionDatasets[sessionId];
+        sessionDatasets.forEach(datasetId => {
           fileCache.delete(datasetId);
           datasetCache.delete(datasetId);
         });
-        const session = sessions[sessionId];
+        const session = store.state.sessions[sessionId];
         session.cached = false;
         store.state.sessionsModifiedTime = new Date().toISOString();
       });
       readDataQueue = [];
     }
     const curSesh = store.getters.currentSession;
-    const firstDatasetToLoad = sessionDatasets[curSesh.id][0];
+    const firstDatasetToLoad = store.state.sessionDatasets[curSesh.id][0];
     readDataQueue = [loadFile(firstDatasetToLoad)];
-    const newExperimentSessions = experimentSessions[newValue.id];
+    const newExperimentSessions = store.state.experimentSessions[newValue.id];
     newExperimentSessions.forEach(sessionId => {
-      sessionDatasets[sessionId].forEach(datasetId => {
+      const sessionDatasets = store.state.sessionDatasets[sessionId];
+      sessionDatasets.forEach(datasetId => {
         if (datasetId !== firstDatasetToLoad) {
           readDataQueue.push(loadFile(datasetId));
         }
@@ -482,7 +470,7 @@ async function startReaderWorker() {
   }
   if ("status" in data) {
     const { sessionId } = data;
-    const session = sessions[sessionId];
+    const session = store.state.sessions[sessionId];
     session.cached = true;
     store.state.sessionsModifiedTime = new Date().toISOString();
   } else {
@@ -499,8 +487,8 @@ async function startReaderWorker() {
 }
 
 function expandSessionRange(datasetId, dataRange) {
-  const sessionId = datasets[datasetId].session;
-  const session = sessions[sessionId];
+  const sessionId = store.state.datasets[datasetId].session;
+  const session = store.state.sessions[sessionId];
   if (dataRange[0] < session.cumulativeRange[0]) {
     session.cumulativeRange[0] = dataRange[0];
   }

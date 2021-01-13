@@ -16,20 +16,17 @@ export default {
   }),
   computed: {
     ...mapState([
-      "experimentIds",
-      "sessionsLoadedTime",
-      "sessionsModifiedTime"
-    ]),
-    ...mapGetters([
-      "currentSession",
       "experiments",
+      "experimentIds",
       "experimentSessions",
       "sessions",
       "sessionDatasets",
+      "sessionsModifiedTime",
       "datasets"
     ]),
+    ...mapGetters(["currentSession"]),
     orderedExperiments() {
-      const allExperiments = this.experiments();
+      const allExperiments = this.experiments;
       return this.experimentIds.map(expId => allExperiments[expId]);
     }
   },
@@ -60,7 +57,6 @@ export default {
 
 <template>
   <div class="sessions-view">
-    <div>{{ sessionsLoadedTime }}</div>
     <ul
       class="experiment"
       v-if="orderedExperiments && orderedExperiments.length"
