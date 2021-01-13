@@ -93,7 +93,7 @@ export default {
       >Export</v-btn
     >
     <v-btn
-      flat
+      text
       color="primary"
       @click="reevaluateDialog = true"
       :disabled="!exportEnabled"

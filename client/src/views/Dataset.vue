@@ -331,7 +331,7 @@ export default {
         <template v-slot:activator="{ on }">
           <v-btn
             icon
-            flat
+            text
             :color="getMetricColor(currentDataset)"
             v-on="on"
             :disabled="
