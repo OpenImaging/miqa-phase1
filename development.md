@@ -12,6 +12,7 @@ MIQA has server, client two components. They are located under *server* and *cli
 #### Setup
 * `git clone https://github.com/OpenImaging/miqa.git`
 * `pip install -e miqa/server/`
+* `pip install -e miqa/miqa_worker_task/`
 * `girder build`
 * `girder serve`
 Now a running girder instance should be available at `localhost:8080/girder`

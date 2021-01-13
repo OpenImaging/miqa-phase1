@@ -130,11 +130,11 @@ export default {
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn flat @click="importDialog = false" :disabled="reevaluating"
+          <v-btn text @click="importDialog = false" :disabled="reevaluating"
             >Cancel</v-btn
           >
           <v-btn
-            flat
+            text
             color="primary"
             @click="reevaluate"
             :loading="reevaluating"

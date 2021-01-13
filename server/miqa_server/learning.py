@@ -16,7 +16,7 @@ from miqa_worker_task.tasks import retrain_with_data_task
 from miqa_worker_task.transform import TextToFile
 from girder_worker_utils.transforms.girder_io import GirderUploadToItem, GirderClientTransform, GirderFileId
 
-from .util import findSessionsFolder, findTempFolder, getExportCSV, importCSV
+from .util import findSessionsFolder, findTempFolder, getExportCSV, importJson
 
 
 class Learning(Resource):
@@ -56,12 +56,12 @@ class Learning(Resource):
         folder = Folder().load(item['folderId'], force=True)
         user = User().load(job.get('userId'), force=True)
         file = Item().childFiles(item)[0]
-        csv_content = ''
+        json_content = ''
         for chunk in File().download(file)():
-            csv_content += chunk.decode("utf-8")
+            json_content += chunk.decode("utf-8")
         # For now just reimport instead of update, should update record instead
-        result = importCSV(csv_content, user)
-        print(csv_content)
+        result = importJson(json_content, user)
+        print(json_content)
         Folder().remove(folder)
         # Throws an error for some reason, not really needed anyway
         # Job().updateJob(job, progressMessage="session re-evaluated")
