@@ -12,6 +12,7 @@ from girder.models.folder import Folder
 from girder.models.item import Item
 
 from .conversion.csv_to_json import csvContentToJsonObject
+from .conversion.json_to_csv import jsonObjectToCsvContent
 from .setting import tryAddSites
 from .schema.data_import import schema
 
@@ -44,10 +45,11 @@ def findFolder(name, user=None, create=False):
     folder = Folder().findOne({'name': name, 'baseParentId': collection['_id']})
     if not create:
         return folder
+    elif not folder:
+        return Folder().createFolder(collection, name,
+                                     parentType='collection', creator=user)
     else:
-        if not folder:
-            return Folder().createFolder(collection, name,
-                                         parentType='collection', creator=user)
+        return folder
 
 
 def findSessionsFolder(user=None, create=False):
@@ -215,7 +217,7 @@ def importData(importpath, user):
             return importJson(json_content, user)
 
 
-def getExportJSON():
+def getExportJSONObject():
     def convertRatingToDecision(rating):
         return {
             None: 0,
@@ -249,6 +251,12 @@ def getExportJSON():
         scan['decision'] = convertRatingToDecision(session.get('meta', {}).get('rating', None))
         scan['note'] = session.get('meta', {}).get('note', None)
 
-    return json.dumps(original_json_object)
+    return original_json_object
 
 
+def getExportJSON():
+    return json.dumps(getExportJSONObject())
+
+
+def getExportCSV():
+    return jsonObjectToCsvContent(getExportJSONObject())

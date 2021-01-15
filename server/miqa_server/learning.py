@@ -3,6 +3,7 @@ import datetime
 from girder.api.rest import Resource
 from girder.api import access
 from girder.api.describe import Description, autoDescribeRoute
+from girder import logger
 from girder.models.collection import Collection
 from girder.models.folder import Folder
 from girder.models.item import Item
