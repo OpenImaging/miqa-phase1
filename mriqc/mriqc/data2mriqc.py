@@ -31,7 +31,7 @@ def main():
     ap.add_argument("-bo", "--bids_output_dir", required=True,
                     help = "path to the BIDS output directory")
     ap.add_argument("-mo", "--mriqc_output_path", required=True,
-                    help = "path to the MRIQC output directory")
+                    help = "path to the MRIQC output directory (*** MUST END IN A '/' ***)")
     ap.add_argument("-co", "--csv_output_path", required=True,
                     help = "path to save the processed csv file")
     
@@ -44,6 +44,7 @@ def main():
     csv_output_path = args["csv_output_path"]# "../../mriqc_output.csv"
     
     header, csv_content = get_csv_contents(csv_input_path)
+
     subject_wise_data = group_by_subject(csv_content)
 #    print(subject_wise_data['E08706'])
     
@@ -67,16 +68,17 @@ def main():
     ############
     #MRIQC command
     # input -> bids_output_path, mriqc_output_path
-    command = 'docker run -ti --rm -v '+bids_output_path+':/bids_dataset:ro -v '+mriqc_output+':/output poldracklab/mriqc:latest /bids_dataset /output participant'
+    command = 'docker run -ti --rm -v '+bids_output_path+':/bids_dataset:ro -v '+mriqc_output+':/output poldracklab/mriqc:latest /bids_dataset /output participant --no-sub'
     os.system(command)
     ############
     
     iqms, iqm_values = get_iqms(mriqc_output)
     iqm_dict = iqms_to_dict(iqms, iqm_values)
-    
+
     header, csv_data = get_csv_contents(csv_input_path)
+
     csv_dict = input_csv_to_dict(csv_data)
-    
+
     generate_csv(csv_output_path, iqm_dict, csv_dict, header)
     
 if __name__ == '__main__':

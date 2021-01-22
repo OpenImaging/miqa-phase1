@@ -42,7 +42,6 @@ def process_json_file(json_path):
              'spacing_' not in k and 'size_' not in k):
             iqm_values[k] = data[k]
             iqms.append(k)
-    
     return iqms, iqm_values
     
 
