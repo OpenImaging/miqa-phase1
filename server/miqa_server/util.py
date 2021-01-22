@@ -10,6 +10,7 @@ from girder.models.assetstore import Assetstore
 from girder.models.collection import Collection
 from girder.models.folder import Folder
 from girder.models.item import Item
+from girder.utility.progress import noProgress
 
 from .conversion.csv_to_json import csvContentToJsonObject
 from .conversion.json_to_csv import jsonObjectToCsvContent
