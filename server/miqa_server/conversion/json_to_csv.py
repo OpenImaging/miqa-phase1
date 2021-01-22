@@ -17,7 +17,7 @@ def jsonObjectToCsvContent(jsonObject):
 
     optionalFields = {
         'decision': True,
-        'iqms': True,
+        'IQMs': True,
         'note': True,
         'good_prob': True
     }
@@ -74,12 +74,12 @@ def jsonObjectToCsvContent(jsonObject):
             optionalFields['note'] = False
 
         if 'iqms' in scan:
-            scan_obj['IQMs'] = scan['iqms']
+            nextRow['IQMs'] = scan['iqms']
         else:
-            optionalFields['iqms'] = False
+            optionalFields['IQMs'] = False
 
         if 'good_prob' in scan:
-            scan_obj['good_prob'] = scan['good_prob']
+            nextRow['good_prob'] = scan['good_prob']
         else:
             optionalFields['good_prob'] = False
 
