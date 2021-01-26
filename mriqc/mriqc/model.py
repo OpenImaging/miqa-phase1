@@ -9,6 +9,7 @@ Created on Thu Jul 25 17:37:09 2019
 from sklearn.ensemble import RandomForestClassifier
 import joblib
 
+from girder import logger
 from datetime import datetime
 import os
 import glob
@@ -37,6 +38,12 @@ class Model():
         Returns:
             None
         '''
+        # logger.info('Inside model.fit')
+        # logger.info('features')
+        # logger.info(X)
+        # logger.info('labels')
+        # logger.info(y)
+
         self.model.fit(X, y)
 
     def predict_proba(self, X):

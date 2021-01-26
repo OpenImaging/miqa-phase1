@@ -17,7 +17,7 @@ from miqa_worker_task.tasks import retrain_with_data_task
 from miqa_worker_task.transform import TextToFile
 from girder_worker_utils.transforms.girder_io import GirderUploadToItem, GirderClientTransform, GirderFileId
 
-from .util import findSessionsFolder, findTempFolder, getExportCSV, importJson
+from .util import findSessionsFolder, findTempFolder, getExportCSV, importCSV
 
 
 class Learning(Resource):
@@ -43,26 +43,30 @@ class Learning(Resource):
                 'task': 'learning_with_data',
             }},
             girder_result_hooks=[
-                GirderUploadToItem(str(item['_id']), True),
+                GirderUploadToItem(str(item['_id']), delete_file=False),
             ]
         )
         return result.job
 
     @staticmethod
     def afterJobUpdate(job):
+        # logger.info('^^^^^^^^^^ inside afterJobUpdate ^^^^^^^^^^')
         if job['status'] != JobStatus.SUCCESS:
+            # logger.info('Sadly job status is {0} instead of SUCCESS'.format(job['status']))
+            # logger.info(job)
             return
         meta = job.get('meta', {})
         item = Item().load(meta['itemId'], force=True)
         folder = Folder().load(item['folderId'], force=True)
         user = User().load(job.get('userId'), force=True)
         file = Item().childFiles(item)[0]
-        json_content = ''
+        csv_content = ''
         for chunk in File().download(file)():
-            json_content += chunk.decode("utf-8")
+            csv_content += chunk.decode("utf-8")
+        # logger.info('Here is the json_content')
+        # logger.info(csv_content)
         # For now just reimport instead of update, should update record instead
-        result = importJson(json_content, user)
-        print(json_content)
+        result = importCSV(csv_content, user)
         Folder().remove(folder)
         # Throws an error for some reason, not really needed anyway
         # Job().updateJob(job, progressMessage="session re-evaluated")

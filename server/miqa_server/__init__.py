@@ -1,5 +1,5 @@
 import datetime
-from girder import events, plugin
+from girder import events, logger, plugin
 from girder.models.user import User
 from girder.utility import server
 
@@ -24,14 +24,17 @@ class GirderPlugin(plugin.GirderPlugin):
         info['apiRoot'].miqa_setting = SettingResource()
         info['apiRoot'].learning = Learning()
 
-        events.bind('jobs.job.update.after', 'large_image', afterJobUpdate)
+        events.bind('jobs.job.update.after', 'active_learning', afterJobUpdate)
 
 
 def afterJobUpdate(event):
     # learned from https://github.com/girder/large_image/blob/girder-3/girder/girder_large_image/__init__.py#L83
+    # logger.info('afterJobUpdate event triggered')
     job = event.info['job']
     meta = job.get('meta', {})
     if (meta.get('creator') != 'miqa' or not meta.get('itemId') or
             meta.get('task') != 'learning_with_data'):
+        # logger.info('Ignoring unknown event: {0}'.format())
         return
+    # logger.info('Calling Learning.afterJobUpdate()')
     Learning.afterJobUpdate(job)

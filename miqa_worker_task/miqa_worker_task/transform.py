@@ -2,6 +2,7 @@ import os
 import shutil
 import tempfile
 
+from girder import logger
 from girder_worker_utils.transforms.girder_io import GirderClientTransform
 
 
@@ -24,5 +25,6 @@ class TextToFile(GirderClientTransform):
         return self.file_path
 
     def cleanup(self):
+        logger.info('TextToFile will cleanup {0}'.format(self.file_path))
         shutil.rmtree(os.path.dirname(self.file_path),
                       ignore_errors=True)

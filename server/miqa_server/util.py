@@ -189,8 +189,6 @@ def importCSV(csv_content, user):
     except (JSONValidationError, Exception) as inst:
         return {
             "error": 'Invalid CSV file: {0}'.format(inst.message),
-            "success": successCount,
-            "failed": failedCount
         }
 
     return importJson(json_content, user)
@@ -211,8 +209,6 @@ def importData(importpath, user):
             except JSONValidationError as inst:
                 return {
                     "error": 'Invalid JSON file: {0}'.format(inst.message),
-                    "success": successCount,
-                    "failed": failedCount
                 }
 
             return importJson(json_content, user)
@@ -233,7 +229,7 @@ def getExportJSONObject():
         raise RestException('doesn\'t contain a json item', code=404)
     jsonItem = items[0]
     # Next TODO: read, format, and stream back the json version of the export
-    logger.info(jsonItem)
+    # logger.info(jsonItem)
     original_json_object = json.loads(jsonItem['description'])
 
     for scan in original_json_object['scans']:

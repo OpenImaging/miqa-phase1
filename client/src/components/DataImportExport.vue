@@ -39,9 +39,14 @@ export default {
       try {
         var { data: result } = await this.girderRest.post("miqa/data/import");
         this.importing = false;
+        let msg = '';
+        if (result.error) {
+          msg = `Import failed: ${result.error}`;
+        } else {
+          msg = `Import finished with ${result.success} scans imported and ${result.failed} failed.`;
+        }
         this.$snackbar({
-          text: `Import finished.
-          With ${result.success} scans succeeded and ${result.failed} failed.`,
+          text: msg,
           timeout: 6000
         });
         this.loadSessions();
