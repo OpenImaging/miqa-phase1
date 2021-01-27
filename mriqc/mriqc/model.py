@@ -70,7 +70,7 @@ class Model():
         if not os.path.isdir(model_path):
             os.mkdir(model_path)
 
-        file_name = os.path.join(model_path, 'rfc_'+datetime.now().isoformat()+'.pkl')
+        file_name = os.path.join(model_path, 'rfc_'+datetime.now().strftime("%Y%m%d-%H%M%S")+'.pkl')
         joblib.dump(self.model, file_name)
 
     def load_model(self, model_path):
