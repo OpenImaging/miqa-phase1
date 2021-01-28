@@ -25,18 +25,21 @@ class Learning(Resource):
         super(Learning, self).__init__()
         self.resourceName = 'learning'
 
-        self.route('POST', ('retrain_with_data',), self.retrainWithData)
+        self.route('POST', ('retrain_with_data', ':learningMode'), self.retrainWithData)
 
     @access.admin
     @autoDescribeRoute(
         Description('')
+        .param('learningMode', 'The learning mode (either "neuralNet" or "randomForest")', required=True)
         .errorResponse())
-    def retrainWithData(self, params):
+    def retrainWithData(self, learningMode, params):
         # learned from https://github.com/girder/large_image/blob/girder-3/girder/girder_large_image/models/image_item.py#L108
         user = self.getCurrentUser()
         item = Item().createItem('temp', user, findTempFolder(user, True))
+        logger.info('learningMode = {0}'.format(learningMode))
         result = retrain_with_data_task.delay(
             TextToFile(getExportCSV()),
+            learningMode,
             girder_job_other_fields={'meta': {
                 'creator': 'miqa',
                 'itemId': str(item['_id']),

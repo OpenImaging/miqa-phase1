@@ -11,7 +11,8 @@ export default {
     importing: false,
     importDialog: false,
     reevaluateDialog: false,
-    reevaluating: false
+    reevaluating: false,
+    learningMode: "randomForest"
   }),
   async created() {
     var { data: result } = await this.girderRest.get(
@@ -39,7 +40,7 @@ export default {
       try {
         var { data: result } = await this.girderRest.post("miqa/data/import");
         this.importing = false;
-        let msg = '';
+        let msg = "";
         if (result.error) {
           msg = `Import failed: ${result.error}`;
         } else {
@@ -69,7 +70,7 @@ export default {
     },
     reevaluate() {
       this.reevaluating = true;
-      this.girderRest.post("/learning/retrain_with_data");
+      this.girderRest.post(`/learning/retrain_with_data/${this.learningMode}`);
     },
     learningFinished(a) {
       this.reevaluating = false;
@@ -132,10 +133,22 @@ export default {
         <v-card-text>
           This will update the learning model with values of all current
           sessions and reevaluate current unmarked sessions
+          <v-container fluid>
+            <v-radio-group v-model="learningMode" row>
+              <v-radio
+                label="Random Forest Classifier"
+                value="randomForest"
+              ></v-radio>
+              <v-radio
+                label="Neural Network Classifier"
+                value="neuralNetwork"
+              ></v-radio>
+            </v-radio-group>
+          </v-container>
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn text @click="importDialog = false" :disabled="reevaluating"
+          <v-btn text @click="reevaluateDialog = false" :disabled="reevaluating"
             >Cancel</v-btn
           >
           <v-btn

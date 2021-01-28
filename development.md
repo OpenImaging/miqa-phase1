@@ -3,7 +3,7 @@
 MIQA has server, client two components. They are located under *server* and *client* directory respectively.
 
 ### Prerequisite
-* Pyhton 3.5+
+* Python 3.5+
 * Mongodb running at the default port
 * Node 8
 
@@ -139,3 +139,16 @@ importing arbitrary datasets, see `IMPORTING_DATA.md`.
 * Navigate back to localhost:8081 and navigate to `Settings` tab
 * Suppose the repo is located at home diretory.
 * Set `import path` to `~/miqa/sample_data/sample.json` and set `export path` to something like `~/miqa/sample_data/sample-output.json`
+
+#### Running MRIQC on a dataset using MIQA `mriqc` module
+
+The `mriqc` module in this project can be used to generate quality metrics on a set of images and update the csv file with a new column containing the appropriately formatted value string.
+
+    python data2mriqc.py \
+      --csv_input_path /Users/scott/miqa/mriqc_master_folder/input/scans_to_review-2019-01-23.csv \
+      --root  "" \
+      --bids_output_dir /Users/scott/miqa/mriqc_master_folder/input/bids_output \
+      --mriqc_output_path /Users/scott/miqa/mriqc_master_folder/input/mriqc_output \
+      --csv_output_path /Users/scott/miqa/mriqc_master_folder/mriqc_output.csv
+
+If the csv file containing the images you want to QC already contain absolute paths, then the `--root` cli arg should be the empty string as shown above.  Otherwise, `--root` should be the path to the folder which is the root of the scan paths given in the csv.
