@@ -4,6 +4,7 @@ import argparse
 import itk
 from numcodecs import Blosc
 import zarr
+from pathlib import Path
 
 def compress_encode(input_filepath,
                     output_directory,
@@ -13,7 +14,7 @@ def compress_encode(input_filepath,
                     shuffle=True):
     image = itk.imread(input_filepath)
     image_da = itk.xarray_from_image(image)
-    dataset_name = input_filepath
+    dataset_name = str(Path(input_filepath))
     image_ds = image_da.to_dataset(name=dataset_name)
 
     store_name = output_directory
