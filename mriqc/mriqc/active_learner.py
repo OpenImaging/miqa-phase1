@@ -10,7 +10,7 @@ from glob import glob
 
 from girder import logger
 
-from .model import Model
+from .model_rf import ModelRF
 from .data_loader import Data
 from .strategy import uncertainty_sampling
 
@@ -36,7 +36,7 @@ def predict(master_path, path, learningMode="randomForest"):
     weights_dir = 'saved_model'
     model_path = os.path.join(master_path, weights_dir)
 
-    model = Model()
+    model = ModelRF()
     new_data = Data(path)
 
     # if the model weights folder isn't there, make one
@@ -127,7 +127,7 @@ def train(master_path, csv_path=None, learningMode="randomForest"):
     # debug(y)
 
     # upload the model and fit over the dataset
-    model = Model()
+    model = ModelRF()
     model.fit(X, y)
     model.save_model(model_path)
 

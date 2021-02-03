@@ -14,7 +14,7 @@ from datetime import datetime
 import os
 import glob
 
-class Model():
+class ModelRF():
     '''
     This class defines the model that we'll be using for our image quality prediction task.
     To start with, we are using Random Forest classifier. But, this is flexible and can be
