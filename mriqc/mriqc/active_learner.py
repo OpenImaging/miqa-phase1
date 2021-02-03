@@ -20,7 +20,7 @@ def debug(msg):
     print(msg)
 
 
-def predict(master_path, path):
+def predict(master_path, path, learningMode="randomForest"):
     '''
     This function forms the engine for the first part of MIQA and AL. This function
     helps in making the predictions for the new data that has been input.
@@ -64,7 +64,7 @@ def predict(master_path, path):
 
     return path
 
-def train(master_path, csv_path=None):
+def train(master_path, csv_path=None, learningMode="randomForest"):
     '''
     This function ins the engine to train the model with the new data just labeled
     by the user of MIQA. The model can also be trained on the previously available
