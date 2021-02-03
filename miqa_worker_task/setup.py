@@ -11,9 +11,10 @@ setup(name='miqa_worker_task',
       author_email='kitware@kitware.com',
       license='MIT license',
       classifiers=[
-          'Development Status :: 2 - Pre-Alpha',
+          'Development Status :: 3 - Alpha',
           'License :: OSI Approved :: MIT License',
-          'Topic :: Scientific/Engineering',
+          'Topic :: Scientific/Engineering :: Medical Science Apps.',
+          'Intended Audience :: Healthcare Industry',
           'Intended Audience :: Science/Research',
           'Natural Language :: English',
           'Programming Language :: Python'

@@ -2,4 +2,4 @@ pandas
 numpy
 scipy
 scikit-learn
-
+torch
