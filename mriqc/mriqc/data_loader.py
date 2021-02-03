@@ -109,7 +109,7 @@ class Data():
             scan_type = self.data['scan_type'][i]
             if((sub_id, scan_type) in sub_ids):
                 ind = sub_ids.index((sub_id, scan_type))
-                self.data['good_prob'][i] = predictions[ind]
+                self.data.loc[i, 'good_prob'] = predictions[ind]
 
     def get_feature_and_labels(self):
         '''
