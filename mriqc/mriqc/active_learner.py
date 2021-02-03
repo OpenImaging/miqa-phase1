@@ -10,9 +10,9 @@ from glob import glob
 
 from girder import logger
 
-from .model_rf import ModelRF
-from .data_loader import Data
-from .strategy import uncertainty_sampling
+from mriqc.model_rf import ModelRF
+from mriqc.data_loader import Data
+from mriqc.strategy import uncertainty_sampling
 
 
 def debug(msg):
@@ -44,7 +44,7 @@ def predict(master_path, path, learningMode="randomForest"):
         os.mkdir(model_path)
 
     # if the model hasn't been trained yet, train it
-    if(len(glob(os.path.join(model_path, '*.pkl'))) == 0):
+    if (len(glob(os.path.join(model_path, '*.pkl'))) == 0):
         train(master_path)
 
     # load the most recently saved model
@@ -64,6 +64,7 @@ def predict(master_path, path, learningMode="randomForest"):
 
     return path
 
+
 def train(master_path, csv_path=None, learningMode="randomForest"):
     '''
     This function ins the engine to train the model with the new data just labeled
@@ -78,6 +79,9 @@ def train(master_path, csv_path=None, learningMode="randomForest"):
         None
     '''
     # read the variables and data, load the model
+    debug("master_path: " + master_path)
+    debug("csv_path: " + csv_path)
+    debug("learningMode: " + learningMode)
 
     weights_dir = 'saved_model'
     model_path = os.path.join(master_path, weights_dir)
@@ -135,13 +139,12 @@ def train(master_path, csv_path=None, learningMode="randomForest"):
     if csv_path is not None:
         return predict(master_path, csv_path)
 
+
 if __name__ == '__main__':
-    master_path = '/Users/scott/miqa/larger_subset'
-    # csv_path = '/Users/scott/miqa/larger_subset/scans_to_review_output.csv'
-    decision_path = '/Users/scott/miqa/larger_subset/scans_to_review_output.csv'
+    master_path = r'M:\Dev\zarr\sample data new-2020-07'
+    decision_path = r'M:\Dev\zarr\sample data new-2020-07\scans_to_review_output.csv'
 
     train(master_path, decision_path)
-#    predict(master_path, csv_path)
 
 
 
