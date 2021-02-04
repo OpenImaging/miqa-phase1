@@ -48,13 +48,13 @@ class binaryClassification(nn.Module):
     def __init__(self):
         super(binaryClassification, self).__init__()
         # First number is fixed: it is the number of input features
-        self.layer_1 = nn.Linear(58, 64)
-        self.layer_2 = nn.Linear(64, 64)
+        self.layer_1 = nn.Linear(58, 256)
+        self.layer_2 = nn.Linear(256, 64)
         self.layer_out = nn.Linear(64, 1)
 
         self.relu = nn.ReLU()
         self.dropout = nn.Dropout(p=0.1)
-        self.batchnorm1 = nn.BatchNorm1d(64)
+        self.batchnorm1 = nn.BatchNorm1d(256)
         self.batchnorm2 = nn.BatchNorm1d(64)
 
     def forward(self, inputs):
