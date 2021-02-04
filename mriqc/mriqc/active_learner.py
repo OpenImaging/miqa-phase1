@@ -11,6 +11,7 @@ from glob import glob
 from girder import logger
 
 from mriqc.model_rf import ModelRF
+from mriqc.model_nn import ModelNN
 from mriqc.data_loader import Data
 from mriqc.strategy import uncertainty_sampling
 
@@ -36,16 +37,24 @@ def predict(master_path, path, learningMode="randomForest"):
     weights_dir = 'saved_model'
     model_path = os.path.join(master_path, weights_dir)
 
-    model = ModelRF()
     new_data = Data(path)
 
     # if the model weights folder isn't there, make one
     if not os.path.isdir(model_path):
         os.mkdir(model_path)
 
-    # if the model hasn't been trained yet, train it
-    if (len(glob(os.path.join(model_path, '*.pkl'))) == 0):
-        train(master_path)
+    if learningMode == "randomForest":
+        model = ModelRF()
+        # if the model hasn't been trained yet, train it
+        if (len(glob(os.path.join(model_path, '*.pkl'))) == 0):
+            train(master_path)
+    elif learningMode == "neuralNetwork":
+        model = ModelNN()
+        # if the model hasn't been trained yet, train it
+        if (len(glob(os.path.join(model_path, '*.pth'))) == 0):
+            train(master_path)
+    else:
+        raise Exception("Unknown learningMode: " + learningMode)
 
     # load the most recently saved model
     model.load_model(model_path)
@@ -130,8 +139,14 @@ def train(master_path, csv_path=None, learningMode="randomForest"):
     # debug('got labels')
     # debug(y)
 
+    if learningMode == "randomForest":
+        model = ModelRF()
+    elif learningMode == "neuralNetwork":
+        model = ModelNN()
+    else:
+        raise Exception("Unknown learningMode: " + learningMode)
+
     # upload the model and fit over the dataset
-    model = ModelRF()
     model.fit(X, y)
     model.save_model(model_path)
 
@@ -144,7 +159,4 @@ if __name__ == '__main__':
     master_path = r'M:\Dev\zarr\sample data new-2020-07'
     decision_path = r'M:\Dev\zarr\sample data new-2020-07\scans_to_review_output.csv'
 
-    train(master_path, decision_path)
-
-
-
+    train(master_path, decision_path, "neuralNetwork")
