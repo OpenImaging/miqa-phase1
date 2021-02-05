@@ -29,6 +29,7 @@ def compress_encode(input_filepath,
 
     image_ds.to_zarr(store,
                      mode='w',
+                     group=f'0',
                      compute=True,
                      encoding={dataset_name: {'chunks': [chunk_size]*image.GetImageDimension(), 'compressor': compressor}})
 
@@ -40,27 +41,30 @@ def compress_encode(input_filepath,
         reduced = image
         while not np.all(np.array(itk.size(reduced)) < 64):
             scale = len(pyramid)
-            shrink_factors = [2**scale]*3
-            reduced = itk.bin_shrink_image_filter(image, shrink_factors=shrink_factors)
-            reduced_da = itk.xarray_from_image(reduced)
+            shrink_factors = [2]*3
+            for i, s in enumerate(itk.size(reduced)):
+                if s < 4:
+                    shrink_factors[i] = 1
+            reduced = itk.bin_shrink_image_filter(reduced, shrink_factors=shrink_factors)
+            reduced_da = itk.xarray_from_image(reduced).copy()
             pyramid.append(reduced_da)
-
-        pyramid_group_paths = [""]
-        for scale in range(1, len(pyramid)):
-            pyramid_group_paths.append('scale_{0}'.format(scale))
 
         for scale in range(1, len(pyramid)):
             ds = pyramid[scale].to_dataset(name=dataset_name)
             ds.to_zarr(store,
                        mode='w',
-                       group=pyramid_group_paths[scale],
+                       group=f'{scale}',
                        compute=True,
                        encoding={dataset_name: {'chunks': [chunk_size]*3, 'compressor': compressor}})
 
+        datasets = [ { 'path': f'{scale}/{dataset_name}' } for scale in range(len(pyramid)) ]
+        with zarr.open(store) as z:
+            z.attrs['multiscales'] = [{ 'version': '0.1', 'name': dataset_name, 'datasets': datasets }]
+
         # Re-consolidate entire dataset
         zarr.consolidate_metadata(store)
-        for scale in range(1, len(pyramid)):
-            store = zarr.DirectoryStore(str(Path(store_name) / pyramid_group_paths[scale]))
+        for scale in range(0, len(pyramid)):
+            store = zarr.DirectoryStore(str(Path(store_name) / f'{scale}'))
             # Also consolidate the metadata on the pyramid scales so they can be used independently
             zarr.consolidate_metadata(store)
 
