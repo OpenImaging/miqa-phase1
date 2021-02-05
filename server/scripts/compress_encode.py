@@ -6,6 +6,52 @@ from numcodecs import Blosc
 import zarr
 from pathlib import Path
 import numpy as np
+import zipfile
+import json
+
+def zip_zchunkstore(zip_file, url=None):
+    """Returns a reference description for ReferenceFileSystem from an
+    uncompressed Zarr zip file store.
+
+      https://github.com/intake/fsspec-reference-maker
+
+    Parameters
+    ----------
+
+    zip_file: str
+        Path to the zip file.
+    url: str, optional
+        URL where the zip file will be served. Defaults to zip_file.
+
+    Returns
+    -------
+
+    JSON-serializable reference description.
+    """
+    rfs = {}
+    with zipfile.ZipFile(zip_file) as zf:
+        if zf.compression != 0:
+            raise RuntimeError("Compressed zip's are not supported.")
+
+        zarr_json_files = ('.zattrs', '.zgroup', '.zmetadata', '.zarray')
+
+        data_url = zip_file
+        if url is not None:
+            data_url = url
+
+        zchunkstore = {}
+        for info in zf.infolist():
+            name_bytes = len(info.filename.encode("utf-8"))
+            offset = info.header_offset + 30 + name_bytes
+            size = info.compress_size
+            if any([info.filename.endswith(z) for z in zarr_json_files]):
+                content = zipfile.Path(zf, at=info.filename).read_text(encoding='utf-8')
+                zchunkstore[info.filename] = content
+            else:
+                zchunkstore[info.filename] = [data_url, offset, size]
+
+        return zchunkstore
+
 
 def compress_encode(input_filepath,
                     output_directory,
@@ -13,7 +59,8 @@ def compress_encode(input_filepath,
                     chunk_size=64,
                     cname='zstd',
                     clevel=5,
-                    shuffle=True):
+                    shuffle=True,
+                    zip_chunk_store=True):
     image = itk.imread(input_filepath)
     image_da = itk.xarray_from_image(image)
     dataset_name = str(Path(input_filepath))
@@ -68,6 +115,15 @@ def compress_encode(input_filepath,
             # Also consolidate the metadata on the pyramid scales so they can be used independently
             zarr.consolidate_metadata(store)
 
+    if zip_chunk_store:
+        store = zarr.DirectoryStore(store_name)
+        zip_store_path = str(Path(output_directory)) + '.zip'
+        with zarr.storage.ZipStore(zip_store_path, mode='w', compression=0) as zip_store:
+            zarr.copy_store(store, zip_store)
+        zchunkstore = zip_zchunkstore(zip_store_path)
+        with open(zip_store_path + '.zchunkstore', 'w') as fp:
+            json.dump(zchunkstore, fp)
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser('Convert and encode a medical image file in a compressed Zarr directory store.')
@@ -79,6 +135,7 @@ if __name__ == '__main__':
     parser.add_argument('--cname', default='zstd', help='Base compression codec.')
     parser.add_argument('--clevel', default=5, type=int, help='Compression level.')
     parser.add_argument('--no-multi-scale', action='store_true', help='Do not generate a multi-scale pyramid.')
+    parser.add_argument('--no-zip-chunk-store', action='store_true', help='Do not generate a zip file and corresponding chunk store.')
 
     args = parser.parse_args()
 
@@ -88,4 +145,5 @@ if __name__ == '__main__':
                     chunk_size=args.chunk_size,
                     cname=args.cname,
                     clevel=args.clevel,
-                    shuffle=not args.no_shuffle)
+                    shuffle=not args.no_shuffle,
+                    zip_chunk_store=not args.no_zip_chunk_store)
