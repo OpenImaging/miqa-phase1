@@ -59,7 +59,8 @@ def compress_encode(input_filepath,
                     cname='zstd',
                     clevel=5,
                     shuffle=True,
-                    zip_chunk_store=True):
+                    zip_chunk_store=True,
+                    zip_store_url=None):
     image = itk.imread(input_filepath)
     image_da = itk.xarray_from_image(image)
     dataset_name = Path(input_filepath).stem
@@ -119,7 +120,10 @@ def compress_encode(input_filepath,
         zip_store_path = str(Path(output_directory)) + '.zip'
         with zarr.storage.ZipStore(zip_store_path, mode='w', compression=0) as zip_store:
             zarr.copy_store(store, zip_store)
-        zchunkstore = zip_zchunkstore(zip_store_path)
+        store_url = None
+        if zip_store_url:
+            store_url = zip_store_url
+        zchunkstore = zip_zchunkstore(zip_store_path, store_url)
         with open(zip_store_path + '.zchunkstore', 'w') as fp:
             json.dump(zchunkstore, fp)
 
@@ -135,6 +139,7 @@ if __name__ == '__main__':
     parser.add_argument('--clevel', default=5, type=int, help='Compression level.')
     parser.add_argument('--no-multi-scale', action='store_true', help='Do not generate a multi-scale pyramid.')
     parser.add_argument('--no-zip-chunk-store', action='store_true', help='Do not generate a zip file and corresponding chunk store.')
+    parser.add_argument('--zip-store-url', help='URL where the generated zip file will be hosted.')
 
     args = parser.parse_args()
 
@@ -145,4 +150,5 @@ if __name__ == '__main__':
                     cname=args.cname,
                     clevel=args.clevel,
                     shuffle=not args.no_shuffle,
-                    zip_chunk_store=not args.no_zip_chunk_store)
+                    zip_chunk_store=not args.no_zip_chunk_store,
+                    zip_store_url=args.zip_store_url)
