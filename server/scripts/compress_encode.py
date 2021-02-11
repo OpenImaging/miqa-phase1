@@ -62,7 +62,7 @@ def compress_encode(input_filepath,
                     zip_chunk_store=True):
     image = itk.imread(input_filepath)
     image_da = itk.xarray_from_image(image)
-    dataset_name = str(Path(input_filepath))
+    dataset_name = Path(input_filepath).stem
     image_ds = image_da.to_dataset(name=dataset_name)
 
     store_name = output_directory
@@ -87,7 +87,7 @@ def compress_encode(input_filepath,
         reduced = image
         while not np.all(np.array(itk.size(reduced)) < 64):
             scale = len(pyramid)
-            shrink_factors = [2]*3
+            shrink_factors = [2]*image.GetImageDimension()
             for i, s in enumerate(itk.size(reduced)):
                 if s < 4:
                     shrink_factors[i] = 1
