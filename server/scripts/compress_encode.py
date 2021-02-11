@@ -28,7 +28,7 @@ def zip_zchunkstore(zip_file, url=None):
 
     JSON-serializable reference description.
     """
-    rfs = {}
+    zchunkstore = {}
     with zipfile.ZipFile(zip_file) as zf:
         if zf.compression != 0:
             raise RuntimeError("Compressed zip's are not supported.")
@@ -39,7 +39,6 @@ def zip_zchunkstore(zip_file, url=None):
         if url is not None:
             data_url = url
 
-        zchunkstore = {}
         for info in zf.infolist():
             name_bytes = len(info.filename.encode("utf-8"))
             offset = info.header_offset + 30 + name_bytes
@@ -50,7 +49,7 @@ def zip_zchunkstore(zip_file, url=None):
             else:
                 zchunkstore[info.filename] = [data_url, offset, size]
 
-        return zchunkstore
+    return zchunkstore
 
 
 def compress_encode(input_filepath,
