@@ -1,3 +1,4 @@
+import Promise from "bluebird";
 import Vue from "vue";
 import Vuex from "vuex";
 import vtkProxyManager from "vtk.js/Sources/Proxy/Core/ProxyManager";
@@ -6,15 +7,26 @@ import _ from "lodash";
 import ReaderFactory from "../utils/ReaderFactory";
 import "../utils/registerReaders";
 
+import readImageArrayBuffer from "itk/readImageArrayBuffer";
+import WorkerPool from "itk/WorkerPool";
+import ITKHelper from "vtk.js/Sources/Common/DataModel/ITKHelper";
+
 import { proxy } from "../vtk";
 import { getView } from "../vtk/viewManager";
 import girder from "../girder";
+
+const { convertItkToVtkImage } = ITKHelper;
 
 Vue.use(Vuex);
 
 const fileCache = new Map();
 const datasetCache = new Map();
 var readDataQueue = [];
+
+const poolSize = navigator.hardwareConcurrency / 2 || 2;
+let workerPool = new WorkerPool(poolSize, poolFunction);
+let taskRunId = -1;
+let savedWorker = null;
 
 const store = new Vuex.Store({
   state: {
@@ -204,8 +216,7 @@ const store = new Vuex.Store({
             meta: Object.assign({}, session.meta),
             numDatasets: session.datasets.length,
             cumulativeRange: [Number.MAX_VALUE, -Number.MAX_VALUE], // [null, null],
-            experiment: experimentId,
-            cached: false
+            experiment: experimentId
           };
 
           state.sessionsModifiedTime = new Date().toISOString();
@@ -262,8 +273,23 @@ const store = new Vuex.Store({
       state.errorLoadingDataset = false;
       var oldSession = getters.currentSession;
       const newSession = state.sessions[dataset.session];
-      const oldExperiment = getters.currentExperiment ? getters.currentExperiment.id : null;
-      const newExperiment = state.sessions[dataset.session].experiment
+      const oldExperiment = getters.currentExperiment
+        ? getters.currentExperiment
+        : null;
+      const newExperimentId = state.sessions[dataset.session].experiment;
+      const newExperiment = state.experiments[newExperimentId];
+
+      // Check if we should cancel the currently loading experiment
+      if (
+        newExperiment &&
+        oldExperiment &&
+        newExperiment.folderId !== oldExperiment.folderId &&
+        taskRunId >= 0
+      ) {
+        workerPool.cancel(taskRunId);
+        taskRunId = -1;
+      }
+
       var newProxyManager = false;
       if (oldSession !== newSession && state.proxyManager) {
         // If we don't "shrinkProxyManager()" and reinitialize it between
@@ -274,21 +300,6 @@ const store = new Vuex.Store({
         // to tne next.
         shrinkProxyManager(state.proxyManager);
         newProxyManager = true;
-
-        if (oldExperiment !== newExperiment) {
-          // If we have changed experiments and there is anything left
-          // in the loading queue, it indicates the user interrupted the
-          // current loading process before it was finished.  So we need
-          // to cancel any outstanding loads and empty the queue.  The
-          // caches will be deleted in the experiment watcher which runs
-          // after this.
-          readDataQueue.forEach(({ fileP }) => {
-            if (fileP) {
-              fileP.cancel();
-            }
-          });
-          readDataQueue = [];
-        }
       }
 
       if (!state.proxyManager || newProxyManager) {
@@ -308,11 +319,16 @@ const store = new Vuex.Store({
         needPrep = true;
       }
 
-      calculateCachedPercentage();
       // This try catch and within logic are mainly for handling data doesn't exist issue
       try {
-        var imagedata = await loadFileAndGetData(dataset._id);
-        sourceProxy.setInputData(imagedata);
+        let imageData = null;
+        if (datasetCache.has(dataset._id)) {
+          imageData = datasetCache.get(dataset._id).imageData;
+        } else {
+          const result = await loadFileAndGetData(dataset._id);
+          imageData = result.imageData;
+        }
+        sourceProxy.setInputData(imageData);
         if (needPrep || !state.proxyManager.getViews().length) {
           prepareProxyManager(state.proxyManager);
           state.vtkViews = state.proxyManager.getViews();
@@ -329,6 +345,9 @@ const store = new Vuex.Store({
         state.currentDatasetId = dataset._id;
         state.loadingDataset = false;
       }
+
+      // If necessary, queue loading scans of new experiment
+      checkLoadExperiment(oldExperiment, newExperiment);
     },
     async loadSites({ state }) {
       let { data: sites } = await girder.rest.get("miqa_setting/site");
@@ -337,55 +356,44 @@ const store = new Vuex.Store({
   }
 });
 
-// cache datasets associated with sessions of current experiment and first
-// dataset of next experiment
-store.watch(
-  (state, getters) => getters.currentExperiment,
-  (newValue, oldValue) => {
-    if (
-      !newValue ||
-      newValue === oldValue ||
-      (newValue && oldValue && newValue.folderId === oldValue.folderId)
-    ) {
-      return;
-    }
-    if (oldValue) {
-      const oldExperimentSessions = store.state.experimentSessions[oldValue.id];
-      oldExperimentSessions.forEach(sessionId => {
-        const sessionDatasets = store.state.sessionDatasets[sessionId];
-        sessionDatasets.forEach(datasetId => {
-          fileCache.delete(datasetId);
-          datasetCache.delete(datasetId);
-        });
-        const session = store.state.sessions[sessionId];
-        session.cached = false;
-        store.state.sessionsModifiedTime = new Date().toISOString();
-      });
-      readDataQueue = [];
-    }
-    const curSesh = store.getters.currentSession;
-    const firstDatasetToLoad = store.state.sessionDatasets[curSesh.id][0];
-    readDataQueue = [loadFile(firstDatasetToLoad)];
-    const newExperimentSessions = store.state.experimentSessions[newValue.id];
-    newExperimentSessions.forEach(sessionId => {
+// cache datasets associated with sessions of current experiment
+function checkLoadExperiment(oldValue, newValue) {
+  if (
+    !newValue ||
+    newValue === oldValue ||
+    (newValue && oldValue && newValue.folderId === oldValue.folderId)
+  ) {
+    return;
+  }
+
+  if (oldValue) {
+    const oldExperimentSessions = store.state.experimentSessions[oldValue.id];
+    oldExperimentSessions.forEach(sessionId => {
       const sessionDatasets = store.state.sessionDatasets[sessionId];
       sessionDatasets.forEach(datasetId => {
-        if (datasetId !== firstDatasetToLoad) {
-          readDataQueue.push(loadFile(datasetId));
-        }
+        fileCache.delete(datasetId);
+        datasetCache.delete(datasetId);
       });
-      readDataQueue.push({
-        status: "sessionLoaded",
-        sessionId
-      });
+      const session = store.state.sessions[sessionId];
+      session.cached = false;
+      store.state.sessionsModifiedTime = new Date().toISOString();
     });
-    var concurrency = navigator.hardwareConcurrency + 1 || 2;
-    calculateCachedPercentage();
-    for (var i = 0; i < concurrency; i++) {
-      startReaderWorker();
-    }
   }
-);
+
+  readDataQueue = [];
+  const newExperimentSessions = store.state.experimentSessions[newValue.id];
+  newExperimentSessions.forEach(sessionId => {
+    const sessionDatasets = store.state.sessionDatasets[sessionId];
+    sessionDatasets.forEach(datasetId => {
+      readDataQueue.push({ id: datasetId });
+    });
+    readDataQueue.push({
+      status: "sessionLoaded",
+      sessionId
+    });
+  });
+  startReaderWorkerPool();
+}
 
 function prepareProxyManager(proxyManager) {
   if (!proxyManager.getViews().length) {
@@ -421,69 +429,139 @@ function loadFile(id) {
   return { id, fileP: p };
 }
 
-function getData(id, file) {
-  return ReaderFactory.loadFiles([file])
-    .then(readers => readers[0])
-    .then(({ reader }) => {
-      var imageData = reader.getOutputData();
-      const dataRange = imageData
-        .getPointData()
-        .getArray(0)
-        .getRange();
-      datasetCache.set(id, imageData);
-      expandSessionRange(id, dataRange);
-      return imageData;
-    });
+function getData(id, file, webWorker = null) {
+  return new Promise((resolve, reject) => {
+    if (datasetCache.has(id)) {
+      resolve({ imageData: datasetCache.get(id), webWorker });
+    } else {
+      const fileName = file.name;
+      const io = new FileReader();
+
+      io.onload = function onLoad() {
+        readImageArrayBuffer(webWorker, io.result, fileName)
+          .then(({ webWorker, image }) => {
+            const imageData = convertItkToVtkImage(image, {
+              scalarArrayName: getArrayName(fileName)
+            });
+            const dataRange = imageData
+              .getPointData()
+              .getArray(0)
+              .getRange();
+            datasetCache.set(id, { imageData });
+            expandSessionRange(id, dataRange);
+            resolve({ imageData, webWorker });
+          })
+          .catch(error => {
+            console.log("Problem reading image array buffer");
+            console.log("webworker", webWorker);
+            console.log("fileName", fileName);
+            console.log(error);
+            reject(error);
+          });
+      };
+
+      io.readAsArrayBuffer(file);
+    }
+  });
 }
 
 function loadFileAndGetData(id) {
-  if (datasetCache.has(id)) {
-    return Promise.resolve(datasetCache.get(id));
-  }
-  var p = loadFile(id).fileP.then(file => {
-    return getData(id, file);
+  return loadFile(id).fileP.then(file => {
+    return getData(id, file, savedWorker)
+      .then(({ webWorker, imageData }) => {
+        savedWorker = webWorker;
+        return Promise.resolve({ imageData });
+      })
+      .catch(error => {
+        const msg = "loadFileAndGetData caught error getting data";
+        console.log(msg);
+        console.log(error);
+        return Promise.reject(msg);
+      })
+      .finally(() => {
+        if (savedWorker) {
+          savedWorker.terminate();
+          savedWorker = null;
+        }
+      });
   });
-  datasetCache.set(id, p);
-  return p;
 }
 
-var calculateCachedPercentage = _.throttle(() => {
-  if (!store.getters.currentExperiment) {
-    return;
-  }
+function getArrayName(filename) {
+  const idx = filename.lastIndexOf(".");
+  const name = idx > -1 ? filename.substring(0, idx) : filename;
+  return `Scalars ${name}`;
+}
 
-  const currentExpId = store.getters.currentExperiment.id;
+function poolFunction(webWorker, taskInfo) {
+  return new Promise((resolve, reject) => {
+    if ("status" in taskInfo) {
+      const { sessionId } = taskInfo;
+      const session = store.state.sessions[sessionId];
+      session.cached = true;
+      store.state.sessionsModifiedTime = new Date().toISOString();
+      resolve({ imageData: null, webWorker });
+    } else {
+      const { id } = taskInfo;
 
-  const expDatasets = store.getters.experimentDatasets(currentExpId);
+      let filePromise = null;
 
-  var percentage =
-    expDatasets.reduce((total, datasetId) => {
-      return total + (datasetCache.has(datasetId) ? 1 : 0);
-    }, 0) / expDatasets.length;
-  store.state.sessionCachedPercentage = percentage;
-}, 500);
+      if (fileCache.has(id)) {
+        filePromise = fileCache.get(id);
+      } else {
+        filePromise = ReaderFactory.downloadDataset(
+          girder.rest,
+          "nifti.nii.gz",
+          `/item/${id}/download`
+        );
+        fileCache.set(id, filePromise);
+      }
 
-async function startReaderWorker() {
-  var data = readDataQueue.shift();
-  if (!data) {
-    return;
-  }
-  if ("status" in data) {
-    const { sessionId } = data;
-    const session = store.state.sessions[sessionId];
-    session.cached = true;
-    store.state.sessionsModifiedTime = new Date().toISOString();
-  } else {
-    var { id, fileP } = data;
-    var file = await fileP;
-    await getData(id, file);
-  }
-  calculateCachedPercentage();
-  if (readDataQueue.length) {
-    setTimeout(() => {
-      startReaderWorker();
+      filePromise
+        .then(file => {
+          resolve(getData(id, file, webWorker));
+        })
+        .catch(err => {
+          console.log("poolFunction: fileP error of some kind");
+          console.log(err);
+          reject(err);
+        });
+    }
+  });
+}
+
+function progressHandler(completed, total) {
+  const percentComplete = completed / total;
+  store.state.sessionCachedPercentage = percentComplete;
+}
+
+function startReaderWorkerPool() {
+  const taskArgsArray = [];
+
+  readDataQueue.forEach(taskInfo => {
+    taskArgsArray.push([taskInfo]);
+  });
+
+  readDataQueue = [];
+
+  const { runId, promise } = workerPool.runTasks(
+    taskArgsArray,
+    progressHandler
+  );
+  taskRunId = runId;
+
+  promise
+    .then(results => {
+      console.log(`WorkerPool finished with ${results.length} results`);
+      taskRunId = -1;
+    })
+    .catch(err => {
+      console.log("startReaderWorkerPool: workerPool error");
+      console.log(err);
+    })
+    .finally(() => {
+      workerPool.terminateWorkers();
     });
-  }
 }
 
 function expandSessionRange(datasetId, dataRange) {

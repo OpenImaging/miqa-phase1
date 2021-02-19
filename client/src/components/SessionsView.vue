@@ -28,6 +28,14 @@ export default {
     orderedExperiments() {
       const allExperiments = this.experiments;
       return this.experimentIds.map(expId => allExperiments[expId]);
+    },
+    loadingIcon() {
+      return this.loadingExperiment
+        ? "mdi-progress-clock"
+        : "mdi-check-circle-outline";
+    },
+    loadingIconColor() {
+      return this.loadingExperiment ? "red" : "green";
     }
   },
   methods: {
