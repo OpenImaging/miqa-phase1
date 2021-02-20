@@ -44,7 +44,7 @@ export default {
       await this.girderRest.get("miqa/data/export");
       this.$prompt({
         title: "Export",
-        text: "Saved data to json file successfully.",
+        text: "Saved data to file successfully.",
         positiveButton: "Ok"
       });
     }

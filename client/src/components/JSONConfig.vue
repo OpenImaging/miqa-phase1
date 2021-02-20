@@ -72,7 +72,10 @@ export default {
           name="miqa-json-exportpath"
           :rules="[
             v => !!v || 'path is required',
-            v => v.endsWith('.json') || 'Needs to be a json file'
+            v =>
+              v.endsWith('.json') ||
+              v.endsWith('.csv') ||
+              'Needs to be a json file'
           ]"
           :error-messages="exportpathError"
       /></v-flex>
