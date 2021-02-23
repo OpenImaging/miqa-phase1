@@ -42,11 +42,11 @@ const store = new Vuex.Store({
     currentDatasetId: null,
     loadingDataset: false,
     errorLoadingDataset: false,
+    loadingExperiment: false,
     currentScreenshot: null,
     screenshots: [],
     sites: null,
-    sessionCachedPercentage: 0,
-    sessionsModifiedTime: new Date().toISOString()
+    sessionCachedPercentage: 0
   },
   getters: {
     currentDataset(state) {
@@ -219,8 +219,6 @@ const store = new Vuex.Store({
             experiment: experimentId
           };
 
-          state.sessionsModifiedTime = new Date().toISOString();
-
           state.sessionDatasets[sessionId] = [];
 
           for (let k = 0; k < session.datasets.length; k++) {
@@ -374,9 +372,6 @@ function checkLoadExperiment(oldValue, newValue) {
         fileCache.delete(datasetId);
         datasetCache.delete(datasetId);
       });
-      const session = store.state.sessions[sessionId];
-      session.cached = false;
-      store.state.sessionsModifiedTime = new Date().toISOString();
     });
   }
 
@@ -386,10 +381,6 @@ function checkLoadExperiment(oldValue, newValue) {
     const sessionDatasets = store.state.sessionDatasets[sessionId];
     sessionDatasets.forEach(datasetId => {
       readDataQueue.push({ id: datasetId });
-    });
-    readDataQueue.push({
-      status: "sessionLoaded",
-      sessionId
     });
   });
   startReaderWorkerPool();
@@ -495,38 +486,30 @@ function getArrayName(filename) {
 
 function poolFunction(webWorker, taskInfo) {
   return new Promise((resolve, reject) => {
-    if ("status" in taskInfo) {
-      const { sessionId } = taskInfo;
-      const session = store.state.sessions[sessionId];
-      session.cached = true;
-      store.state.sessionsModifiedTime = new Date().toISOString();
-      resolve({ imageData: null, webWorker });
+    const { id } = taskInfo;
+
+    let filePromise = null;
+
+    if (fileCache.has(id)) {
+      filePromise = fileCache.get(id);
     } else {
-      const { id } = taskInfo;
-
-      let filePromise = null;
-
-      if (fileCache.has(id)) {
-        filePromise = fileCache.get(id);
-      } else {
-        filePromise = ReaderFactory.downloadDataset(
-          girder.rest,
-          "nifti.nii.gz",
-          `/item/${id}/download`
-        );
-        fileCache.set(id, filePromise);
-      }
-
-      filePromise
-        .then(file => {
-          resolve(getData(id, file, webWorker));
-        })
-        .catch(err => {
-          console.log("poolFunction: fileP error of some kind");
-          console.log(err);
-          reject(err);
-        });
+      filePromise = ReaderFactory.downloadDataset(
+        girder.rest,
+        "nifti.nii.gz",
+        `/item/${id}/download`
+      );
+      fileCache.set(id, filePromise);
     }
+
+    filePromise
+      .then(file => {
+        resolve(getData(id, file, webWorker));
+      })
+      .catch(err => {
+        console.log("poolFunction: fileP error of some kind");
+        console.log(err);
+        reject(err);
+      });
   });
 }
 
@@ -537,6 +520,8 @@ function progressHandler(completed, total) {
 
 function startReaderWorkerPool() {
   const taskArgsArray = [];
+
+  store.state.loadingExperiment = true;
 
   readDataQueue.forEach(taskInfo => {
     taskArgsArray.push([taskInfo]);
@@ -560,6 +545,7 @@ function startReaderWorkerPool() {
       console.log(err);
     })
     .finally(() => {
+      store.state.loadingExperiment = false;
       workerPool.terminateWorkers();
     });
 }

@@ -19,12 +19,12 @@ export default {
       "experiments",
       "experimentIds",
       "experimentSessions",
+      "loadingExperiment",
       "sessions",
       "sessionDatasets",
-      "sessionsModifiedTime",
       "datasets"
     ]),
-    ...mapGetters(["currentSession"]),
+    ...mapGetters(["currentSession", "currentExperiment"]),
     orderedExperiments() {
       const allExperiments = this.experiments;
       return this.experimentIds.map(expId => allExperiments[expId]);
@@ -74,15 +74,24 @@ export default {
         class="body-2"
         :key="`e.${experiment.id}`"
       >
-        {{ experiment.name }}
+        <v-card flat class="d-flex justify-space-between pr-2">
+          <v-card flat> {{ experiment.name }} </v-card>
+          <v-card flat>
+            <v-icon
+              :color="loadingIconColor"
+              v-show="experiment === currentExperiment"
+            >
+              {{ loadingIcon }}
+            </v-icon>
+          </v-card>
+        </v-card>
         <ul class="sessions">
           <li
             v-for="session of sessionsForExperiment(experiment.id)"
             class="body-1"
-            :key="`s.${session.id}-${sessionsModifiedTime}`"
+            :key="`s.${session.id}`"
             :class="{
-              current: session === currentSession,
-              cached: session.cached
+              current: session === currentSession
             }"
           >
             <v-btn
