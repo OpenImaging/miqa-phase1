@@ -308,7 +308,7 @@ export default {
         const self = this;
         this.advanceTimeoutId = window.setTimeout(function() {
           window.requestAnimationFrame(self.advanceLoop);
-        }, 500);
+        }, 300);
       }
     },
     handleMouseUp() {
