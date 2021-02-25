@@ -75,7 +75,7 @@ export default {
             v =>
               v.endsWith('.json') ||
               v.endsWith('.csv') ||
-              'Needs to be a json file'
+              'Needs to be a json or csv file'
           ]"
           :error-messages="exportpathError"
       /></v-flex>
