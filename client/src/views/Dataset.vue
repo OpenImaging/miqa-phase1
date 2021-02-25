@@ -47,7 +47,9 @@ export default {
     showNotePopup: false,
     keyboardShortcutDialog: false,
     scanning: false,
-    direction: "forward"
+    direction: "forward",
+    advanceTimeoutId: null,
+    nextAnimRequest: null
   }),
   computed: {
     ...mapState([
@@ -282,29 +284,43 @@ export default {
       this.$router.push(datasetId).catch(this.handleNavigationError);
     },
     updateImage() {
+      if (this.direction === "back") {
+        this.$router
+          .push(this.previousDataset ? this.previousDataset : "")
+          .catch(this.handleNavigationError);
+      } else {
+        this.$router
+          .push(this.nextDataset ? this.nextDataset : "")
+          .catch(this.handleNavigationError);
+      }
+    },
+    advanceLoop() {
       if (this.scanning) {
-        if (this.direction === "back") {
-          this.$router
-            .push(this.previousDataset ? this.previousDataset : "")
-            .catch(this.handleNavigationError);
-        } else {
-          this.$router
-            .push(this.nextDataset ? this.nextDataset : "")
-            .catch(this.handleNavigationError);
-        }
-        this.nextAnimRequest = window.requestAnimationFrame(this.updateImage);
+        this.updateImage();
+        this.nextAnimRequest = window.requestAnimationFrame(this.advanceLoop);
       }
     },
     handleMouseDown(direction) {
       if (!this.scanning) {
-        this.direction = direction;
         this.scanning = true;
-        this.nextAnimRequest = window.requestAnimationFrame(this.updateImage);
+        this.direction = direction;
+        this.updateImage();
+        const self = this;
+        this.advanceTimeoutId = window.setTimeout(function() {
+          window.requestAnimationFrame(self.advanceLoop);
+        }, 500);
       }
     },
     handleMouseUp() {
       this.scanning = false;
-      window.cancelAnimationFrame(this.nextAnimRequest);
+      if (this.advanceTimeoutId !== null) {
+        window.clearTimeout(this.advanceTimeoutId);
+        this.advanceTimeoutId = null;
+      }
+      if (this.nextAnimRequest !== null) {
+        window.cancelAnimationFrame(this.nextAnimRequest);
+        this.nextAnimRequest = null;
+      }
     }
   }
 };
