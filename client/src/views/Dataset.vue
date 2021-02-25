@@ -49,7 +49,8 @@ export default {
     scanning: false,
     direction: "forward",
     advanceTimeoutId: null,
-    nextAnimRequest: null
+    nextAnimRequest: null,
+    noteLastSaveTime: new Date().toISOString(),
   }),
   computed: {
     ...mapState([
@@ -76,6 +77,14 @@ export default {
       return this.sessionDatasets[this.currentSession.id];
     },
     note() {
+      // TODO: This reference to the "lastNoteSaveTime" is here purely to get
+      // TODO: vue to re-compute the note property, since it does not naturally
+      // TODO: react to the changed "meta.note" property in the currentSession.
+      // TODO: Without this reference, when you save a new note on a scan, it
+      // TODO: gets updated in girder as well as in the currentSession, but it
+      // TODO: does not appear in the UI.  We need to figure out how to fix
+      // TODO: this properly.
+      this.noteLastSaveTime
       if (this.currentSession && this.currentSession.meta) {
         return this.currentSession.meta.note;
       } else {
@@ -210,6 +219,7 @@ export default {
       this.currentSession.meta = meta;
       this.reviewer = meta.reviewer;
       this.reviewChanged = false;
+      this.noteLastSaveTime = new Date().toISOString();
     },
     enableEditHistroy() {
       this.editingNoteDialog = true;
@@ -228,6 +238,7 @@ export default {
       );
       this.currentSession.meta = meta;
       this.editingNoteDialog = false;
+      this.noteLastSaveTime = new Date().toISOString();
     },
     async unsavedDialogYes() {
       await this.save();
