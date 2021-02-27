@@ -666,14 +666,6 @@ export default {
                       <v-btn
                         text
                         small
-                        value="questionable"
-                        color="orange"
-                        :disabled="!newNote && !note"
-                        ><b>?</b></v-btn
-                      >
-                      <v-btn
-                        text
-                        small
                         value="good"
                         color="green"
                         v-mousetrap="{

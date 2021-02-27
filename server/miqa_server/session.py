@@ -28,25 +28,23 @@ from .schema.data_import import schema
 def convertRatingToDecision(rating):
     return {
         None: 0,
-        'questionable': 0,
+        '': 0,
+        'bad': 0,
         'good': 1,
-        'usableExtra': 2,
-        'bad': -1
+        'usableExtra': 2
     }[rating]
 
 
 def convertDecisionToRating(decision):
-    if decision == '':
-        return 'questionable'
+    if decision == None or decision == '':
+        return 'bad'
     num_decision = int(decision)
     if num_decision == 0:
-        return 'questionable'
+        return 'bad'
     elif num_decision == 1:
         return 'good'
     elif num_decision == 2:
         return 'usableExtra'
-    elif num_decision == -1:
-        return 'bad'
     return 'unknown'
 
 

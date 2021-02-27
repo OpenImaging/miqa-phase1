@@ -49,14 +49,14 @@ export default {
     },
     ratingToLabel(rating) {
       switch (rating) {
-        case "questionable":
-          return "Q";
         case "good":
           return "G";
-        case "bad":
-          return "B";
         case "usableExtra":
           return "E";
+        case null:
+        case "":
+        case "bad":
+          return "B";
       }
     }
   }
