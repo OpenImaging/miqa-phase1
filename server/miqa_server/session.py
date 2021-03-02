@@ -27,8 +27,8 @@ from .schema.data_import import schema
 
 def convertRatingToDecision(rating):
     return {
-        None: 0,
-        '': 0,
+        None: '',
+        '': '',
         'bad': 0,
         'good': 1,
         'usableExtra': 2
@@ -37,7 +37,7 @@ def convertRatingToDecision(rating):
 
 def convertDecisionToRating(decision):
     if decision == None or decision == '':
-        return 'bad'
+        return ''
     num_decision = int(decision)
     if num_decision == 0:
         return 'bad'

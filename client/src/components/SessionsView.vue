@@ -53,10 +53,11 @@ export default {
           return "G";
         case "usableExtra":
           return "E";
-        case null:
-        case "":
         case "bad":
           return "B";
+        case null:
+        case "":
+          return "";
       }
     }
   }
