@@ -51,6 +51,19 @@ def zip_zchunkstore(zip_file, url=None):
 
     return zchunkstore
 
+def compute_ranges(image_da):
+    ranges = []
+    if 'c' in image_da.dims:
+        for component in image_da['c']:
+            component_values = image_da.sel({'c':component})
+            range_ = [float(component_values.min()), float(component_values.max())]
+            ranges.append(range_)
+    else:
+        range_ = [float(image_da.min()), float(image_da.max())]
+        ranges.append(range_)
+
+    return ranges
+
 
 def compress_encode(input_filepath,
                     output_directory,
@@ -61,9 +74,13 @@ def compress_encode(input_filepath,
                     shuffle=True,
                     zip_chunk_store=True,
                     zip_store_url=None):
+    dataset_name = Path(input_filepath).stem
+    dataset_name = Path(dataset_name).stem
+
     image = itk.imread(input_filepath)
     image_da = itk.xarray_from_image(image)
-    dataset_name = Path(input_filepath).stem
+    ranges = compute_ranges(image_da)
+    image_da.attrs['ranges'] = ranges
     image_ds = image_da.to_dataset(name=dataset_name)
 
     store_name = output_directory
@@ -86,7 +103,7 @@ def compress_encode(input_filepath,
         # multi-resolution pyramid
         pyramid = [image_da]
         reduced = image
-        while not np.all(np.array(itk.size(reduced)) < 64):
+        while not np.all(np.array(itk.size(reduced)) < chunk_size):
             scale = len(pyramid)
             shrink_factors = [2]*image.GetImageDimension()
             for i, s in enumerate(itk.size(reduced)):
@@ -94,6 +111,8 @@ def compress_encode(input_filepath,
                     shrink_factors[i] = 1
             reduced = itk.bin_shrink_image_filter(reduced, shrink_factors=shrink_factors)
             reduced_da = itk.xarray_from_image(reduced).copy()
+            ranges = compute_ranges(reduced_da)
+            reduced_da.attrs['ranges'] = ranges
             pyramid.append(reduced_da)
 
         for scale in range(1, len(pyramid)):
