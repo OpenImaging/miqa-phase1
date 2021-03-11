@@ -200,13 +200,6 @@ class Session(Resource):
                 meta['rating'] = convertDecisionToRating(scan['decision'])
             if 'note' in scan:
                 meta['note'] = scan['note']
-            # Merge note and rating if record exists
-            if existingSessionsFolder:
-                existingMeta = self.tryGetExistingSessionMeta(
-                    existingSessionsFolder, experimentId, scanName)
-                if(existingMeta and (existingMeta.get('note', None) or existingMeta.get('rating', None))):
-                    meta['note'] = existingMeta.get('note', None)
-                    meta['rating'] = existingMeta.get('rating', None)
             Folder().setMetadata(scanFolder, meta)
             currentAssetstore = Assetstore().getCurrent()
             if 'images' in scan:
@@ -276,7 +269,6 @@ class Session(Resource):
             raise RestException('doesn\'t contain a json item', code=404)
         jsonItem = items[0]
         # Next TODO: read, format, and stream back the json version of the export
-        logger.info(jsonItem)
         original_json_object = json.loads(jsonItem['description'])
 
         for scan in original_json_object['scans']:

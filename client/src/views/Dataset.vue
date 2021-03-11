@@ -50,7 +50,7 @@ export default {
     direction: "forward",
     advanceTimeoutId: null,
     nextAnimRequest: null,
-    noteLastSaveTime: new Date().toISOString(),
+    noteLastSaveTime: new Date().toISOString()
   }),
   computed: {
     ...mapState([
@@ -84,7 +84,7 @@ export default {
       // TODO: gets updated in girder as well as in the currentSession, but it
       // TODO: does not appear in the UI.  We need to figure out how to fix
       // TODO: this properly.
-      this.noteLastSaveTime
+      this.noteLastSaveTime;
       if (this.currentSession && this.currentSession.meta) {
         return this.currentSession.meta.note;
       } else {
@@ -260,7 +260,8 @@ export default {
       }
     },
     setNote(e) {
-      this.newNote = e.target.value;
+      this.newNote = e;
+      this.reviewChanged = true;
     },
     async ratingChanged() {
       if (!this.rating) {
@@ -482,12 +483,9 @@ export default {
                     @input="debouncedDatasetSliderChange($event - 1)"
                   ></v-slider>
                 </v-flex>
-                <v-flex shrink>
-                  {{ Math.round(sessionCachedPercentage * 100) }}%
-                </v-flex>
               </v-layout>
-              <v-layout align-center class="bottom-row">
-                <v-flex shrink>
+              <v-layout align-center class="bottom-row ml-3 mr-1">
+                <v-row justify="start">
                   <v-btn
                     fab
                     small
@@ -501,9 +499,13 @@ export default {
                   >
                     <v-icon>fast_rewind</v-icon>
                   </v-btn>
-                </v-flex>
-                <v-spacer />
-                <v-flex shrink>
+                </v-row>
+                <v-row justify="center">
+                  <div class="load-completion">
+                    {{ Math.round(sessionCachedPercentage * 100) }}%
+                  </div>
+                </v-row>
+                <v-row justify="end">
                   <v-btn
                     fab
                     small
@@ -515,7 +517,7 @@ export default {
                   >
                     <v-icon>fast_forward</v-icon>
                   </v-btn>
-                </v-flex>
+                </v-row>
               </v-layout>
             </v-flex>
             <v-flex xs4 class="mx-2">
@@ -612,8 +614,7 @@ export default {
                       label="Note"
                       solo
                       hide-details
-                      @blur="setNote($event)"
-                      @input="reviewChanged = true"
+                      @input="setNote($event)"
                       :value="this.newNote"
                       ref="note"
                       v-mousetrap="{ bind: 'n', handler: focusNote }"
@@ -643,7 +644,7 @@ export default {
                     </v-tooltip>
                   </v-col>
                 </v-row>
-                <v-row no-gutters class="pb-1">
+                <v-row no-gutters justify="space-between" class="pb-1">
                   <v-col cols="6" class="pb-1 pt-0" v-if="userLevel.value <= 2">
                     <v-btn-toggle
                       class="buttons"
@@ -687,23 +688,15 @@ export default {
                       >
                     </v-btn-toggle>
                   </v-col>
-                  <v-col cols="4" class="pb-1 pt-0">
-                    <v-text-field
-                      class="small"
-                      label="Reviewer"
-                      solo
-                      disabled
-                      hide-details
-                      :value="reviewer"
-                    ></v-text-field>
-                  </v-col>
                   <v-col cols="2" class="pb-1 pt-0">
                     <v-btn
                       color="primary"
                       class="ma-0"
                       style="height: 36px"
                       small
-                      :disabled="!reviewChanged"
+                      :disabled="
+                        !reviewChanged || rating === null || rating === ''
+                      "
                       @click="save"
                       v-mousetrap="{ bind: 'alt+s', handler: save }"
                     >
@@ -841,6 +834,11 @@ export default {
 </style>
 
 <style lang="scss">
+.load-completion {
+  font-size: 1.1em;
+  /*font-weight: bold;*/
+}
+
 .justifyRight {
   text-align: right;
 }
