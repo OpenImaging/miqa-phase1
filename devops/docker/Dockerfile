@@ -9,7 +9,7 @@ RUN apt-get update && apt-get install -qy \
     libsasl2-dev && \
   apt-get clean && rm -rf /var/lib/apt/lists/*
 
-RUN wget https://bootstrap.pypa.io/3.5/get-pip.py && python3 get-pip.py
+RUN wget https://bootstrap.pypa.io/pip/3.5/get-pip.py && python3 get-pip.py
 
 # See http://click.pocoo.org/5/python3/#python-3-surrogate-handling for more detail on
 # why this is necessary.
