@@ -607,7 +607,7 @@ export default {
                     >
                   </v-col>
                 </v-row>
-                <v-row class="pb-1 pt-1">
+                <v-row class="pb-1 pt-1" v-if="userLevel.value <= 2">
                   <v-col cols="11" class="pb-1 pt-0 pr-0">
                     <v-text-field
                       class="note-field"
@@ -644,15 +644,14 @@ export default {
                     </v-tooltip>
                   </v-col>
                 </v-row>
-                <v-row no-gutters justify="space-between" class="pb-1">
-                  <v-col cols="6" class="pb-1 pt-0" v-if="userLevel.value <= 2">
+                <v-row no-gutters justify="space-between" class="pb-1" v-if="userLevel.value <= 2">
+                  <v-col cols="6" class="pb-1 pt-0">
                     <v-btn-toggle
                       class="buttons"
                       v-model="rating"
                       @change="ratingChanged"
                     >
                       <v-btn
-                        v-if="userLevel.value <= 1"
                         text
                         small
                         value="bad"
