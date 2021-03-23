@@ -2,6 +2,7 @@ import Promise from "bluebird";
 import Vue from "vue";
 import Vuex from "vuex";
 import vtkProxyManager from "vtk.js/Sources/Proxy/Core/ProxyManager";
+import { InterpolationType } from "vtk.js/Sources/Rendering/Core/ImageProperty/Constants";
 import _ from "lodash";
 
 import ReaderFactory from "../utils/ReaderFactory";
@@ -392,6 +393,7 @@ function prepareProxyManager(proxyManager) {
       let view = getView(proxyManager, type);
       view.setOrientationAxesVisibility(false);
       view.getRepresentations().forEach(representation => {
+        representation.setInterpolationType(InterpolationType.NEAREST);
         representation.onModified(() => {
           view.render(true);
         });
