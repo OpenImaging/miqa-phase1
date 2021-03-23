@@ -25,7 +25,7 @@ services:
     command:
       [
         "database:27017",
-        "admin_name=${GIRDER_ADMIN_NAME} admin_pass=${GIRDER_ADMIN_PASS} smtp_server=smtp-relay smtp_port=587 smtp_encryption=none smtp_username= smtp_password= server_url_in_email=${SERVER_URL_IN_EMAIL} sender_address=${SENDER_ADDRESS} sample_data=${SAMPLE_DATA}",
+        "admin_name=${GIRDER_ADMIN_NAME} admin_pass=${GIRDER_ADMIN_PASS} admin_email=${GIRDER_ADMIN_USER_EMAIL} smtp_server=${GIRDER_SMTP_RELAY} smtp_port=${GIRDER_SMTP_PORT} smtp_encryption=${GIRDER_SMTP_CRYPTO} smtp_username=${GIRDER_SMTP_USER} smtp_password=${GIRDER_SMTP_PASSWD} server_url_in_email=${SERVER_URL_IN_EMAIL} sender_address=${SENDER_ADDRESS} sample_data=${SAMPLE_DATA}",
       ]
 
   smtp-relay:
