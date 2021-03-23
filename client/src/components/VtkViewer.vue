@@ -38,9 +38,9 @@ export default {
     displayName() {
       switch (this.name) {
         case "x":
-          return "Coronal";
-        case "y":
           return "Sagittal";
+        case "y":
+          return "Coronal";
         case "z":
           return "Axial";
         default:
