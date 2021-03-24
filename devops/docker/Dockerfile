@@ -20,6 +20,7 @@ ENV LANG=C.UTF-8
 
 ARG GIRDER_API_ROOT=/api/v1
 ARG GIRDER_STATIC_PUBLIC_PATH=/static
+ARG MIQA_SESSION_TIMEOUT=3600
 
 RUN echo "[server]\n\
 api_root = \"${GIRDER_API_ROOT}\"\n\
@@ -36,6 +37,7 @@ RUN girder build
 COPY client /miqa/client
 WORKDIR /miqa/client
 RUN npm install \
+    && export MIQA_SESSION_TIMEOUT=${MIQA_SESSION_TIMEOUT} \
     && npm run build \
     && mv dist /usr/share/girder/static/miqa
 

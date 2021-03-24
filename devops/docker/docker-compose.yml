@@ -13,6 +13,7 @@ services:
       args:
         GIRDER_API_ROOT: ${GIRDER_API_ROOT}
         GIRDER_STATIC_PUBLIC_PATH: ${GIRDER_STATIC_PUBLIC_PATH}
+        MIQA_SESSION_TIMEOUT: ${MIQA_SESSION_TIMEOUT}
 
     ports:
       - "${PORT}:8080"

@@ -644,7 +644,12 @@ export default {
                     </v-tooltip>
                   </v-col>
                 </v-row>
-                <v-row no-gutters justify="space-between" class="pb-1" v-if="userLevel.value <= 2">
+                <v-row
+                  no-gutters
+                  justify="space-between"
+                  class="pb-1"
+                  v-if="userLevel.value <= 2"
+                >
                   <v-col cols="6" class="pb-1 pt-0">
                     <v-btn-toggle
                       class="buttons"

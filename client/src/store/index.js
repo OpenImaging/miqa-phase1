@@ -28,6 +28,9 @@ const poolSize = navigator.hardwareConcurrency / 2 || 2;
 let workerPool = new WorkerPool(poolSize, poolFunction);
 let taskRunId = -1;
 let savedWorker = null;
+let mutationUnsubscribe = null;
+let actionUnsubscribe = null;
+let sessionTimeoutId = null;
 
 const store = new Vuex.Store({
   state: {
@@ -47,7 +50,8 @@ const store = new Vuex.Store({
     currentScreenshot: null,
     screenshots: [],
     sites: null,
-    sessionCachedPercentage: 0
+    sessionCachedPercentage: 0,
+    sessionTimeoutSeconds: parseInt(process.env.MIQA_SESSION_TIMEOUT)
   },
   getters: {
     currentDataset(state) {
@@ -351,6 +355,12 @@ const store = new Vuex.Store({
     async loadSites({ state }) {
       let { data: sites } = await girder.rest.get("miqa_setting/site");
       state.sites = sites;
+    },
+    startSessionTimer({ state }) {
+      console.log(
+        `Starting session timer, auto logout in ${state.sessionTimeoutSeconds} seconds`
+      );
+      startInactivityMonitor();
     }
   }
 });
@@ -396,6 +406,7 @@ function prepareProxyManager(proxyManager) {
         representation.setInterpolationType(InterpolationType.NEAREST);
         representation.onModified(() => {
           view.render(true);
+          resetSessionTimeout();
         });
       });
     });
@@ -553,14 +564,81 @@ function startReaderWorkerPool() {
 }
 
 function expandSessionRange(datasetId, dataRange) {
-  const sessionId = store.state.datasets[datasetId].session;
-  const session = store.state.sessions[sessionId];
-  if (dataRange[0] < session.cumulativeRange[0]) {
-    session.cumulativeRange[0] = dataRange[0];
+  if (datasetId in store.state.datasets) {
+    const sessionId = store.state.datasets[datasetId].session;
+    const session = store.state.sessions[sessionId];
+    if (dataRange[0] < session.cumulativeRange[0]) {
+      session.cumulativeRange[0] = dataRange[0];
+    }
+    if (dataRange[1] > session.cumulativeRange[1]) {
+      session.cumulativeRange[1] = dataRange[1];
+    }
   }
-  if (dataRange[1] > session.cumulativeRange[1]) {
-    session.cumulativeRange[1] = dataRange[1];
+}
+
+function resetState() {
+  if (taskRunId >= 0) {
+    workerPool.cancel(taskRunId);
+    taskRunId = -1;
   }
+
+  store.state.drawer = false;
+  store.state.experimentIds = [];
+  store.state.experiments = {};
+  store.state.experimentSessions = {};
+  store.state.sessions = {};
+  store.state.sessionDatasets = {};
+  store.state.datasets = {};
+  store.state.proxyManager = null;
+  store.state.vtkViews = [];
+  store.state.currentDatasetId = null;
+  store.state.loadingDataset = false;
+  store.state.errorLoadingDataset = false;
+  store.state.loadingExperiment = false;
+  store.state.currentScreenshot = null;
+  store.state.screenshots = [];
+  store.state.sites = null;
+  store.state.sessionCachedPercentage = 0;
+
+  fileCache.clear();
+  datasetCache.clear();
+}
+
+function autoLogout() {
+  sessionTimeoutId = null;
+  resetState();
+  girder.rest.logout();
+}
+
+function _resetSessionTimeout() {
+  if (sessionTimeoutId) {
+    window.clearTimeout(sessionTimeoutId);
+    sessionTimeoutId = null;
+  }
+  sessionTimeoutId = window.setTimeout(
+    autoLogout,
+    store.state.sessionTimeoutSeconds * 1000
+  );
+}
+
+const resetSessionTimeout = _.throttle(_resetSessionTimeout, 1000);
+
+function startInactivityMonitor() {
+  resetSessionTimeout();
+
+  if (mutationUnsubscribe !== null) {
+    mutationUnsubscribe();
+    mutationUnsubscribe = null;
+  }
+  mutationUnsubscribe = store.subscribe(_.throttle(resetSessionTimeout, 1000));
+
+  if (actionUnsubscribe !== null) {
+    actionUnsubscribe();
+    actionUnsubscribe = null;
+  }
+  actionUnsubscribe = store.subscribeAction(
+    _.throttle(resetSessionTimeout, 1000)
+  );
 }
 
 export default store;
