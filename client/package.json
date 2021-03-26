@@ -16,7 +16,8 @@
     "vue": "^2.6.10",
     "vue-async-computed": "^3.5.1",
     "vue-router": "3.4.3",
-    "vuetify": "^2.3.7",
+    "vuetify": "2.3.22",
+    "vue-google-charts": "0.3.3",
     "vuex": "^3.0.1"
   },
   "devDependencies": {

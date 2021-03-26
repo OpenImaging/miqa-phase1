@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 Created on Tue Jun 11 11:58:18 2019
@@ -64,7 +64,7 @@ def group_by_subject(list_of_scans):
     
     return subject_wise
 
-def get_initial_dict(name = "Project", License = "ABC", funding = "XYZ", 
+def get_initial_dict(name = "Project", License = "ABC", funding = ["UVW", "XYZ"], 
                      refs_and_links = ["paper1", "paper2"], DatabaseDOI = "mm/dd/yyyy", 
                      authors = ["author1", "author2", "author3"], 
                      bids_version="1.0.2", ):
@@ -77,7 +77,7 @@ def get_initial_dict(name = "Project", License = "ABC", funding = "XYZ",
         "BIDSVersion": "1.0.2" or the version you are using,
         "License": License under which your data is distributed,
         "Authors": ["Author1", "Author2", "Author3", "etc."],
-        "funding": Put your funding sources here,
+        "funding": ["Put your funding sources here", "as a list"],
         "refs_and_links": ["e.g. data-paper", "(methods-)paper", "etc."],
         "DatasetDOI": DOI of dataset (if there is one)
     
@@ -214,4 +214,4 @@ def main():
 if __name__ == '__main__':
     main()
     
-    
+

@@ -48,6 +48,13 @@ properties = {
                     'items': {'type': 'string'},
                 },
                 'imagePattern': {'type': 'string'},
+                'iqms': {'type': 'string'},
+                'good_prob': {
+                    'oneOf': [
+                        {'type': 'number'},
+                        {'type': 'string'},
+                    ],
+                },
             },
             'oneOf': [
                 { 'required': ['experiment_id', 'path', 'site_id', 'id', 'type', 'images'], },

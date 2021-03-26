@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 Created on Fri Jun 21 10:13:52 2019
@@ -42,7 +42,6 @@ def process_json_file(json_path):
              'spacing_' not in k and 'size_' not in k):
             iqm_values[k] = data[k]
             iqms.append(k)
-    
     return iqms, iqm_values
     
 

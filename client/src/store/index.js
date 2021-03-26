@@ -58,6 +58,10 @@ const store = new Vuex.Store({
         return state.datasets[datasetId];
       };
     },
+    allDatasets(state) {
+      console.log('allDatasets');
+      return Object.keys(state.datasets).map(dsId => state.datasets[dsId]);
+    },
     currentSession(state, getters) {
       if (getters.currentDataset) {
         const curSessionId = getters.currentDataset.session;

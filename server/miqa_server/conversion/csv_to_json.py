@@ -54,7 +54,7 @@ def csvContentToJsonObject(csvContent):
         nifti_folder = scan['nifti_folder']
         subdir = nifti_folder.split(common_path_prefix)[1]
         if 'site' in scan:
-            site = site['scan']
+            site = scan['site']
         elif nifti_folder.startswith('/fs/storage/XNAT/archive/'):
             # Special case handling to match previous implementation
             splits = nifti_folder.split('/')
@@ -73,6 +73,10 @@ def csvContentToJsonObject(csvContent):
         }
         if 'decision' in scan:
             scan_obj['decision'] = scan['decision']
+        if 'IQMs' in scan:
+            scan_obj['iqms'] = scan['IQMs']
+        if 'good_prob' in scan:
+            scan_obj['good_prob'] = scan['good_prob']
         scans.append(scan_obj)
 
     # Build list of unique experiments
