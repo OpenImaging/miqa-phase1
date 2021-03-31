@@ -1,30 +1,27 @@
+import argparse
 import logging
+import math
 import os
 import sys
 from pathlib import Path
-import math
 
-import pandas as pd
-
+import itk
+import monai
 import numpy as np
+import pandas as pd
 import torch
+import wandb
+from monai.metrics import compute_roc_auc
+from monai.networks.layers.factories import Act
+from monai.networks.nets.regressor import Regressor
+from monai.transforms import AddChanneld, Compose, LoadImaged, ScaleIntensityd, ToTensord
+from sklearn.metrics import confusion_matrix, classification_report
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 
-import itk
-
-import wandb
-
-import monai
-from monai.networks.layers.factories import Act
-from monai.networks.nets.regressor import Regressor
-from monai.metrics import compute_roc_auc
-from monai.transforms import AddChanneld, Compose, LoadImaged, RandSpatialCropd, ScaleIntensityd, ToTensord
-
-from sklearn.metrics import confusion_matrix, classification_report
-
 existing_count = 0
 missing_count = 0
+predict_hd_data_root = "P:/PREDICTHD_BIDS_DEFACE/"
 
 
 def get_image_dimension(path):
@@ -59,7 +56,7 @@ def construct_path_from_csv_fields(participant_id, session_id, series_type, seri
         scan_type = series_type[0:2] + "w"
     if overall_qa_assessment < 6:
         scan_type = "BAD" + scan_type
-    file_name = "P:/PREDICTHD_BIDS_DEFACE/" + sub_num + "/" + ses_num + "/anat/" + \
+    file_name = predict_hd_data_root + sub_num + "/" + ses_num + "/anat/" + \
                 sub_num + "_" + ses_num + "_" + run_num + "_" + scan_type + ".nii.gz"
     return file_name
 
@@ -311,14 +308,14 @@ def train_and_save_model(df, count_train, save_path, num_epochs, val_interval, o
     return sizes
 
 
-def main(validation_fold, evaluate_only):
+def process_folds(folds_prefix, validation_fold, evaluate_only):
     monai.config.print_config()
     logging.basicConfig(stream=sys.stdout, level=logging.INFO)
     wandb.init(project="miqa_01", sync_tensorboard=True)
 
     folds = []
     for f in range(3):
-        folds.append(pd.read_csv(f"M:/Dev/zarr/T1_fold{f}.csv"))
+        folds.append(pd.read_csv(folds_prefix + f"{f}.csv"))
 
     df = pd.concat(folds)
     print(df)
@@ -336,18 +333,29 @@ def main(validation_fold, evaluate_only):
 
 
 if __name__ == "__main__":
-    # df = read_and_normalize_data_frame(r'P:\PREDICTHD_BIDS_DEFACE\phenotype\bids_image_qc_information.tsv')
-    # print(df)
-    # df.to_csv(r'M:\Dev\zarr\bids_image_qc_information-my.csv', index=False)
-    # print("CSV file created successfully")
-    # sys.exit(0)
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--predicthd', '-p', help="Path to PredictHD data", type=str)
+    parser.add_argument('--ncanda', '-n', help="Path to NCANDA data", type=str)
+    parser.add_argument('--folds', '-f', help="Prefix to folds CSVs", type=str)
+    parser.add_argument('--vfold', '-v', help="Which fold to use for validation", type=int, default=2)
+    # add bool for evaluation
+    parser.add_argument('--evaluate-only', dest='evaluate', action='store_true')
+    parser.add_argument('--train', dest='evaluate', action='store_false')
+    parser.set_defaults(evaluate=False)
 
-    fold = 2
-    if len(sys.argv) > 1:
-        fold = int(sys.argv[1])
+    args = parser.parse_args()
+    # print(args)
 
-    evaluation_only = False
-    if len(sys.argv) > 2:
-        evaluation_only = (int(sys.argv[2]) != 0)
-
-    main(fold, evaluation_only)
+    if args.folds is not None:
+        process_folds(args.folds, args.vfold, args.evaluate)
+    elif args.predicthd is not None:
+        predict_hd_data_root = args.predicthd
+        df = read_and_normalize_data_frame(predict_hd_data_root + r'phenotype/bids_image_qc_information.tsv')
+        print(df)
+        df.to_csv('bids_image_qc_information-my.csv', index=False)
+        print("CSV file created successfully")
+    elif args.ncanda is not None:
+        print("Adding support for NCANDA data is a TODO")
+    else:
+        print("Not enough arguments specified")
+        print(parser.format_help())
