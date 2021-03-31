@@ -336,10 +336,11 @@ def main(validation_fold, evaluate_only):
 
 
 if __name__ == "__main__":
-    # df = readAndNormalizeDataFrame(r'P:\PREDICTHD_BIDS_DEFACE\phenotype\bids_image_qc_information.tsv')
+    # df = read_and_normalize_data_frame(r'P:\PREDICTHD_BIDS_DEFACE\phenotype\bids_image_qc_information.tsv')
     # print(df)
     # df.to_csv(r'M:\Dev\zarr\bids_image_qc_information-my.csv', index=False)
-    # return
+    # print("CSV file created successfully")
+    # sys.exit(0)
 
     fold = 2
     if len(sys.argv) > 1:
