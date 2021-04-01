@@ -352,8 +352,9 @@ if __name__ == "__main__":
         predict_hd_data_root = args.predicthd
         df = read_and_normalize_data_frame(predict_hd_data_root + r'phenotype/bids_image_qc_information.tsv')
         print(df)
-        df.to_csv('bids_image_qc_information-my.csv', index=False)
-        print("CSV file created successfully")
+        full_path = Path('bids_image_qc_information-customized.csv').absolute()
+        df.to_csv(full_path, index=False)
+        print(f"CSV file written: {full_path}")
     elif args.ncanda is not None:
         print("Adding support for NCANDA data is a TODO")
     else:
