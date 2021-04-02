@@ -250,7 +250,10 @@ def train_and_save_model(df, count_train, save_path, num_epochs, val_interval, o
     writer = SummaryWriter(log_dir=wandb.run.dir)
 
     if only_evaluate:
-        evaluate_model(model, val_loader, device, writer, 0, "eval")
+        print("Evaluating NN model on validation data")
+        evaluate_model(model, val_loader, device, writer, 0, "val")
+        print("Evaluating NN model on training data")
+        evaluate_model(model, train_loader, device, writer, 0, "train")
         return sizes
 
     for epoch in range(num_epochs):
