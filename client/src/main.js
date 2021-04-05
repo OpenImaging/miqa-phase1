@@ -43,6 +43,12 @@ window.store = store;
 
 Vue.config.productionTip = true;
 
+// Disable console log on production
+if (process.env.NODE_ENV === "production") {
+  // eslint-disable-next-line no-console
+  console.log = function() {};
+}
+
 girder.rest.fetchUser().then(() => {
   new Vue({
     vuetify,
