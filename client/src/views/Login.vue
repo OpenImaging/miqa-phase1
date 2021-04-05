@@ -1,4 +1,5 @@
 <script>
+import { mapActions } from "vuex";
 import { Authentication as GirderAuth } from "@girder/components/src/components";
 
 export default {
@@ -13,10 +14,14 @@ export default {
       userDialog: true
     };
   },
+  methods: {
+    ...mapActions(["startSessionTimer"])
+  },
   watch: {
     "girderRest.user"(user) {
       if (user) {
         this.$router.push("/");
+        this.startSessionTimer();
       }
     }
   }

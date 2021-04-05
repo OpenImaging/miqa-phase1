@@ -10,13 +10,13 @@
   "dependencies": {
     "@girder/components": "git+https://github.com/girder/girder_web_components.git#v2.2.6",
     "bluebird": "^3.5.5",
-    "itk": "^9.1.1",
+    "itk": "14.0.0",
     "mousetrap": "scottwittenburg/mousetrap#fix-listener-leak",
     "vtk.js": "14.16.5",
     "vue": "^2.6.10",
     "vue-async-computed": "^3.5.1",
     "vue-router": "3.4.3",
-    "vuetify": "^2.3.7",
+    "vuetify": "2.3.22",
     "vuex": "^3.0.1"
   },
   "devDependencies": {

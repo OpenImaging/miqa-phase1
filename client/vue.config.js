@@ -34,7 +34,8 @@ module.exports = {
         "process.env": {
           VERSION: JSON.stringify(require("./package.json").version)
         }
-      })
+      }),
+      new webpack.EnvironmentPlugin(["MIQA_SESSION_TIMEOUT"])
     ]
   },
   chainWebpack: config => {

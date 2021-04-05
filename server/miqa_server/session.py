@@ -19,9 +19,33 @@ from girder.models.setting import Setting
 from girder.utility.progress import noProgress
 
 from .conversion.csv_to_json import csvContentToJsonObject
+from .conversion.json_to_csv import jsonObjectToCsvContent
 from .setting import fileWritable, tryAddSites
 from .constants import exportpathKey, importpathKey
 from .schema.data_import import schema
+
+
+def convertRatingToDecision(rating):
+    return {
+        None: '',
+        '': '',
+        'bad': 0,
+        'good': 1,
+        'usableExtra': 2
+    }[rating]
+
+
+def convertDecisionToRating(decision):
+    if decision == None or decision == '':
+        return ''
+    num_decision = int(decision)
+    if num_decision == 0:
+        return 'bad'
+    elif num_decision == 1:
+        return 'good'
+    elif num_decision == 2:
+        return 'usableExtra'
+    return 'unknown'
 
 
 class Session(Resource):
@@ -172,13 +196,10 @@ class Session(Resource):
                 'scanId': scanId,
                 'scanType': scanType
             }
-            # Merge note and rating if record exists
-            if existingSessionsFolder:
-                existingMeta = self.tryGetExistingSessionMeta(
-                    existingSessionsFolder, experimentId, scanName)
-                if(existingMeta and (existingMeta.get('note', None) or existingMeta.get('rating', None))):
-                    meta['note'] = existingMeta.get('note', None)
-                    meta['rating'] = existingMeta.get('rating', None)
+            if 'decision' in scan:
+                meta['rating'] = convertDecisionToRating(scan['decision'])
+            if 'note' in scan:
+                meta['note'] = scan['note']
             Folder().setMetadata(scanFolder, meta)
             currentAssetstore = Assetstore().getCurrent()
             if 'images' in scan:
@@ -228,27 +249,26 @@ class Session(Resource):
     def dataExport(self, params):
         exportpath = os.path.expanduser(Setting().get(exportpathKey))
         if not fileWritable(exportpath):
-            raise RestException('export json file is not writable', code=500)
-        output = self.getExportJSON()
-        with open(exportpath, 'w') as json_file:
-            json_file.write(output)
+            raise RestException('export file path is not writable', code=500)
 
-    def getExportJSON(self):
-        def convertRatingToDecision(rating):
-            return {
-                None: 0,
-                'questionable': 0,
-                'good': 1,
-                'usableExtra': 2,
-                'bad': -1
-            }[rating]
+        output = None
+
+        if exportpath.endswith('.csv'):
+            csvStringIO = self.getExportCSV()
+            output = csvStringIO.getvalue()
+        else:
+            output = self.getExportJSON()
+
+        with open(exportpath, 'w') as fd:
+            fd.write(output)
+
+    def getExportJSONObject(self):
         sessionsFolder = self.findSessionsFolder()
         items = list(Folder().childItems(sessionsFolder, filters={'name': 'json'}))
         if not len(items):
             raise RestException('doesn\'t contain a json item', code=404)
         jsonItem = items[0]
         # Next TODO: read, format, and stream back the json version of the export
-        logger.info(jsonItem)
         original_json_object = json.loads(jsonItem['description'])
 
         for scan in original_json_object['scans']:
@@ -267,7 +287,13 @@ class Session(Resource):
             scan['decision'] = convertRatingToDecision(session.get('meta', {}).get('rating', None))
             scan['note'] = session.get('meta', {}).get('note', None)
 
-        return json.dumps(original_json_object)
+        return original_json_object
+
+    def getExportJSON(self):
+        return json.dumps(self.getExportJSONObject())
+
+    def getExportCSV(self):
+        return jsonObjectToCsvContent(self.getExportJSONObject())
 
     def findSessionsFolder(self, user=None, create=False):
         collection = Collection().findOne({'name': 'miqa'})

@@ -20,7 +20,7 @@
         password: "{{ admin_pass }}"
         firstName: Girder
         lastName: Admin
-        email: "admin@girder.girder"
+        email: "{{ admin_email }}"
         admin: true
       state: present
 
@@ -122,7 +122,7 @@
           - groupId: "{{ userGroups.results[2]['gc_return']['_id'] }}"
             level: 0
             pattern: "@"
-  
+
   - name: Prepare sample data import if needed
     when: sample_data == "true"
     girder:

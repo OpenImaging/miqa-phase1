@@ -47,7 +47,10 @@ export default {
     showNotePopup: false,
     keyboardShortcutDialog: false,
     scanning: false,
-    direction: "forward"
+    direction: "forward",
+    advanceTimeoutId: null,
+    nextAnimRequest: null,
+    noteLastSaveTime: new Date().toISOString()
   }),
   computed: {
     ...mapState([
@@ -74,6 +77,14 @@ export default {
       return this.sessionDatasets[this.currentSession.id];
     },
     note() {
+      // TODO: This reference to the "lastNoteSaveTime" is here purely to get
+      // TODO: vue to re-compute the note property, since it does not naturally
+      // TODO: react to the changed "meta.note" property in the currentSession.
+      // TODO: Without this reference, when you save a new note on a scan, it
+      // TODO: gets updated in girder as well as in the currentSession, but it
+      // TODO: does not appear in the UI.  We need to figure out how to fix
+      // TODO: this properly.
+      this.noteLastSaveTime;
       if (this.currentSession && this.currentSession.meta) {
         return this.currentSession.meta.note;
       } else {
@@ -208,6 +219,7 @@ export default {
       this.currentSession.meta = meta;
       this.reviewer = meta.reviewer;
       this.reviewChanged = false;
+      this.noteLastSaveTime = new Date().toISOString();
     },
     enableEditHistroy() {
       this.editingNoteDialog = true;
@@ -226,6 +238,7 @@ export default {
       );
       this.currentSession.meta = meta;
       this.editingNoteDialog = false;
+      this.noteLastSaveTime = new Date().toISOString();
     },
     async unsavedDialogYes() {
       await this.save();
@@ -247,7 +260,8 @@ export default {
       }
     },
     setNote(e) {
-      this.newNote = e.target.value;
+      this.newNote = e;
+      this.reviewChanged = true;
     },
     async ratingChanged() {
       if (!this.rating) {
@@ -282,29 +296,43 @@ export default {
       this.$router.push(datasetId).catch(this.handleNavigationError);
     },
     updateImage() {
+      if (this.direction === "back") {
+        this.$router
+          .push(this.previousDataset ? this.previousDataset : "")
+          .catch(this.handleNavigationError);
+      } else {
+        this.$router
+          .push(this.nextDataset ? this.nextDataset : "")
+          .catch(this.handleNavigationError);
+      }
+    },
+    advanceLoop() {
       if (this.scanning) {
-        if (this.direction === "back") {
-          this.$router
-            .push(this.previousDataset ? this.previousDataset : "")
-            .catch(this.handleNavigationError);
-        } else {
-          this.$router
-            .push(this.nextDataset ? this.nextDataset : "")
-            .catch(this.handleNavigationError);
-        }
-        this.nextAnimRequest = window.requestAnimationFrame(this.updateImage);
+        this.updateImage();
+        this.nextAnimRequest = window.requestAnimationFrame(this.advanceLoop);
       }
     },
     handleMouseDown(direction) {
       if (!this.scanning) {
-        this.direction = direction;
         this.scanning = true;
-        this.nextAnimRequest = window.requestAnimationFrame(this.updateImage);
+        this.direction = direction;
+        this.updateImage();
+        const self = this;
+        this.advanceTimeoutId = window.setTimeout(function() {
+          window.requestAnimationFrame(self.advanceLoop);
+        }, 300);
       }
     },
     handleMouseUp() {
       this.scanning = false;
-      window.cancelAnimationFrame(this.nextAnimRequest);
+      if (this.advanceTimeoutId !== null) {
+        window.clearTimeout(this.advanceTimeoutId);
+        this.advanceTimeoutId = null;
+      }
+      if (this.nextAnimRequest !== null) {
+        window.cancelAnimationFrame(this.nextAnimRequest);
+        this.nextAnimRequest = null;
+      }
     }
   }
 };
@@ -455,12 +483,9 @@ export default {
                     @input="debouncedDatasetSliderChange($event - 1)"
                   ></v-slider>
                 </v-flex>
-                <v-flex shrink>
-                  {{ Math.round(sessionCachedPercentage * 100) }}%
-                </v-flex>
               </v-layout>
-              <v-layout align-center class="bottom-row">
-                <v-flex shrink>
+              <v-layout align-center class="bottom-row ml-3 mr-1">
+                <v-row justify="start">
                   <v-btn
                     fab
                     small
@@ -474,9 +499,13 @@ export default {
                   >
                     <v-icon>fast_rewind</v-icon>
                   </v-btn>
-                </v-flex>
-                <v-spacer />
-                <v-flex shrink>
+                </v-row>
+                <v-row justify="center">
+                  <div class="load-completion">
+                    {{ Math.round(sessionCachedPercentage * 100) }}%
+                  </div>
+                </v-row>
+                <v-row justify="end">
                   <v-btn
                     fab
                     small
@@ -488,7 +517,7 @@ export default {
                   >
                     <v-icon>fast_forward</v-icon>
                   </v-btn>
-                </v-flex>
+                </v-row>
               </v-layout>
             </v-flex>
             <v-flex xs4 class="mx-2">
@@ -578,15 +607,14 @@ export default {
                     >
                   </v-col>
                 </v-row>
-                <v-row class="pb-1 pt-1">
+                <v-row class="pb-1 pt-1" v-if="userLevel.value <= 2">
                   <v-col cols="11" class="pb-1 pt-0 pr-0">
                     <v-text-field
                       class="note-field"
                       label="Note"
                       solo
                       hide-details
-                      @blur="setNote($event)"
-                      @input="reviewChanged = true"
+                      @input="setNote($event)"
                       :value="this.newNote"
                       ref="note"
                       v-mousetrap="{ bind: 'n', handler: focusNote }"
@@ -616,15 +644,19 @@ export default {
                     </v-tooltip>
                   </v-col>
                 </v-row>
-                <v-row no-gutters class="pb-1">
-                  <v-col cols="6" class="pb-1 pt-0" v-if="userLevel.value <= 2">
+                <v-row
+                  no-gutters
+                  justify="space-between"
+                  class="pb-1"
+                  v-if="userLevel.value <= 2"
+                >
+                  <v-col cols="6" class="pb-1 pt-0">
                     <v-btn-toggle
                       class="buttons"
                       v-model="rating"
                       @change="ratingChanged"
                     >
                       <v-btn
-                        v-if="userLevel.value <= 1"
                         text
                         small
                         value="bad"
@@ -635,14 +667,6 @@ export default {
                           handler: () => setRating('bad')
                         }"
                         >Bad</v-btn
-                      >
-                      <v-btn
-                        text
-                        small
-                        value="questionable"
-                        color="orange"
-                        :disabled="!newNote && !note"
-                        ><b>?</b></v-btn
                       >
                       <v-btn
                         text
@@ -668,23 +692,15 @@ export default {
                       >
                     </v-btn-toggle>
                   </v-col>
-                  <v-col cols="4" class="pb-1 pt-0">
-                    <v-text-field
-                      class="small"
-                      label="Reviewer"
-                      solo
-                      disabled
-                      hide-details
-                      :value="reviewer"
-                    ></v-text-field>
-                  </v-col>
                   <v-col cols="2" class="pb-1 pt-0">
                     <v-btn
                       color="primary"
                       class="ma-0"
                       style="height: 36px"
                       small
-                      :disabled="!reviewChanged"
+                      :disabled="
+                        !reviewChanged || rating === null || rating === ''
+                      "
                       @click="save"
                       v-mousetrap="{ bind: 'alt+s', handler: save }"
                     >
@@ -822,6 +838,11 @@ export default {
 </style>
 
 <style lang="scss">
+.load-completion {
+  font-size: 1.1em;
+  /*font-weight: bold;*/
+}
+
 .justifyRight {
   text-align: right;
 }
