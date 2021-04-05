@@ -7,7 +7,7 @@ import AsyncComputed from "vue-async-computed";
 import App from "./App.vue";
 import router from "./router";
 import store from "./store";
-import Girder, { RestClient, utils } from "@girder/components/src";
+import Girder, { RestClient, vuetifyConfig } from "@girder/components/src";
 import { API_URL, STATIC_PATH } from "./constants";
 
 import vMousetrap from "./vue-utilities/v-mousetrap";
@@ -27,7 +27,7 @@ Vue.use(vMousetrap);
 
 // Merge our own (currently empty) configuration with the one provided by
 // Girder web components (needed for the login dialog to render properly).
-const vuetifyOptions = Object.assign({}, utils.vuetifyConfig);
+const vuetifyOptions = Object.assign({}, vuetifyConfig);
 const vuetify = new Vuetify(vuetifyOptions);
 
 Vue.use(snackbarService(vuetify));

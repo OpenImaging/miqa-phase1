@@ -1,11 +1,11 @@
 <script>
 import { mapActions } from "vuex";
-import { Authentication as GirderAuth } from "@girder/components/src/components";
+import { GirderAuthentication } from "@girder/components/src";
 
 export default {
   name: "Login",
   components: {
-    GirderAuth
+    GirderAuthentication
   },
   inject: ["girderRest"],
   data() {
@@ -31,7 +31,7 @@ export default {
 <template>
   <v-container>
     <v-dialog :value="userDialog" persistent max-width="500px">
-      <GirderAuth :register="true" />
+      <GirderAuthentication :register="true" />
     </v-dialog>
   </v-container>
 </template>
