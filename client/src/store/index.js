@@ -178,6 +178,38 @@ const store = new Vuex.Store({
     }
   },
   actions: {
+    reset({ state }) {
+      if (taskRunId >= 0) {
+        workerPool.cancel(taskRunId);
+        taskRunId = -1;
+      }
+
+      state.drawer = false;
+      state.experimentIds = [];
+      state.experiments = {};
+      state.experimentSessions = {};
+      state.sessions = {};
+      state.sessionDatasets = {};
+      state.datasets = {};
+      state.proxyManager = null;
+      state.vtkViews = [];
+      state.currentDatasetId = null;
+      state.loadingDataset = false;
+      state.errorLoadingDataset = false;
+      state.loadingExperiment = false;
+      state.currentScreenshot = null;
+      state.screenshots = [];
+      state.sites = null;
+      state.sessionCachedPercentage = 0;
+
+      fileCache.clear();
+      datasetCache.clear();
+    },
+    logout({ dispatch }) {
+      sessionTimeoutId = null;
+      dispatch("reset");
+      girder.rest.logout();
+    },
     async loadSessions({ state }) {
       let { data: sessionTree } = await girder.rest.get(`miqa/sessions`);
 
@@ -576,38 +608,8 @@ function expandSessionRange(datasetId, dataRange) {
   }
 }
 
-function resetState() {
-  if (taskRunId >= 0) {
-    workerPool.cancel(taskRunId);
-    taskRunId = -1;
-  }
-
-  store.state.drawer = false;
-  store.state.experimentIds = [];
-  store.state.experiments = {};
-  store.state.experimentSessions = {};
-  store.state.sessions = {};
-  store.state.sessionDatasets = {};
-  store.state.datasets = {};
-  store.state.proxyManager = null;
-  store.state.vtkViews = [];
-  store.state.currentDatasetId = null;
-  store.state.loadingDataset = false;
-  store.state.errorLoadingDataset = false;
-  store.state.loadingExperiment = false;
-  store.state.currentScreenshot = null;
-  store.state.screenshots = [];
-  store.state.sites = null;
-  store.state.sessionCachedPercentage = 0;
-
-  fileCache.clear();
-  datasetCache.clear();
-}
-
 function autoLogout() {
-  sessionTimeoutId = null;
-  resetState();
-  girder.rest.logout();
+  store.dispatch("logout");
 }
 
 function _resetSessionTimeout() {

@@ -1,4 +1,6 @@
 <script>
+import { mapActions } from "vuex";
+
 import NavbarTitle from "@/components/NavbarTitle";
 import UserButton from "@/components/girder/UserButton";
 import NavigationTabs from "@/components/NavigationTabs";
@@ -10,7 +12,10 @@ export default {
     UserButton,
     NavigationTabs
   },
-  inject: ["girderRest"]
+  inject: ["girderRest"],
+  methods: {
+    ...mapActions(["logout"])
+  }
 };
 </script>
 
@@ -19,6 +24,6 @@ export default {
     <NavbarTitle />
     <NavigationTabs />
     <v-spacer></v-spacer>
-    <UserButton @user="girderRest.logout()" />
+    <UserButton @user="logout()" />
   </v-app-bar>
 </template>
