@@ -1,5 +1,5 @@
 <script>
-import { mapActions } from "vuex";
+import { mapActions, mapMutations } from "vuex";
 import { GirderAuthentication } from "@girder/components/src";
 
 export default {
@@ -15,13 +15,32 @@ export default {
     };
   },
   methods: {
-    ...mapActions(["startSessionTimer"])
+    ...mapActions(["startSessionTimer", "logout"]),
+    ...mapMutations(["setResponseInterceptor"])
   },
   watch: {
     "girderRest.user"(user) {
       if (user) {
         this.$router.push("/");
         this.startSessionTimer();
+        const self = this;
+        const interceptor = this.girderRest.interceptors.response.use(
+          response => response,
+          error => {
+            if (error.response.status === 401) {
+              self.$prompt({
+                title: "Session Expired",
+                text: "Your session has expired and you will be logged out",
+                positiveButton: "Ok"
+              }).then(() => {
+                self.logout();
+              });
+            } else {
+              return Promise.reject(error);
+            }
+          }
+        );
+        this.setResponseInterceptor(interceptor)
       }
     }
   }

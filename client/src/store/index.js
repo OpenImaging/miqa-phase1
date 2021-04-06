@@ -51,7 +51,8 @@ const store = new Vuex.Store({
     screenshots: [],
     sites: null,
     sessionCachedPercentage: 0,
-    sessionTimeoutSeconds: parseInt(process.env.MIQA_SESSION_TIMEOUT)
+    sessionTimeoutSeconds: parseInt(process.env.MIQA_SESSION_TIMEOUT),
+    responseInterceptor: null,
   },
   getters: {
     currentDataset(state) {
@@ -175,6 +176,9 @@ const store = new Vuex.Store({
     },
     removeScreenshot(state, screenshot) {
       state.screenshots.splice(state.screenshots.indexOf(screenshot), 1);
+    },
+    setResponseInterceptor(state, interceptor) {
+      state.responseInterceptor = interceptor;
     }
   },
   actions: {
@@ -205,9 +209,12 @@ const store = new Vuex.Store({
       fileCache.clear();
       datasetCache.clear();
     },
-    logout({ dispatch }) {
+    logout({ state, dispatch }) {
       sessionTimeoutId = null;
       dispatch("reset");
+      if (state.responseInterceptor !== null) {
+        girder.rest.interceptors.response.eject(state.responseInterceptor);
+      }
       girder.rest.logout();
     },
     async loadSessions({ state }) {
