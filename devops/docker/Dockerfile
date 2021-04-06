@@ -1,15 +1,14 @@
-FROM node:10.15.3-stretch
+FROM node:10.24.0-buster
 
 EXPOSE 8080
 
 RUN apt-get update && apt-get install -qy \
     gcc \
     libpython3-dev \
+    python3-pip \
     git \
     libsasl2-dev && \
   apt-get clean && rm -rf /var/lib/apt/lists/*
-
-RUN wget https://bootstrap.pypa.io/pip/3.5/get-pip.py && python3 get-pip.py
 
 # See http://click.pocoo.org/5/python3/#python-3-surrogate-handling for more detail on
 # why this is necessary.
@@ -30,7 +29,7 @@ static_public_path = \"${GIRDER_STATIC_PUBLIC_PATH}\"\n"\
 # Install girder
 RUN mkdir /miqa
 COPY server/ /miqa/server/
-RUN pip install /miqa/server
+RUN pip3 install /miqa/server
 RUN girder build
 
 # Install miqa
@@ -46,9 +45,9 @@ COPY sample_data /miqa/sample_data
 RUN sed -i 's/~//g' /miqa/sample_data/sample.json
 
 RUN git clone https://github.com/girder/girder.git girder_repo \
-    && pip install ansible \
+    && pip3 install ansible \
     && ansible-galaxy install -p /girder_repo/devops/ansible/roles girder.girder
-RUN pip install girder_client
+RUN pip3 install girder_client
 COPY devops/docker/provision.yml /provision.yml
 COPY devops/docker/inventory /etc/ansible/hosts
 ENV ANSIBLE_LIBRARY=/girder_repo/devops/ansible/roles/girder.girder/library
