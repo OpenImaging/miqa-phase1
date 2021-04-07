@@ -56,6 +56,14 @@ class Session(Resource):
         self.route('POST', ('data', 'import',), self.dataImport)
         self.route('GET', ('sessions',), self.getSessions)
         self.route('GET', ('data', 'export',), self.dataExport)
+        self.route('GET', ('user',), self.getLoggedInUser)
+
+    @access.user
+    @autoDescribeRoute(
+        Description('Check user still has valid token')
+        .errorResponse())
+    def getLoggedInUser(self, params):
+        return self.getCurrentUser()
 
     @access.user
     @autoDescribeRoute(

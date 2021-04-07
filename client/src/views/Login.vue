@@ -15,14 +15,14 @@ export default {
     };
   },
   methods: {
-    ...mapActions(["startSessionTimer", "logout"]),
+    ...mapActions(["startLoginMonitor", "logout"]),
     ...mapMutations(["setResponseInterceptor"])
   },
   watch: {
     "girderRest.user"(user) {
       if (user) {
         this.$router.push("/");
-        this.startSessionTimer();
+        this.startLoginMonitor();
         const self = this;
         const interceptor = this.girderRest.interceptors.response.use(
           response => response,
