@@ -130,7 +130,7 @@ export default {
       var dataURL = await this.view.captureImage();
       this.setCurrentScreenshot({
         name: `${this.currentSession.meta.experimentId}/${
-          this.currentSession.meta.experimentId2
+          this.currentSession.name
         }/${cleanDatasetName(this.currentDataset.name)}/${this.displayName}`,
         dataURL
       });

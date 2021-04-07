@@ -53,11 +53,13 @@ export default {
   >
     <template #selection="{ item, parent, selected }">
       <v-chip
+        :key="JSON.stringify(item)"
         :color="isValid(item) ? '' : 'error'"
         :input-value="selected"
         small
         close
         @input="parent.selectItem(item)"
+        @click:close="parent.selectItem(item)"
         >{{ item }}</v-chip
       >
     </template>

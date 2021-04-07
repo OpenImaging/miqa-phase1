@@ -28,19 +28,21 @@ export default {
           response => response,
           error => {
             if (error.response.status === 401) {
-              self.$prompt({
-                title: "Session Expired",
-                text: "Your session has expired and you will be logged out",
-                positiveButton: "Ok"
-              }).then(() => {
-                self.logout();
-              });
+              self
+                .$prompt({
+                  title: "Session Expired",
+                  text: "Your session has expired and you will be logged out",
+                  positiveButton: "Ok"
+                })
+                .then(() => {
+                  self.logout();
+                });
             } else {
               return Promise.reject(error);
             }
           }
         );
-        this.setResponseInterceptor(interceptor)
+        this.setResponseInterceptor(interceptor);
       }
     }
   }

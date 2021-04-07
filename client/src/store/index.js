@@ -52,7 +52,7 @@ const store = new Vuex.Store({
     sites: null,
     sessionCachedPercentage: 0,
     sessionTimeoutSeconds: parseInt(process.env.MIQA_SESSION_TIMEOUT),
-    responseInterceptor: null,
+    responseInterceptor: null
   },
   getters: {
     currentDataset(state) {
