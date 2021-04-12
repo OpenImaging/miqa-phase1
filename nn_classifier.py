@@ -210,14 +210,6 @@ def train_and_save_model(df, count_train, save_path, num_epochs, val_interval, o
     check_data = monai.utils.misc.first(check_loader)
     print(f'Single input\'s shape: {check_data["img"].shape}, label: {check_data["label"]}')
 
-    # create a training data loader
-    train_ds = monai.data.Dataset(data=train_files, transform=train_transforms)
-    train_loader = DataLoader(train_ds, batch_size=1, shuffle=True, num_workers=1, pin_memory=torch.cuda.is_available())
-
-    # create a validation data loader
-    val_ds = monai.data.Dataset(data=val_files, transform=val_transforms)
-    val_loader = DataLoader(val_ds, batch_size=1, num_workers=1, pin_memory=torch.cuda.is_available())
-
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     # calculate class weights
@@ -226,6 +218,19 @@ def train_and_save_model(df, count_train, save_path, num_epochs, val_interval, o
     weights_array = [good_count / count_train, bad_count / count_train]
     print(f"bad_count: {bad_count}, good_count: {good_count}, weights_array: {weights_array}")
     class_weights = torch.tensor(weights_array, dtype=torch.float).to(device)
+
+    samples_weight = np.array([weights_array[t] for t in decisions])
+    samples_weight = torch.from_numpy(samples_weight)
+    samples_weight = samples_weight.double()
+    sampler = torch.utils.data.WeightedRandomSampler(samples_weight, len(samples_weight))
+
+    # create a training data loader
+    train_ds = monai.data.Dataset(data=train_files, transform=train_transforms)
+    train_loader = DataLoader(train_ds, batch_size=1, sampler=sampler, num_workers=1, pin_memory=torch.cuda.is_available())
+
+    # create a validation data loader
+    val_ds = monai.data.Dataset(data=val_files, transform=val_transforms)
+    val_loader = DataLoader(val_ds, batch_size=1, num_workers=1, pin_memory=torch.cuda.is_available())
 
     model = TiledClassifier(in_shape=(1, 128, 48, 48), classes=2,
                             channels=(2, 4, 8, 16),
