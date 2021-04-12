@@ -1,4 +1,5 @@
 <script>
+import { mapActions, mapGetters } from "vuex";
 export default {
   name: "App",
   components: {},
@@ -9,12 +10,24 @@ export default {
   data: () => ({
     userLevel: { value: null }
   }),
+  computed: {
+    ...mapGetters(["sessionStatus"])
+  },
   watch: {
     "girderRest.user"(user) {
       if (!user) {
         this.$router.push("/login");
-      } else {
-        this.setUserLevel();
+      }
+    },
+    sessionStatus(status) {
+      if (status === "timeout") {
+        this.$prompt({
+          title: "Session Expired",
+          text: "Your session has expired and you will be logged out",
+          positiveButton: "Ok"
+        }).then(() => {
+          this.logout();
+        });
       }
     }
   },
@@ -22,6 +35,7 @@ export default {
     this.setUserLevel();
   },
   methods: {
+    ...mapActions(["logout"]),
     async setUserLevel() {
       if (!this.girderRest.user) {
         return;

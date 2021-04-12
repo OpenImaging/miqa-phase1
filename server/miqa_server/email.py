@@ -27,15 +27,9 @@ class Email(Resource):
     def sendEmail(self, message, params):
         user = self.getCurrentUser()
         msg = MIMEMultipart('related')
-        fromAddress = '{0} {1} via {2}'.format(
-            user['firstName'], user['lastName'], Setting().get(SettingKey.EMAIL_FROM_ADDRESS))
-        msg['From'] = fromAddress
+        msg['From'] = user['email']
         msg['To'] = ', '.join(message['to'])
-
-        if user['email'] not in message['cc']:
-            message['cc'].append(user['email'])
         msg['Cc'] = ', '.join(message['cc'])
-
         msg['Subject'] = message['subject']
         body = message['body']
         image_content_ids = []

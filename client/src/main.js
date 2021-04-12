@@ -49,7 +49,7 @@ if (process.env.NODE_ENV === "production") {
   console.log = function() {};
 }
 
-girder.rest.fetchUser().then(() => {
+girder.rest.fetchUser().then(user => {
   new Vue({
     vuetify,
     router,
@@ -60,4 +60,13 @@ girder.rest.fetchUser().then(() => {
     .$mount("#app")
     .$snackbarAttach()
     .$promptAttach();
+
+  if (user) {
+    store.commit("setCurrentUser", user);
+    store.commit("setSessionStatus", "active");
+  } else {
+    store.commit("setSessionStatus", "init");
+  }
+
+  store.dispatch("startLoginMonitor");
 });

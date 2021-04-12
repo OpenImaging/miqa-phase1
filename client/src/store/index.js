@@ -32,6 +32,7 @@ let sessionTimeoutId = null;
 
 const store = new Vuex.Store({
   state: {
+    currentUser: null,
     drawer: false,
     experimentIds: [],
     experiments: {},
@@ -50,9 +51,16 @@ const store = new Vuex.Store({
     sites: null,
     sessionCachedPercentage: 0,
     responseInterceptor: null,
-    userCheckPeriod: 60000 // In milliseconds
+    userCheckPeriod: 60000, // In milliseconds
+    sessionStatus: null
   },
   getters: {
+    sessionStatus(state) {
+      return state.sessionStatus;
+    },
+    currentUser(state) {
+      return state.currentUser;
+    },
     currentDataset(state) {
       return state.currentDatasetId
         ? state.datasets[state.currentDatasetId]
@@ -163,6 +171,12 @@ const store = new Vuex.Store({
     }
   },
   mutations: {
+    setSessionStatus(state, status) {
+      state.sessionStatus = status;
+    },
+    setCurrentUser(state, user) {
+      state.currentUser = user;
+    },
     setDrawer(state, value) {
       state.drawer = value;
     },
@@ -196,6 +210,7 @@ const store = new Vuex.Store({
         taskRunId = -1;
       }
 
+      state.currentUser = null;
       state.drawer = false;
       state.experimentIds = [];
       state.experiments = {};
@@ -213,23 +228,42 @@ const store = new Vuex.Store({
       state.screenshots = [];
       state.sites = null;
       state.sessionCachedPercentage = 0;
+      state.sessionStatus = null;
 
       fileCache.clear();
       datasetCache.clear();
     },
-    logout({ dispatch }) {
+    logout({ commit, dispatch }) {
       dispatch("reset");
       girder.rest.logout();
+      commit("setSessionStatus", "logout");
     },
-    async getCurrentUser() {
+    async requestCurrentUser() {
       return await girder.rest.get(`miqa/user`);
     },
-    startLoginMonitor({ state, dispatch }) {
-      const checkUser = () => {
-        dispatch("getCurrentUser");
-        sessionTimeoutId = window.setTimeout(checkUser, state.userCheckPeriod);
-      };
-      checkUser();
+    startLoginMonitor({ state, commit, dispatch }) {
+      if (state.responseInterceptor === null) {
+        state.responseInterceptor = girder.rest.interceptors.response.use(
+          response => response,
+          error => {
+            if (state.currentUser !== null && error.response.status === 401) {
+              commit("setSessionStatus", "timeout");
+            } else {
+              return Promise.reject(error);
+            }
+          }
+        );
+
+        const checkUser = () => {
+          dispatch("requestCurrentUser");
+          sessionTimeoutId = window.setTimeout(
+            checkUser,
+            state.userCheckPeriod
+          );
+        };
+
+        checkUser();
+      }
     },
     async loadSessions({ state }) {
       let { data: sessionTree } = await girder.rest.get(`miqa/sessions`);

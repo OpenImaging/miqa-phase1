@@ -38,9 +38,19 @@ export default {
   }),
   computed: {
     ...mapState(["screenshots"]),
-    ...mapGetters(["currentDataset", "currentSession", "siteMap"])
+    ...mapGetters([
+      "currentUser",
+      "currentDataset",
+      "currentSession",
+      "siteMap"
+    ])
   },
   watch: {
+    currentUser(value) {
+      if (value) {
+        this.initialize();
+      }
+    },
     currentDataset(value) {
       if (value) {
         this.initialize();
@@ -93,6 +103,9 @@ export default {
       this.to = this.toCandidates.map(c => c.name);
       this.cc = this.ccCandidates.map(c => c.name);
       this.bcc = this.bccCandidates.map(c => c.name);
+      if (this.currentUser) {
+        this.bcc.push(this.currentUser.email);
+      }
       this.showCC = !!this.cc.length;
       this.showBCC = !!this.bcc.length;
       var experiment = `Regarding ${this.currentSession.meta.experimentId}, ${this.currentSession.name}`;
@@ -181,7 +194,7 @@ ${this.note}
                 label="to"
                 v-model="to"
                 :candidates="toCandidates.map(c => c.name)"
-                :required="!(to.length + cc.length + bcc.length)"
+                :required="true"
               />
             </v-flex>
             <v-flex shrink>
@@ -195,7 +208,7 @@ ${this.note}
                 label="cc"
                 v-model="cc"
                 :candidates="ccCandidates.map(c => c.name)"
-                :required="!(to.length + cc.length + bcc.length)"
+                :required="false"
               />
             </v-flex>
           </v-layout>
@@ -205,7 +218,7 @@ ${this.note}
                 label="bcc"
                 v-model="bcc"
                 :candidates="bccCandidates.map(c => c.name)"
-                :required="!(to.length + cc.length + bcc.length)"
+                :required="false"
               />
             </v-flex>
           </v-layout>
