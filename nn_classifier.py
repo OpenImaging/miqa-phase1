@@ -226,7 +226,8 @@ def train_and_save_model(df, count_train, save_path, num_epochs, val_interval, o
 
     # create a training data loader
     train_ds = monai.data.Dataset(data=train_files, transform=train_transforms)
-    train_loader = DataLoader(train_ds, batch_size=1, sampler=sampler, num_workers=1, pin_memory=torch.cuda.is_available())
+    train_loader = DataLoader(train_ds, batch_size=1, sampler=sampler, num_workers=1,
+                              pin_memory=torch.cuda.is_available())
 
     # create a validation data loader
     val_ds = monai.data.Dataset(data=val_files, transform=val_transforms)
@@ -340,7 +341,7 @@ def process_folds(folds_prefix, validation_fold, evaluate_only):
     df = pd.concat(folds)
     count_train = df.shape[0] - vf.shape[0]
     model_path = os.getcwd() + f"/miqa01-val{validation_fold}.pth"
-    sizes = train_and_save_model(df, count_train, save_path=model_path, num_epochs=400, val_interval=4,
+    sizes = train_and_save_model(df, count_train, save_path=model_path, num_epochs=200, val_interval=4,
                                  only_evaluate=evaluate_only)
 
     print("Image size distribution:\n", sizes)
