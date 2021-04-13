@@ -269,24 +269,33 @@ def train_and_save_model(df, count_train, save_path, num_epochs, val_interval, o
         step = 0
         epoch_len = len(train_ds) // train_loader.batch_size
         print(f"epoch_len: {epoch_len}")
+        y_true = []
+        y_pred = []
+
         for batch_data in train_loader:
             step += 1
             inputs, labels = batch_data["img"].to(device), batch_data["label"].to(device)
             optimizer.zero_grad()
             outputs = model(inputs)
+            y_true.extend(labels.cpu().tolist())
+            y_pred.extend(outputs.cpu().tolist())
             loss = loss_function(outputs, labels)
             loss.backward()
             optimizer.step()
             epoch_loss += loss.item()
             epoch_len = len(train_ds) // train_loader.batch_size
-            print(f"{step}:{loss.item():.4f}", end=' ')
-            if step % 10 == 0:
+            # print(f"{step}:{loss.item():.4f}", end=' ')
+            print(".", end='')
+            if step % 70 == 0:
                 print("")  # new line
             writer.add_scalar("train_loss", loss.item(), epoch_len * epoch + step)
             wandb.log({"train_loss": loss.item()})
         epoch_loss /= step
         print(f"\nepoch {epoch + 1} average loss: {epoch_loss:.4f}")
         wandb.log({f"epoch average loss": epoch_loss})
+        epoch_cm = confusion_matrix(y_true, y_pred)
+        print(f"confusion matrix:\n{epoch_cm}")
+        wandb.log({f"confusion matrix": epoch_cm})
 
         if (epoch + 1) % val_interval == 0:
             print("Evaluating on validation set")
@@ -307,9 +316,6 @@ def train_and_save_model(df, count_train, save_path, num_epochs, val_interval, o
                     epoch + 1, acc_metric, auc_metric, best_metric, best_metric_epoch
                 )
             )
-
-            print("Evaluating on training set")
-            evaluate_model(model, train_loader, device, writer, epoch, "train")
 
     print(f"train completed, best_metric: {best_metric:.4f} at epoch: {best_metric_epoch}")
     writer.close()
