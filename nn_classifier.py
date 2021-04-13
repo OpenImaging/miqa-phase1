@@ -279,7 +279,7 @@ def train_and_save_model(df, count_train, save_path, num_epochs, val_interval, o
             optimizer.zero_grad()
             outputs = model(inputs)
             y_true.extend(labels.cpu().tolist())
-            y_pred.extend(outputs.cpu().tolist())
+            y_pred.extend(outputs.cpu().argmax(dim=1).tolist())
             loss = loss_function(outputs, labels)
             loss.backward()
             optimizer.step()
