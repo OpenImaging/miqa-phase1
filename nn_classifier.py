@@ -151,7 +151,7 @@ def evaluate_model(model, data_loader, device, writer, epoch, run_name):
         print(classification_report(y_true, y_pred))
 
         auc_metric = compute_roc_auc(torch.as_tensor(y_pred), torch.as_tensor(y_true),
-                                     average=monai.utils.Average.WEIGHTED)
+                                     average=monai.utils.Average.MACRO)
         writer.add_scalar(run_name + "_AUC", auc_metric, epoch + 1)
         wandb.log({run_name + "_AUC": auc_metric})
         return auc_metric
