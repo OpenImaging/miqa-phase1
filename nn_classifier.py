@@ -11,6 +11,7 @@ import numpy as np
 import pandas as pd
 import torch
 import wandb
+from monai.losses import focal_loss
 from monai.metrics import compute_roc_auc
 from monai.networks.layers.factories import Act
 from monai.networks.nets.regressor import Regressor
@@ -22,6 +23,7 @@ from torch.utils.tensorboard import SummaryWriter
 existing_count = 0
 missing_count = 0
 predict_hd_data_root = "P:/PREDICTHD_BIDS_DEFACE/"
+use_focal_loss = True
 
 
 def get_image_dimension(path):
@@ -245,8 +247,11 @@ def train_and_save_model(df, count_train, save_path, num_epochs, val_interval, o
     else:
         print("Training NN from scratch")
 
-    # Create CrossEntropyLoss and Adam optimizer
-    loss_function = torch.nn.CrossEntropyLoss(weight=class_weights)
+    # Create a loss function and Adam optimizer
+    if use_focal_loss:
+        loss_function = monai.losses.FocalLoss(weight=class_weights, to_onehot_y=True)
+    else:
+        loss_function = torch.nn.CrossEntropyLoss(weight=class_weights)
     wandb.config.learning_rate = 1e-5
     optimizer = torch.optim.Adam(model.parameters(), wandb.config.learning_rate)
     wandb.watch(model)
