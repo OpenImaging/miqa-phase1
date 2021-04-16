@@ -133,7 +133,6 @@ def evaluate_model(model, data_loader, device, writer, epoch, run_name):
     y_pred = []
     y_true = []
     with torch.no_grad():
-        num_correct = 0.0
         metric_count = 0
         for val_data in data_loader:
             val_images, val_labels = val_data["img"].to(device), val_data["label"].to(device)
@@ -142,7 +141,6 @@ def evaluate_model(model, data_loader, device, writer, epoch, run_name):
             y_true.extend(val_labels.cpu().tolist())
             y_pred.extend(val_outputs.cpu().tolist())
 
-            num_correct += val_outputs.sum().item()
             metric_count += len(val_outputs)
             print('.', end='')
             if metric_count % 60 == 0:
@@ -152,14 +150,11 @@ def evaluate_model(model, data_loader, device, writer, epoch, run_name):
         print(confusion_matrix(y_true, y_pred))
         print(classification_report(y_true, y_pred))
 
-        acc_metric = num_correct / metric_count
         auc_metric = compute_roc_auc(torch.as_tensor(y_pred), torch.as_tensor(y_true),
                                      average=monai.utils.Average.WEIGHTED)
-        writer.add_scalar(run_name + "_accuracy", acc_metric, epoch + 1)
         writer.add_scalar(run_name + "_AUC", auc_metric, epoch + 1)
-        wandb.log({run_name + "_accuracy": acc_metric})
         wandb.log({run_name + "_AUC": auc_metric})
-        return auc_metric, acc_metric
+        return auc_metric
 
 
 def train_and_save_model(df, count_train, save_path, num_epochs, val_interval, only_evaluate):
@@ -306,7 +301,7 @@ def train_and_save_model(df, count_train, save_path, num_epochs, val_interval, o
 
         if (epoch + 1) % val_interval == 0:
             print("Evaluating on validation set")
-            auc_metric, acc_metric = evaluate_model(model, val_loader, device, writer, epoch, "val")
+            auc_metric = evaluate_model(model, val_loader, device, writer, epoch, "val")
 
             if auc_metric >= best_metric:
                 best_metric = auc_metric
@@ -319,8 +314,8 @@ def train_and_save_model(df, count_train, save_path, num_epochs, val_interval, o
                 torch.save(model.state_dict(), save_path + epoch_suffix)
                 torch.save(model.state_dict(), os.path.join(wandb.run.dir, 'miqa01.pt' + epoch_suffix))
             print(
-                "current epoch: {} current accuracy: {:.4f} current AUC: {:.4f} best AUC: {:.4f} at epoch {}".format(
-                    epoch + 1, acc_metric, auc_metric, best_metric, best_metric_epoch
+                "current epoch: {} current AUC: {:.4f} best AUC: {:.4f} at epoch {}".format(
+                    epoch + 1, auc_metric, best_metric, best_metric_epoch
                 )
             )
 
