@@ -232,18 +232,18 @@ def train_and_save_model(df, count_train, save_path, num_epochs, val_interval, o
                             channels=(2, 4, 8, 16),
                             strides=(2, 2, 2, 2,))
 
-    if os.path.exists(save_path) and only_evaluate:
-        model.load_state_dict(torch.load(save_path))
-        print(f"Loaded NN model from file '{save_path}'")
-    else:
-        print("Training NN from scratch")
-
     if torch.cuda.is_available() and torch.cuda.device_count() > 1:
         print("Let's use", torch.cuda.device_count(), "GPUs!")
         # dim = 0 [20, xxx] -> [10, ...], [10, ...] on 2 GPUs
         model = torch.nn.DataParallel(model)
 
     model.to(device)
+
+    if os.path.exists(save_path) and only_evaluate:
+        model.load_state_dict(torch.load(save_path))
+        print(f"Loaded NN model from file '{save_path}'")
+    else:
+        print("Training NN from scratch")
 
     # Create CrossEntropyLoss and Adam optimizer
     loss_function = torch.nn.CrossEntropyLoss(weight=class_weights)
