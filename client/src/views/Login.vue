@@ -1,5 +1,5 @@
 <script>
-import { mapMutations } from "vuex";
+import { mapMutations, mapActions } from "vuex";
 import { GirderAuthentication } from "@girder/components/src";
 
 export default {
@@ -15,7 +15,8 @@ export default {
     };
   },
   methods: {
-    ...mapMutations(["setCurrentUser", "setSessionStatus"])
+    ...mapMutations(["setCurrentUser", "setSessionStatus"]),
+    ...mapActions(["startLoginMonitor"])
   },
   watch: {
     "girderRest.user"(user) {
@@ -23,6 +24,7 @@ export default {
         this.setCurrentUser(user);
         this.setSessionStatus("active");
         this.$router.push("/");
+        this.startLoginMonitor();
       }
     }
   }

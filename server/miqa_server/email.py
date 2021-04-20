@@ -27,10 +27,11 @@ class Email(Resource):
     def sendEmail(self, message, params):
         user = self.getCurrentUser()
         msg = MIMEMultipart('related')
-        msg['From'] = user['email']
+        msg['From'] = Setting().get(SettingKey.EMAIL_FROM_ADDRESS)
         msg['To'] = ', '.join(message['to'])
         msg['Cc'] = ', '.join(message['cc'])
         msg['Subject'] = message['subject']
+        msg.add_header('reply-to', user['email'])
         body = message['body']
         image_content_ids = []
         images_html = []

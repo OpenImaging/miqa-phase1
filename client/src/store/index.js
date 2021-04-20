@@ -52,7 +52,8 @@ const store = new Vuex.Store({
     sessionCachedPercentage: 0,
     responseInterceptor: null,
     userCheckPeriod: 60000, // In milliseconds
-    sessionStatus: null
+    sessionStatus: null,
+    remainingSessionTime: 0
   },
   getters: {
     sessionStatus(state) {
@@ -168,6 +169,9 @@ const store = new Vuex.Store({
           return name;
         }
       };
+    },
+    remainingSessionTime(state) {
+      return state.remainingSessionTime;
     }
   },
   mutations: {
@@ -191,6 +195,9 @@ const store = new Vuex.Store({
     },
     setResponseInterceptor(state, interceptor) {
       state.responseInterceptor = interceptor;
+    },
+    setRemainingSessionTime(state, timeRemaining) {
+      state.remainingSessionTime = timeRemaining;
     }
   },
   actions: {
@@ -229,6 +236,7 @@ const store = new Vuex.Store({
       state.sites = null;
       state.sessionCachedPercentage = 0;
       state.sessionStatus = null;
+      state.remainingSessionTime = 0;
 
       fileCache.clear();
       datasetCache.clear();
@@ -238,8 +246,9 @@ const store = new Vuex.Store({
       girder.rest.logout();
       commit("setSessionStatus", "logout");
     },
-    async requestCurrentUser() {
-      return await girder.rest.get(`miqa/user`);
+    async requestCurrentUser({ commit }) {
+      const remainingTime = await girder.rest.get("miqa/sessiontime");
+      commit("setRemainingSessionTime", remainingTime.data);
     },
     startLoginMonitor({ state, commit, dispatch }) {
       if (state.responseInterceptor === null) {
@@ -331,7 +340,11 @@ const store = new Vuex.Store({
               datasetId
             ].firstDatasetInPreviousSession = firstInPrev;
           }
-          firstInPrev = session.datasets[0]._id;
+          if (session.datasets.length > 0) {
+            firstInPrev = session.datasets[0]._id;
+          } else {
+            console.error(`${experiment.name}/${session.name} has no datasets`);
+          }
         }
       }
 
@@ -348,7 +361,13 @@ const store = new Vuex.Store({
             let dataset = state.datasets[datasetId];
             dataset.firstDatasetInNextSession = firstInNext;
           }
-          firstInNext = session.datasets[0]._id;
+          if (session.datasets.length > 0) {
+            firstInNext = session.datasets[0]._id;
+          } else {
+            console.error(
+              `${experiment.name}/${session.name}) has no datasets`
+            );
+          }
         }
       }
     },
