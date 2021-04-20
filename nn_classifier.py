@@ -314,15 +314,16 @@ def train_and_save_model(df, count_train, save_path, num_epochs, val_interval, o
                 torch.save(model.state_dict(), save_path)
                 torch.save(model.state_dict(), os.path.join(wandb.run.dir, 'miqa01.pt'))
                 print("saved new best metric model")
-            else:
-                epoch_suffix = ".epoch" + str(epoch + 1)
-                torch.save(model.state_dict(), save_path + epoch_suffix)
-                torch.save(model.state_dict(), os.path.join(wandb.run.dir, 'miqa01.pt' + epoch_suffix))
+
             print(
                 "current epoch: {} current AUC: {:.4f} best AUC: {:.4f} at epoch {}".format(
                     epoch + 1, auc_metric, best_metric, best_metric_epoch
                 )
             )
+
+    epoch_suffix = ".epoch" + str(num_epochs)
+    torch.save(model.state_dict(), save_path + epoch_suffix)
+    torch.save(model.state_dict(), os.path.join(wandb.run.dir, 'miqa01.pt' + epoch_suffix))
 
     print(f"train completed, best_metric: {best_metric:.4f} at epoch: {best_metric_epoch}")
     writer.close()
