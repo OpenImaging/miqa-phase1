@@ -1,3 +1,7 @@
 export function cleanDatasetName(name) {
-  return name.replace(/^image/, "").replace(/.nii.gz$/, "");
+  let cleanName = name.replace(/^image/, "").replace(/.nii.gz$/, "");
+  if (cleanName == "") {
+    return "1";
+  }
+  return cleanName;
 }

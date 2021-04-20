@@ -38,9 +38,19 @@ export default {
   }),
   computed: {
     ...mapState(["screenshots"]),
-    ...mapGetters(["currentDataset", "currentSession", "siteMap"])
+    ...mapGetters([
+      "currentUser",
+      "currentDataset",
+      "currentSession",
+      "siteMap"
+    ])
   },
   watch: {
+    currentUser(value) {
+      if (value) {
+        this.initialize();
+      }
+    },
     currentDataset(value) {
       if (value) {
         this.initialize();
@@ -93,16 +103,21 @@ export default {
       this.to = this.toCandidates.map(c => c.name);
       this.cc = this.ccCandidates.map(c => c.name);
       this.bcc = this.bccCandidates.map(c => c.name);
+      if (this.currentUser) {
+        this.bcc.push(this.currentUser.email);
+      }
       this.showCC = !!this.cc.length;
       this.showBCC = !!this.bcc.length;
-      var experiment = `Regarding ${this.currentSession.meta.experimentId} (${this.currentSession.meta.experimentId2}), ${this.currentSession.name}`;
+      var experiment = `Regarding ${this.currentSession.meta.experimentId}, ${this.currentSession.name}`;
       this.subject = experiment;
-      this.body = `${experiment}
-
-${location.href}
-
+      this.body = `Experiment: ${this.currentSession.meta.experimentId}
+Scan: ${this.currentSession.name}`;
+      if (this.note) {
+        this.body = `${this.body}
+Note:
 ${this.note}
 `;
+      }
       this.initialized = true;
     },
     toggleScreenshotSelection(screenshot) {
@@ -143,6 +158,19 @@ ${this.note}
       this.sending = false;
       this.$emit("input", false);
       this.initialized = false;
+      for (let i = this.screenshots.length - 1; i >= 0; i--) {
+        const screenshot = this.screenshots[i];
+        if (this.selectedScreenshots.indexOf(screenshot) !== -1) {
+          this.removeScreenshot(screenshot);
+        }
+      }
+      this.selectedScreenshots = [];
+    },
+    getBorder(screenshot) {
+      if (this.selectedScreenshots.indexOf(screenshot) === -1) {
+        return "transparent";
+      }
+      return this.$vuetify.theme.currentTheme.primary;
     }
   }
 };
@@ -166,7 +194,7 @@ ${this.note}
                 label="to"
                 v-model="to"
                 :candidates="toCandidates.map(c => c.name)"
-                :required="!(to.length + cc.length + bcc.length)"
+                :required="true"
               />
             </v-flex>
             <v-flex shrink>
@@ -180,7 +208,7 @@ ${this.note}
                 label="cc"
                 v-model="cc"
                 :candidates="ccCandidates.map(c => c.name)"
-                :required="!(to.length + cc.length + bcc.length)"
+                :required="false"
               />
             </v-flex>
           </v-layout>
@@ -190,7 +218,7 @@ ${this.note}
                 label="bcc"
                 v-model="bcc"
                 :candidates="bccCandidates.map(c => c.name)"
-                :required="!(to.length + cc.length + bcc.length)"
+                :required="false"
               />
             </v-flex>
           </v-layout>
@@ -225,16 +253,15 @@ ${this.note}
                     class="screenshot"
                     @click="toggleScreenshotSelection(screenshot)"
                     :style="{
-                      borderColor:
-                        selectedScreenshots.indexOf(screenshot) === -1
-                          ? 'transparent'
-                          : $vuetify.theme.primary
+                      borderColor: getBorder(screenshot)
                     }"
                   >
                     <v-img :src="screenshot.dataURL" aspect-ratio="1"></v-img>
                     <v-card-text class="text-truncate">
                       <v-tooltip top>
-                        <span slot="activator">{{ screenshot.name }}</span>
+                        <template #activator="{ on }">
+                          <span v-on="on">{{ screenshot.name }}</span>
+                        </template>
                         <span>{{ screenshot.name }}</span>
                       </v-tooltip>
                     </v-card-text>

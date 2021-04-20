@@ -28,12 +28,11 @@ const poolSize = navigator.hardwareConcurrency / 2 || 2;
 let workerPool = new WorkerPool(poolSize, poolFunction);
 let taskRunId = -1;
 let savedWorker = null;
-let mutationUnsubscribe = null;
-let actionUnsubscribe = null;
 let sessionTimeoutId = null;
 
 const store = new Vuex.Store({
   state: {
+    currentUser: null,
     drawer: false,
     experimentIds: [],
     experiments: {},
@@ -51,9 +50,18 @@ const store = new Vuex.Store({
     screenshots: [],
     sites: null,
     sessionCachedPercentage: 0,
-    sessionTimeoutSeconds: parseInt(process.env.MIQA_SESSION_TIMEOUT)
+    responseInterceptor: null,
+    userCheckPeriod: 60000, // In milliseconds
+    sessionStatus: null,
+    remainingSessionTime: 0
   },
   getters: {
+    sessionStatus(state) {
+      return state.sessionStatus;
+    },
+    currentUser(state) {
+      return state.currentUser;
+    },
     currentDataset(state) {
       return state.currentDatasetId
         ? state.datasets[state.currentDatasetId]
@@ -161,9 +169,18 @@ const store = new Vuex.Store({
           return name;
         }
       };
+    },
+    remainingSessionTime(state) {
+      return state.remainingSessionTime;
     }
   },
   mutations: {
+    setSessionStatus(state, status) {
+      state.sessionStatus = status;
+    },
+    setCurrentUser(state, user) {
+      state.currentUser = user;
+    },
     setDrawer(state, value) {
       state.drawer = value;
     },
@@ -175,9 +192,88 @@ const store = new Vuex.Store({
     },
     removeScreenshot(state, screenshot) {
       state.screenshots.splice(state.screenshots.indexOf(screenshot), 1);
+    },
+    setResponseInterceptor(state, interceptor) {
+      state.responseInterceptor = interceptor;
+    },
+    setRemainingSessionTime(state, timeRemaining) {
+      state.remainingSessionTime = timeRemaining;
     }
   },
   actions: {
+    reset({ state }) {
+      if (sessionTimeoutId !== null) {
+        window.clearTimeout(sessionTimeoutId);
+        sessionTimeoutId = null;
+      }
+
+      if (state.responseInterceptor !== null) {
+        girder.rest.interceptors.response.eject(state.responseInterceptor);
+        state.responseInterceptor = null;
+      }
+
+      if (taskRunId >= 0) {
+        workerPool.cancel(taskRunId);
+        taskRunId = -1;
+      }
+
+      state.currentUser = null;
+      state.drawer = false;
+      state.experimentIds = [];
+      state.experiments = {};
+      state.experimentSessions = {};
+      state.sessions = {};
+      state.sessionDatasets = {};
+      state.datasets = {};
+      state.proxyManager = null;
+      state.vtkViews = [];
+      state.currentDatasetId = null;
+      state.loadingDataset = false;
+      state.errorLoadingDataset = false;
+      state.loadingExperiment = false;
+      state.currentScreenshot = null;
+      state.screenshots = [];
+      state.sites = null;
+      state.sessionCachedPercentage = 0;
+      state.sessionStatus = null;
+      state.remainingSessionTime = 0;
+
+      fileCache.clear();
+      datasetCache.clear();
+    },
+    logout({ commit, dispatch }) {
+      dispatch("reset");
+      girder.rest.logout();
+      commit("setSessionStatus", "logout");
+    },
+    async requestCurrentUser({ commit }) {
+      const remainingTime = await girder.rest.get("miqa/sessiontime");
+      commit("setRemainingSessionTime", remainingTime.data);
+    },
+    startLoginMonitor({ state, commit, dispatch }) {
+      if (state.responseInterceptor === null) {
+        state.responseInterceptor = girder.rest.interceptors.response.use(
+          response => response,
+          error => {
+            if (state.currentUser !== null && error.response.status === 401) {
+              commit("setSessionStatus", "timeout");
+            } else {
+              return Promise.reject(error);
+            }
+          }
+        );
+
+        const checkUser = () => {
+          dispatch("requestCurrentUser");
+          sessionTimeoutId = window.setTimeout(
+            checkUser,
+            state.userCheckPeriod
+          );
+        };
+
+        checkUser();
+      }
+    },
     async loadSessions({ state }) {
       let { data: sessionTree } = await girder.rest.get(`miqa/sessions`);
 
@@ -244,7 +340,11 @@ const store = new Vuex.Store({
               datasetId
             ].firstDatasetInPreviousSession = firstInPrev;
           }
-          firstInPrev = session.datasets[0]._id;
+          if (session.datasets.length > 0) {
+            firstInPrev = session.datasets[0]._id;
+          } else {
+            console.error(`${experiment.name}/${session.name} has no datasets`);
+          }
         }
       }
 
@@ -261,7 +361,13 @@ const store = new Vuex.Store({
             let dataset = state.datasets[datasetId];
             dataset.firstDatasetInNextSession = firstInNext;
           }
-          firstInNext = session.datasets[0]._id;
+          if (session.datasets.length > 0) {
+            firstInNext = session.datasets[0]._id;
+          } else {
+            console.error(
+              `${experiment.name}/${session.name}) has no datasets`
+            );
+          }
         }
       }
     },
@@ -355,12 +461,6 @@ const store = new Vuex.Store({
     async loadSites({ state }) {
       let { data: sites } = await girder.rest.get("miqa_setting/site");
       state.sites = sites;
-    },
-    startSessionTimer({ state }) {
-      console.log(
-        `Starting session timer, auto logout in ${state.sessionTimeoutSeconds} seconds`
-      );
-      startInactivityMonitor();
     }
   }
 });
@@ -406,7 +506,6 @@ function prepareProxyManager(proxyManager) {
         representation.setInterpolationType(InterpolationType.NEAREST);
         representation.onModified(() => {
           view.render(true);
-          resetSessionTimeout();
         });
       });
     });
@@ -574,71 +673,6 @@ function expandSessionRange(datasetId, dataRange) {
       session.cumulativeRange[1] = dataRange[1];
     }
   }
-}
-
-function resetState() {
-  if (taskRunId >= 0) {
-    workerPool.cancel(taskRunId);
-    taskRunId = -1;
-  }
-
-  store.state.drawer = false;
-  store.state.experimentIds = [];
-  store.state.experiments = {};
-  store.state.experimentSessions = {};
-  store.state.sessions = {};
-  store.state.sessionDatasets = {};
-  store.state.datasets = {};
-  store.state.proxyManager = null;
-  store.state.vtkViews = [];
-  store.state.currentDatasetId = null;
-  store.state.loadingDataset = false;
-  store.state.errorLoadingDataset = false;
-  store.state.loadingExperiment = false;
-  store.state.currentScreenshot = null;
-  store.state.screenshots = [];
-  store.state.sites = null;
-  store.state.sessionCachedPercentage = 0;
-
-  fileCache.clear();
-  datasetCache.clear();
-}
-
-function autoLogout() {
-  sessionTimeoutId = null;
-  resetState();
-  girder.rest.logout();
-}
-
-function _resetSessionTimeout() {
-  if (sessionTimeoutId) {
-    window.clearTimeout(sessionTimeoutId);
-    sessionTimeoutId = null;
-  }
-  sessionTimeoutId = window.setTimeout(
-    autoLogout,
-    store.state.sessionTimeoutSeconds * 1000
-  );
-}
-
-const resetSessionTimeout = _.throttle(_resetSessionTimeout, 1000);
-
-function startInactivityMonitor() {
-  resetSessionTimeout();
-
-  if (mutationUnsubscribe !== null) {
-    mutationUnsubscribe();
-    mutationUnsubscribe = null;
-  }
-  mutationUnsubscribe = store.subscribe(_.throttle(resetSessionTimeout, 1000));
-
-  if (actionUnsubscribe !== null) {
-    actionUnsubscribe();
-    actionUnsubscribe = null;
-  }
-  actionUnsubscribe = store.subscribeAction(
-    _.throttle(resetSessionTimeout, 1000)
-  );
 }
 
 export default store;

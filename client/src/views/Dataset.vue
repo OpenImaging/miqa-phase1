@@ -17,6 +17,7 @@ import ScreenshotDialog from "@/components/ScreenshotDialog";
 import EmailDialog from "@/components/EmailDialog";
 import KeyboardShortcutDialog from "@/components/KeyboardShortcutDialog";
 import NavigationTabs from "@/components/NavigationTabs";
+import SessionTimer from "@/components/SessionTimer";
 import { cleanDatasetName } from "@/utils/helper";
 
 export default {
@@ -31,7 +32,8 @@ export default {
     ScreenshotDialog,
     EmailDialog,
     KeyboardShortcutDialog,
-    NavigationTabs
+    NavigationTabs,
+    SessionTimer
   },
   inject: ["girderRest", "userLevel"],
   data: () => ({
@@ -147,7 +149,7 @@ export default {
   },
   methods: {
     ...mapMutations(["setDrawer"]),
-    ...mapActions(["loadSessions", "loadSites", "swapToDataset"]),
+    ...mapActions(["loadSessions", "loadSites", "logout", "swapToDataset"]),
     cleanDatasetName,
     handleNavigationError(fail) {
       let failureType = "unknown";
@@ -344,6 +346,7 @@ export default {
       <NavbarTitle />
       <NavigationTabs />
       <v-spacer></v-spacer>
+      <SessionTimer />
       <v-btn icon class="mr-4" @click="keyboardShortcutDialog = true">
         <v-icon>keyboard</v-icon>
       </v-btn>
@@ -358,7 +361,7 @@ export default {
           <v-icon>email</v-icon>
         </v-badge>
       </v-btn>
-      <UserButton @user="girderRest.logout()" />
+      <UserButton @user="logout()" />
     </v-app-bar>
     <v-navigation-drawer
       app

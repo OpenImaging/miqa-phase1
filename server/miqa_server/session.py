@@ -56,6 +56,18 @@ class Session(Resource):
         self.route('POST', ('data', 'import',), self.dataImport)
         self.route('GET', ('sessions',), self.getSessions)
         self.route('GET', ('data', 'export',), self.dataExport)
+        self.route('GET', ('sessiontime',), self.getRemainingSessionTime)
+
+    @access.user
+    @autoDescribeRoute(
+        Description('Return number of seconds until token expires')
+        .errorResponse())
+    def getRemainingSessionTime(self, params):
+        curToken = self.getCurrentToken()
+        currentTime = datetime.datetime.utcnow()
+        tokenExpireTime = curToken['expires']
+        remainingSessionTime = tokenExpireTime - currentTime
+        return remainingSessionTime.total_seconds()
 
     @access.user
     @autoDescribeRoute(
