@@ -361,14 +361,28 @@ if __name__ == "__main__":
     parser.add_argument('--folds', '-f', help="Prefix to folds CSVs", type=str)
     parser.add_argument('--vfold', '-v', help="Which fold to use for validation", type=int, default=2)
     # add bool for evaluation
-    parser.add_argument('--evaluate-only', dest='evaluate', action='store_true')
+    parser.add_argument('--evaluate', dest='evaluate', action='store_true')
+    parser.add_argument('-e', dest='evaluate', action='store_true')
     parser.add_argument('--train', dest='evaluate', action='store_false')
+    parser.add_argument('-t', dest='evaluate', action='store_false')
     parser.set_defaults(evaluate=False)
+    # add bool for full cross-validation
+    parser.add_argument('--all', dest='all', action='store_true')
+    parser.set_defaults(all=False)
 
     args = parser.parse_args()
     # print(args)
 
-    if args.folds is not None:
+    if args.all:
+        # train all 3 folds
+        process_folds(args.folds, 0, False)
+        process_folds(args.folds, 1, False)
+        process_folds(args.folds, 2, False)
+        # evaluate all at the end, so results are easy to pick up from the log
+        process_folds(args.folds, 0, True)
+        process_folds(args.folds, 1, True)
+        process_folds(args.folds, 2, True)
+    elif args.folds is not None:
         process_folds(args.folds, args.vfold, args.evaluate)
     elif args.predicthd is not None:
         predict_hd_data_root = args.predicthd
