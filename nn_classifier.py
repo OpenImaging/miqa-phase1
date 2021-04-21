@@ -252,7 +252,7 @@ def train_and_save_model(df, count_train, save_path, num_epochs, val_interval, o
         loss_function = monai.losses.FocalLoss(weight=class_weights, to_onehot_y=True)
     else:
         loss_function = torch.nn.CrossEntropyLoss(weight=class_weights)
-    wandb.config.learning_rate = 1e-5
+    wandb.config.learning_rate = 1e-4
     optimizer = torch.optim.Adam(model.parameters(), wandb.config.learning_rate)
     wandb.watch(model)
 
