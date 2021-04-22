@@ -11,9 +11,7 @@ import numpy as np
 import pandas as pd
 import torch
 import wandb
-from monai.losses import focal_loss
 from monai.metrics import compute_roc_auc
-from monai.networks.layers.factories import Act
 from monai.networks.nets.regressor import Regressor
 from monai.transforms import AddChanneld, Compose, LoadImaged, ScaleIntensityd, ToTensord
 from sklearn.metrics import confusion_matrix, classification_report
@@ -348,7 +346,7 @@ def process_folds(folds_prefix, validation_fold, evaluate_only):
     df = pd.concat(folds)
     count_train = df.shape[0] - vf.shape[0]
     model_path = os.getcwd() + f"/miqa01-val{validation_fold}.pth"
-    sizes = train_and_save_model(df, count_train, save_path=model_path, num_epochs=200, val_interval=4,
+    sizes = train_and_save_model(df, count_train, save_path=model_path, num_epochs=20, val_interval=2,
                                  only_evaluate=evaluate_only)
 
     print("Image size distribution:\n", sizes)
