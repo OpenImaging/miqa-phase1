@@ -329,7 +329,6 @@ def train_and_save_model(df, count_train, save_path, num_epochs, val_interval, o
 
 
 def process_folds(folds_prefix, validation_fold, evaluate_only):
-    monai.config.print_config()
     logging.basicConfig(stream=sys.stdout, level=logging.INFO)
     wandb.init(project="miqa_01", sync_tensorboard=True)
 
@@ -370,6 +369,8 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     # print(args)
+
+    monai.config.print_config()
 
     if args.all:
         # train all 3 folds
