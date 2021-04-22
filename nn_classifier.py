@@ -199,11 +199,12 @@ def train_and_save_model(df, count_train, save_path, num_epochs, val_interval, o
         ]
     )
 
-    # Define dataset, data loader
-    check_ds = monai.data.Dataset(data=train_files, transform=train_transforms)
-    check_loader = DataLoader(check_ds, batch_size=1, num_workers=1, pin_memory=torch.cuda.is_available())
-    check_data = monai.utils.misc.first(check_loader)
-    print(f'Single input\'s shape: {check_data["img"].shape}, label: {check_data["label"]}')
+    if False: # Check size of the first input
+        # Define dataset, data loader
+        check_ds = monai.data.Dataset(data=train_files, transform=train_transforms)
+        check_loader = DataLoader(check_ds, batch_size=1, num_workers=1, pin_memory=torch.cuda.is_available())
+        check_data = monai.utils.misc.first(check_loader)
+        print(f'Single input\'s shape: {check_data["img"].shape}, label: {check_data["label"]}')
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
