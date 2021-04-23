@@ -21,7 +21,7 @@ from torch.utils.tensorboard import SummaryWriter
 existing_count = 0
 missing_count = 0
 predict_hd_data_root = "P:/PREDICTHD_BIDS_DEFACE/"
-use_focal_loss = False
+use_focal_loss = True
 
 
 def get_image_dimension(path):
@@ -199,7 +199,7 @@ def train_and_save_model(df, count_train, save_path, num_epochs, val_interval, o
         ]
     )
 
-    if False: # Check size of the first input
+    if False:  # Check size of the first input
         # Define dataset, data loader
         check_ds = monai.data.Dataset(data=train_files, transform=train_transforms)
         check_loader = DataLoader(check_ds, batch_size=1, num_workers=1, pin_memory=torch.cuda.is_available())
@@ -222,7 +222,7 @@ def train_and_save_model(df, count_train, save_path, num_epochs, val_interval, o
 
     # create a training data loader
     train_ds = monai.data.Dataset(data=train_files, transform=train_transforms)
-    train_loader = DataLoader(train_ds, batch_size=1, sampler=sampler, num_workers=1,
+    train_loader = DataLoader(train_ds, batch_size=1, num_workers=1,
                               pin_memory=torch.cuda.is_available())
 
     # create a validation data loader
