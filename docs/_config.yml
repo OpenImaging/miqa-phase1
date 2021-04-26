@@ -8,12 +8,10 @@ download_link: https://gitlab.kitware.com/vtk/vtk-m/-/releases
 # Footer Info
 footer_license: License info goes here
 footer_links:
-  - title: Kitware
-    url: 'https://kitware.com'
   - title: Privacy Policy
-    url: 'https://m.vtk.org/index.php/VTKM:Privacy_policy'
+    url: #
   - title: Disclaimers
-    url: 'https://m.vtk.org/index.php/VTKM:General_disclaimer'
+    url: #
   - title: Contact
     url: '/contact'
 
@@ -31,10 +29,3 @@ exclude:
   - assets
   - node_modules
   - vendor
-
-plugins: ['jekyll/scholar']
-
-scholar:
-  source: _publications
-  bibliography: pubs.bib
-  style: apa-annotated-bibliography
