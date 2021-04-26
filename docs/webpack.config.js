@@ -7,7 +7,7 @@ const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 module.exports = {
     mode: isProduction ? 'production' : 'development',
     entry: {
-        vtkm: path.resolve(__dirname, './assets/index.css'),
+        main: path.resolve(__dirname, './assets/index.css'),
     },
     output: {
         path: path.resolve(__dirname, './dist/'),
