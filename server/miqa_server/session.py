@@ -149,22 +149,14 @@ class Session(Resource):
                     json_content = csvContentToJsonObject(csv_content)
                     validate(json_content, schema)
                 except (JSONValidationError, Exception) as inst:
-                    return {
-                        "error": 'Invalid CSV file: {0}'.format(inst.message),
-                        "success": successCount,
-                        "failed": failedCount
-                    }
+                    return {"error": 'Invalid CSV file: {0}'.format(inst.message)}
         else:
             with open(importpath) as json_file:
                 json_content = json.load(json_file)
                 try:
                     validate(json_content, schema)
                 except JSONValidationError as inst:
-                    return {
-                        "error": 'Invalid JSON file: {0}'.format(inst.message),
-                        "success": successCount,
-                        "failed": failedCount
-                    }
+                    return {"error": 'Invalid JSON file: {0}'.format(inst.message)}
 
         existingSessionsFolder = self.findSessionsFolder(user)
         if existingSessionsFolder:
