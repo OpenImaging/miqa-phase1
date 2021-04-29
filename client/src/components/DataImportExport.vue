@@ -9,7 +9,9 @@ export default {
     importEnabled: false,
     exportEnabled: false,
     importing: false,
-    importDialog: false
+    importDialog: false,
+    importErrorText: "",
+    importErrors: false
   }),
   async created() {
     var { data: result } = await this.girderRest.get(
@@ -22,19 +24,26 @@ export default {
     ...mapActions(["loadSessions"]),
     async importData() {
       this.importing = true;
+      this.importErrorText = "";
+      this.importErrors = false;
       try {
         var { data: result } = await this.girderRest.post("miqa/data/import");
         this.importing = false;
-        this.$snackbar({
-          text: `Import finished.
-          With ${result.success} scans succeeded and ${result.failed} failed.`,
-          timeout: 6000
-        });
+        if (result.errorMsg) {
+          this.importErrorText = `${result.success} scans succeeded, ${result.failed} failed.\n\n${result.errorMsg}`;
+          this.importErrors = true;
+        } else {
+          this.$snackbar({
+            text: `Import finished.
+            With ${result.success} scans succeeded and ${result.failed} failed.`,
+            timeout: 6000
+          });
+        }
         this.loadSessions();
       } catch (ex) {
         this.importing = false;
         this.$snackbar({
-          text: "Import failed. Refer console for detail."
+          text: "Import failed. Refer to server logs for details."
         });
         console.error(ex.response);
       }
@@ -84,7 +93,31 @@ export default {
         </v-card-actions>
       </v-card>
     </v-dialog>
+    <v-dialog v-model="importErrors" content-class="import-error-dialog">
+      <v-card>
+        <v-card-title class="title">Import Errors Encountered</v-card-title>
+        <v-card-text class="console-format">
+          {{ importErrorText }}
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn color="primary" text @click="importErrors = false">
+            Ok
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </div>
 </template>
 
-<style lang="scss" scoped></style>
+<style lang="scss">
+.import-error-dialog {
+  position: relative;
+  width: 100%;
+  margin: 48px;
+}
+.console-format {
+  white-space: pre-wrap;
+  font-family: monospace;
+}
+</style>
