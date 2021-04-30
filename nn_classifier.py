@@ -248,7 +248,7 @@ def train_and_save_model(df, count_train, save_path, num_epochs, val_interval, o
 
     # Create a loss function and Adam optimizer
     if use_focal_loss:
-        loss_function = monai.losses.FocalLoss(to_onehot_y=True)
+        loss_function = monai.losses.FocalLoss(weight=class_weights, to_onehot_y=True)
     else:
         loss_function = torch.nn.CrossEntropyLoss(weight=class_weights)
     wandb.config.learning_rate = 1e-4
