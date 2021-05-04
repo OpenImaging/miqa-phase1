@@ -1,9 +1,9 @@
-title: VTK-m
-description: A toolkit of scientific visualization algorithms for emerging processor architectures
+title: MIQA
+description: QC processing
 baseurl: '/'
 markdown: kramdown
 
-download_link: https://gitlab.kitware.com/vtk/vtk-m/-/releases
+download_link: https://github.com/OpenImaging/miqa
 
 # Footer Info
 footer_license: License info goes here

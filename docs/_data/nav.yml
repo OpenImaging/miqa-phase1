@@ -1,30 +1,7 @@
-- name: Welcome
+- name: Collaborators
   url: /
-- name: Resources
-  url: /tutorial
-  dropdown:
-    - name: Building VTK-m
-      url: https://gitlab.kitware.com/vtk/vtk-m/blob/master/README.md#building
-      new_tab: true
-    - name: Contributing
-      url: https://gitlab.kitware.com/vtk/vtk-m/blob/master/CONTRIBUTING.md
-      new_tab: true
-    - name: Doxygen Documentation
-      url: http://m.vtk.org/documentation/
-      new_tab: true
-    - name: Mailing List
-      url: http://vtk.org/mailman/listinfo/vtkm
-      new_tab: true
-    - name: Software Dependencies
-      url: https://gitlab.kitware.com/vtk/vtk-m/blob/master/README.md#dependencies
-      new_tab: true
-    - name: Tutorial
-      url: /tutorial
-    - name: User Guide
-      url: https://gitlab.kitware.com/vtk/vtk-m-user-guide/-/wikis/home
-      new_tab: true
-    - name: VTK-m Assets
-      url: /assets
+- name: Team
+  url: /
 - name: Contact
-  url: https://vtk.org/mailman/listinfo/vtkm
+  url: https://www.kitware.com/contact-us/
   new_tab: true
