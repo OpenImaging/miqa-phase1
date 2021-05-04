@@ -6,14 +6,11 @@ permalink: /
 layout: homepage
 
 # Hero
-hero_image: 'img/fluids_blend.png'
-hero_attribution: '<strong>Image Credit:</strong> Matthew Larsen, LLNL. This image is of an idealized Inertial Confinement Fusion (ICF) simulation of a Rayleigh-Taylor instability with two fluids mixing in a spherical geometry.'
-
-# Download CTA
-download_title: Getting started
-download_message: >-
-  <p>Download the latest release and then follow the instructions. If you're not already a VTK user and want to learn more about the original toolkit, <a href="http://vtk.org" target="_blank">check it out</a>.</p>
-download_link: 'https://gitlab.kitware.com/vtk/vtk-m/-/releases'
+hero_image: 'img/hero_bg.png'
+hero_title: 'MIQA'
+hero_description: 'Efficient and accurate QC processing by leveraging modern UI/UX and deep learning techniques'
+learn_more_link: 'https://github.com/OpenImaging/miqa'
+github_link: 'https://github.com/OpenImaging/miqa'
 
 # Resources
 resources_title: VTK-m Resources

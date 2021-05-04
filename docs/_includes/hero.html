@@ -1,23 +1,21 @@
-<div class="bg-gradient-to-r from-primary-500 to-primary-900 max-w-7xl mx-auto relative shadow-2xl text-white xl:rounded-xl">
-  <div class="items-center overflow-hidden px-12 py-16 pb-24 relative lg:flex lg:overflow-visible lg:px-20">
-    <div class="relative w-96 z-20">
+<div class="bg-cover" style="background-image: url('{{ page.hero_image | prepend: site.baseurl }}')">
+  <div class="py-80 pb-24 text-center">
+    <div>
       <h1 class="text-white text-shadow-2xl">
-        <span class="text-primary-300 block text-xl lg:text-3xl">A toolkit of</span>
-        <span class="block text-5xl uppercase lg:text-7xl">scientific visualization algorithms</span>
+        <span class="block text-5xl uppercase lg:text-7xl">{{ page.hero_title }}</span>
         <span class="text-primary-300 text-base lg:text-xl">
-          for <span class="font-bold text-white">emerging processor architectures.</span>
+          <span class="text-white">{{ page.hero_description }}</span>
         </span>
       </h1>
-    </div>
-    <div class="absolute left-0 top-32 -right-32 sm:left-auto sm:top-16 lg:-bottom-20 lg:right-16 lg:top-3">
-      <img src="{{ page.hero_image | prepend: site.baseurl }}" class="h-auto w-full lg:h-full lg:w-auto" alt="">
+      <a href="{{ page.learn_more_link }}" class="button is-white justify-between mt-8 py-4 px-12 text-lg"
+        target="_blank">
+        Learn More
+      </a>
+      <a href="{{ page.github_link }}" class="button is-white is-outline justify-between mt-8 py-4 px-6 text-lg"
+        target="_blank">
+        <i class="ri-github-fill ml-2 text-2xl pr-4"></i>
+        View on Github
+      </a>
     </div>
   </div>
 </div>
-{% if page.hero_attribution %}
-<div class="flex justify-end max-w-7xl mx-auto py-4 px-8 lg:pb-0 lg:pt-8 lg:px-0">
-  <div class="text-secondary-500 text-xs w-full lg:w-80">
-    {{ page.hero_attribution }}
-  </div>
-</div>
-{% endif %}

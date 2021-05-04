@@ -106,7 +106,7 @@
   }
 
   .button.is-primary:hover {
-    @apply bg-primary-700 text-white;
+    @apply bg-primary-400 text-white;
   }
 
   .button.is-primary.is-outline {
@@ -120,11 +120,11 @@
   /* SECONDARY BUTTONS */
 
   .button.is-secondary {
-    @apply bg-secondary-500 text-white;
+    @apply bg-secondary-400 text-white;
   }
 
   .button.is-secondary:hover {
-    @apply bg-secondary-700 text-white;
+    @apply bg-secondary-300 text-white;
   }
 
   .button.is-secondary.is-outline {
@@ -151,6 +151,24 @@
 
   .button.is-accent.is-outline:hover {
     @apply bg-accent-500 text-white;
+  }
+
+  /* WHITE BUTTONS */
+
+  .button.is-white {
+    @apply bg-white text-gray-800;
+  }
+
+  .button.is-white:hover {
+    @apply bg-primary-500 text-gray-900;
+  }
+
+  .button.is-white.is-outline {
+    @apply bg-transparent border border-white border-8 text-white;
+  }
+
+  .button.is-white.is-outline:hover {
+    @apply bg-primary-500 text-white;
   }
 
   .bibliography {
