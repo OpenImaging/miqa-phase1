@@ -12,7 +12,7 @@ sections:
 ---
 
 # Logos
-If you need to reference VTK-m anywhere, you may use our logo for recognition.
+If you need to reference MIQA anywhere, you may use our logo for recognition.
 
 <table>
 <thead>
@@ -26,15 +26,15 @@ If you need to reference VTK-m anywhere, you may use our logo for recognition.
 **PNG**
 </td>
 <td markdown="1">
-![PNG](/img/logos/VTKm_Logo_512.png)
+![PNG](/img/logos/MIQA_Logo_512.png)
 </td>
 <td markdown="1">
-- [High Res](/img/logos/VTKm_Logo_Hi.png)
-- [1024](/img/logos/VTKm_Logo_1024.png)
-- [512](/img/logos/VTKm_Logo_512.png)
-- [256](/img/logos/VTKm_Logo_256.png)
-- [128](/img/logos/VTKm_Logo_128.png)
-- [64](/img/logos/VTKm_Logo_Hi.png)
+- [High Res](/img/logos/MIQA_Logo_Hi.png)
+- [1024](/img/logos/MIQA_Logo_1024.png)
+- [512](/img/logos/MIQA_Logo_512.png)
+- [256](/img/logos/MIQA_Logo_256.png)
+- [128](/img/logos/MIQA_Logo_128.png)
+- [64](/img/logos/MIQA_Logo_Hi.png)
 </td>
 </tr>
 <tr>
@@ -42,11 +42,11 @@ If you need to reference VTK-m anywhere, you may use our logo for recognition.
 **SVG**
 </td>
 <td markdown="1">
-![SVG](/img/VTKm_Logo.svg)
+![SVG](/img/MIQA_Logo.svg)
 </td>
 <td markdown="1">
-- [SVG](/img/VTKm_Logo.svg)
-- [PDF](/img/logos/VTKm_Logo.pdf)
+- [SVG](/img/MIQA_Logo.svg)
+- [PDF](/img/logos/MIQA_Logo.pdf)
 </td>
 </tr>
 </tbody>

@@ -13,9 +13,29 @@ learn_more_link: 'https://github.com/OpenImaging/miqa'
 github_link: 'https://github.com/OpenImaging/miqa'
 
 # Resources
-resources_title: VTK-m Resources
+features_title: Features
 resources_blurb: >-
   <p class="text-xs">Are you funded by the ECP/VTK-m project? See <a href="https://m.vtk.org/index.php/ECP/VTK-m_project_management" target="_blank">ECP/VTK-m project management</a>.</p>
+
+features:
+  - name: Multi-site
+    icon: img/icons/MultiSite.png
+    description: 'MIQA is cloud-based for distributed access by geographically distributed teams. All participants can securely view and annotate imagery from multiple sites.'
+  - name: AI Powered
+    icon: img/icons/AIPowered.png
+    description: 'MIQA provides neural networks pre-trained for anomaly detection to ease the burden of distributed quality assurance testing. MIQA will learn from annotations entered by experts to further improve its AI predictions.'
+  - name: Open Source
+    icon: img/icons/OpenSource.png
+    description: 'Open Source means MIQA can be extended and modified for new applications. Join our growing team of developers and develop only the extra features you need.'
+  - name: Modern UI/UX
+    icon: img/icons/ModernUIUX.png
+    description: 'MIQA uses new Javascript frameworks, including Vue.js, Vuetify, and Vuex to speed development and improve UI performance.'
+  - name: Efficient Data Management and Caching
+    icon: img/icons/DataManagement.png
+    description: 'MIQA builds on Girder, a mature, open source enterprise data hosting platform with multi-threading and scaleable storage and caching options.'
+  - name: Easy to Deploy
+    icon: img/icons/Deploy.png
+    description: 'Get started right away using our pre-built docker containers.'
 
 resources:
   - name: Building VTK-m
@@ -40,7 +60,7 @@ resources:
     icon: ri-lightbulb-flash-fill
     link: '/tutorial'
   - name: VTK-m Assets
-    icon: ri-database-line
+    icon: ri-angularjs-fill
     link: '/assets'
 
 # Publications
@@ -51,8 +71,6 @@ pubs_blurb: >-
 
 ---
 
-# What is VTK-m?
+# **M**edical **I**mage **Q**uality **A**ssurance **(MIQA)**
 
-One of the biggest recent changes in high-performance computing is the increasing use of accelerators. Accelerators contain processing cores that independently are inferior to a core in a typical CPU, but these cores are replicated and grouped such that their aggregate execution provides a very high computation rate at a much lower power. Current and future CPU processors also require much more explicit parallelism. Each successive version of the hardware packs more cores into each processor, and technologies like hyperthreading and vector operations require even more parallel processing to leverage each core’s full potential.
-
-**VTK-m is a toolkit of scientific visualization algorithms for emerging processor architectures.** VTK-m supports the fine-grained concurrency for data analysis and visualization algorithms required to drive extreme scale computing by providing abstract models for data and execution that can be applied to a variety of algorithms across many different processor architectures.
+MIQA is designed for medical imaging QA/QC from the ground up, enabling workflows that not only reflect the specific requirements of distributed medical imaging studies, but also minimize the time spent on labor-intensive operations, such as visually reviewing scans.
