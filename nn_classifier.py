@@ -251,8 +251,9 @@ def train_and_save_model(df, count_train, save_path, num_epochs, val_interval, o
         loss_function = monai.losses.FocalLoss(weight=class_weights, to_onehot_y=True)
     else:
         loss_function = torch.nn.CrossEntropyLoss(weight=class_weights)
-    wandb.config.learning_rate = 5e-5
+    wandb.config.learning_rate = 1e-4
     optimizer = torch.optim.Adam(model.parameters(), wandb.config.learning_rate)
+    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=2)
     wandb.watch(model)
 
     # start a typical PyTorch training
@@ -320,6 +321,8 @@ def train_and_save_model(df, count_train, save_path, num_epochs, val_interval, o
                 )
             )
 
+            scheduler.step(auc_metric)
+
     epoch_suffix = ".epoch" + str(num_epochs)
     torch.save(model.state_dict(), save_path + epoch_suffix)
     torch.save(model.state_dict(), os.path.join(wandb.run.dir, 'miqa01.pt' + epoch_suffix))
@@ -346,7 +349,7 @@ def process_folds(folds_prefix, validation_fold, evaluate_only):
     df = pd.concat(folds)
     count_train = df.shape[0] - vf.shape[0]
     model_path = os.getcwd() + f"/miqa01-val{validation_fold}.pth"
-    sizes = train_and_save_model(df, count_train, save_path=model_path, num_epochs=50, val_interval=2,
+    sizes = train_and_save_model(df, count_train, save_path=model_path, num_epochs=30, val_interval=2,
                                  only_evaluate=evaluate_only)
 
     print("Image size distribution:\n", sizes)
