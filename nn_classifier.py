@@ -349,7 +349,7 @@ def process_folds(folds_prefix, validation_fold, evaluate_only):
     df = pd.concat(folds)
     count_train = df.shape[0] - vf.shape[0]
     model_path = os.getcwd() + f"/miqa01-val{validation_fold}.pth"
-    sizes = train_and_save_model(df, count_train, save_path=model_path, num_epochs=30, val_interval=2,
+    sizes = train_and_save_model(df, count_train, save_path=model_path, num_epochs=50, val_interval=2,
                                  only_evaluate=evaluate_only)
 
     print("Image size distribution:\n", sizes)
