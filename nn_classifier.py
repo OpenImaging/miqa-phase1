@@ -322,6 +322,8 @@ def train_and_save_model(df, count_train, save_path, num_epochs, val_interval, o
             )
 
             scheduler.step(auc_metric)
+            print(f"Learning rate after epoch {epoch}: {scheduler.get_last_lr()}")
+            wandb.log({"learn_rate": scheduler.get_last_lr()})
 
     epoch_suffix = ".epoch" + str(num_epochs)
     torch.save(model.state_dict(), save_path + epoch_suffix)
