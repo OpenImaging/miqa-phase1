@@ -1,9 +1,9 @@
 ## Development environment setup
 
-MIQA has server, client two components. They are located under *server* and *client* directory respectively.
+MIQA has two components, a server and a client.. They are located under the *server* and *client* directories respectively.
 
-### Prerequisite
-* Pyhton 3.5+
+### Prerequisites
+* Python 3.5+
 * Mongodb running at the default port
 * Node 8
 
