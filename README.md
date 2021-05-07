@@ -10,10 +10,10 @@ The server is built based on [Girder](https://github.com/girder/girder), a pytho
 MIQA has an implementation of active learning. It uses MRIQC to extract features out of scans then uses labeled data and Random Forest Regression to evaluate if a dataset meets the standard.
 
 ## Development
-MIQA can be development on Linux. See [development](development.md) for detail.
+MIQA can be developed on Linux. See [development](development.md) for detail.
 
 ## Deployment
-MIQA can be deployed on any Linux system. This repo provided a [solution](devops/docker/README.md) with Docker.
+MIQA can be deployed on any Linux system. This repo provides a [solution](devops/docker/README.md) with Docker.
 
 ## Try out MIQA
-The simplest way to try out MIQA is to follow these steps [here](https://cloud.docker.com/u/kitware/repository/docker/kitware/miqa/general). You could also build MIQA from scratch with the [scripts here](devops/docker/README.md).
+The simplest way to try out MIQA is to follow the steps [here](https://cloud.docker.com/u/kitware/repository/docker/kitware/miqa/general). You could also build MIQA from scratch with the [scripts here](devops/docker/README.md).
