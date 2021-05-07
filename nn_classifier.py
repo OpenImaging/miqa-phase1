@@ -361,6 +361,7 @@ if __name__ == "__main__":
     parser.add_argument('--ncanda', '-n', help="Path to NCANDA data", type=str)
     parser.add_argument('--folds', '-f', help="Prefix to folds CSVs", type=str)
     parser.add_argument('--vfold', '-v', help="Which fold to use for validation", type=int, default=2)
+    parser.add_argument('--nfolds', '-c', help="Number of folds", type=int, default=3)
     # add bool for evaluation
     parser.add_argument('--evaluate', dest='evaluate', action='store_true')
     parser.add_argument('-e', dest='evaluate', action='store_true')
@@ -377,14 +378,12 @@ if __name__ == "__main__":
     monai.config.print_config()
 
     if args.all:
-        # train all 3 folds
-        process_folds(args.folds, 0, False)
-        process_folds(args.folds, 1, False)
-        process_folds(args.folds, 2, False)
+        print(f"Training {args.nfolds} folds")
+        for f in range(args.nfolds):
+            process_folds(args.folds, f, False)
         # evaluate all at the end, so results are easy to pick up from the log
-        process_folds(args.folds, 0, True)
-        process_folds(args.folds, 1, True)
-        process_folds(args.folds, 2, True)
+        for f in range(args.nfolds):
+            process_folds(args.folds, f, True)
     elif args.folds is not None:
         process_folds(args.folds, args.vfold, args.evaluate)
     elif args.predicthd is not None:
