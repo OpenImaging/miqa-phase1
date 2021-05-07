@@ -162,7 +162,11 @@ def train_and_save_model(df, count_train, save_path, num_epochs, val_interval, o
     decisions = []
     sizes = {}
     for row in df.itertuples():
-        if row.exists:
+        try:
+            exists = row.exists
+        except AttributeError:
+            exists = True # assume that it exists by default
+        if exists:
             images.append(row.file_path)
             decision = 0 if row.overall_qa_assessment < 6 else 1
             decisions.append(decision)
