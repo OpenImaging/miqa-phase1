@@ -1,12 +1,12 @@
-# vtkm-web
-This repository is home to the files for the VTK-m website. Below you will find building and deployment instructions as well as documentation for plugins and packages that this website depends on.
+# MIQA website
+This repository is home to the files for the MIQA website. Below you will find building and deployment instructions as well as documentation for plugins and packages that this website depends on.
 
-Our Netlify build is live at https://vtk-m.vtk.org (this is a temporary domain and will be pointed to https://m.vtk.org when our work is done).
+Our Netlify build is live at https://miqa.kitware.com
 
 **Note:** This site will not build on GitHub pages. It can be optimized to do so, however the "jekyll-scholar" plugin does not work on GitHub Pages, so we opted for deploying on Netlify.
 
 ## Developing locally
-Start by cloning this repository followed by `cd vtkm-web`.
+Start by cloning this repository followed by `cd docs`.
 
 #### Building Tailwind
 Tailwind and our other dev packages need to be built prior to Jekyll, as it needs the `manifest.yml` file to link to the properly built CSS.

@@ -9,13 +9,13 @@ layout: homepage
 hero_image: 'img/hero_bg.png'
 hero_title: 'MIQA'
 hero_description: 'Efficient and accurate QC processing by leveraging modern UI/UX and deep learning techniques'
-learn_more_link: 'https://github.com/OpenImaging/miqa'
+# learn_more_link: 'https://github.com/OpenImaging/miqa'
 github_link: 'https://github.com/OpenImaging/miqa'
 
 # Resources
 features_title: Features
-resources_blurb: >-
-  <p class="text-xs">Are you funded by the ECP/VTK-m project? See <a href="https://m.vtk.org/index.php/ECP/VTK-m_project_management" target="_blank">ECP/VTK-m project management</a>.</p>
+# resources_blurb: >-
+#   <p class="text-xs">Are you funded by the ECP/VTK-m project? See <a href="https://m.vtk.org/index.php/ECP/VTK-m_project_management" target="_blank">ECP/VTK-m project management</a>.</p>
 
 features:
   - name: Multi-site
@@ -37,31 +37,31 @@ features:
     icon: img/icons/Deploy.png
     description: 'Get started right away using our pre-built docker containers.'
 
-resources:
-  - name: Building VTK-m
-    icon: ri-stack-fill
-    link: 'https://gitlab.kitware.com/vtk/vtk-m/blob/master/README.md#building'
-  - name: Software Dependencies
-    icon: ri-terminal-box-fill
-    link: 'https://gitlab.kitware.com/vtk/vtk-m/blob/master/README.md#dependencies'
-  - name: Contributing
-    icon: ri-chat-check-fill
-    link: 'https://gitlab.kitware.com/vtk/vtk-m/blob/master/CONTRIBUTING.md'
-  - name: Mailing List
-    icon: ri-send-plane-fill
-    link: 'http://vtk.org/mailman/listinfo/vtkm'
-  - name: User Guide
-    icon: ri-book-2-fill
-    link: 'https://gitlab.kitware.com/vtk/vtk-m-user-guide/-/wikis/home'
-  - name: Doxygen Documentation
-    icon: ri-booklet-fill
-    link: 'http://m.vtk.org/documentation/'
-  - name: Tutorial
-    icon: ri-lightbulb-flash-fill
-    link: '/tutorial'
-  - name: VTK-m Assets
-    icon: ri-angularjs-fill
-    link: '/assets'
+# resources:
+#   - name: Building VTK-m
+#     icon: ri-stack-fill
+#     link: 'https://gitlab.kitware.com/vtk/vtk-m/blob/master/README.md#building'
+#   - name: Software Dependencies
+#     icon: ri-terminal-box-fill
+#     link: 'https://gitlab.kitware.com/vtk/vtk-m/blob/master/README.md#dependencies'
+#   - name: Contributing
+#     icon: ri-chat-check-fill
+#     link: 'https://gitlab.kitware.com/vtk/vtk-m/blob/master/CONTRIBUTING.md'
+#   - name: Mailing List
+#     icon: ri-send-plane-fill
+#     link: 'http://vtk.org/mailman/listinfo/vtkm'
+#   - name: User Guide
+#     icon: ri-book-2-fill
+#     link: 'https://gitlab.kitware.com/vtk/vtk-m-user-guide/-/wikis/home'
+#   - name: Doxygen Documentation
+#     icon: ri-booklet-fill
+#     link: 'http://m.vtk.org/documentation/'
+#   - name: Tutorial
+#     icon: ri-lightbulb-flash-fill
+#     link: '/tutorial'
+#   - name: VTK-m Assets
+#     icon: ri-angularjs-fill
+#     link: '/assets'
 
 # Publications
 publications: true
