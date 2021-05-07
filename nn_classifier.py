@@ -171,11 +171,14 @@ def train_and_save_model(df, count_train, save_path, num_epochs, val_interval, o
             decision = 0 if row.overall_qa_assessment < 6 else 1
             decisions.append(decision)
 
-            size = row.dimensions
-            if size not in sizes:
-                sizes[size] = 1
-            else:
-                sizes[size] += 1
+            try:
+                size = row.dimensions
+                if size not in sizes:
+                    sizes[size] = 1
+                else:
+                    sizes[size] += 1
+            except AttributeError:
+                pass
 
     # 2 binary labels for scan classification: 1=good, 0=bad
     labels = np.asarray(decisions, dtype=np.int64)
