@@ -341,21 +341,21 @@ def train_and_save_model(df, count_train, save_path, num_epochs, val_interval, o
     return sizes
 
 
-def process_folds(folds_prefix, validation_fold, evaluate_only):
+def process_folds(folds_prefix, validation_fold, evaluate_only, fold_count):
     logging.basicConfig(stream=sys.stdout, level=logging.INFO)
     wandb.init(project="miqa_01", sync_tensorboard=True)
 
     folds = []
-    for f in range(3):
+    for f in range(fold_count):
         folds.append(pd.read_csv(folds_prefix + f"{f}.csv"))
 
-    df = pd.concat(folds)
+    df = pd.concat(folds, ignore_index=True)
     print(df)
 
     print(f"Using fold {validation_fold} for validation")
     vf = folds.pop(validation_fold)
     folds.append(vf)
-    df = pd.concat(folds)
+    df = pd.concat(folds, ignore_index=True)
     count_train = df.shape[0] - vf.shape[0]
     model_path = os.getcwd() + f"/miqa01-val{validation_fold}.pth"
     sizes = train_and_save_model(df, count_train, save_path=model_path, num_epochs=50, val_interval=2,
@@ -389,12 +389,12 @@ if __name__ == "__main__":
     if args.all:
         print(f"Training {args.nfolds} folds")
         for f in range(args.nfolds):
-            process_folds(args.folds, f, False)
+            process_folds(args.folds, f, False, args.nfolds)
         # evaluate all at the end, so results are easy to pick up from the log
         for f in range(args.nfolds):
-            process_folds(args.folds, f, True)
+            process_folds(args.folds, f, True, args.nfolds)
     elif args.folds is not None:
-        process_folds(args.folds, args.vfold, args.evaluate)
+        process_folds(args.folds, args.vfold, args.evaluate, args.nfolds)
     elif args.predicthd is not None:
         predict_hd_data_root = args.predicthd
         df = read_and_normalize_data_frame(predict_hd_data_root + r'phenotype/bids_image_qc_information.tsv')
