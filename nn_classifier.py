@@ -165,7 +165,7 @@ def train_and_save_model(df, count_train, save_path, num_epochs, val_interval, o
         try:
             exists = row.exists
         except AttributeError:
-            exists = True # assume that it exists by default
+            exists = True  # assume that it exists by default
         if exists:
             images.append(row.file_path)
             decision = 0 if row.overall_qa_assessment < 6 else 1
@@ -206,7 +206,7 @@ def train_and_save_model(df, count_train, save_path, num_epochs, val_interval, o
         ]
     )
 
-    if False: # Check size of the first input
+    if False:  # Check size of the first input
         # Define dataset, data loader
         check_ds = monai.data.Dataset(data=train_files, transform=train_transforms)
         check_loader = DataLoader(check_ds, batch_size=1, num_workers=1, pin_memory=torch.cuda.is_available())
@@ -260,7 +260,7 @@ def train_and_save_model(df, count_train, save_path, num_epochs, val_interval, o
         loss_function = torch.nn.CrossEntropyLoss(weight=class_weights)
     wandb.config.learning_rate = 5e-5
     optimizer = torch.optim.Adam(model.parameters(), wandb.config.learning_rate)
-    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=2)
+    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=4, factor=0.25, min_lr=1e-6)
     wandb.watch(model)
 
     # start a typical PyTorch training
