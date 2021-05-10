@@ -186,12 +186,11 @@ def train_and_save_model(df, count_train, save_path, num_epochs, val_interval, o
     train_files = [{"img": img, "label": label} for img, label in zip(images[:count_train], labels[:count_train])]
     val_files = [{"img": img, "label": label} for img, label in zip(images[-count_val:], labels[-count_val:])]
 
-    # TODO: shuffle train_files (if not already done)
-
+    itk_reader = monai.data.ITKReader(pixel_type=itk.F)
     # Define transforms for image
     train_transforms = Compose(
         [
-            LoadImaged(keys=["img"]),
+            LoadImaged(keys=["img"], reader=itk_reader),
             AddChanneld(keys=["img"]),
             ScaleIntensityd(keys=["img"]),
             ToTensord(keys=["img"]),
@@ -199,7 +198,7 @@ def train_and_save_model(df, count_train, save_path, num_epochs, val_interval, o
     )
     val_transforms = Compose(
         [
-            LoadImaged(keys=["img"]),
+            LoadImaged(keys=["img"], reader=itk_reader),
             AddChanneld(keys=["img"]),
             ScaleIntensityd(keys=["img"]),
             ToTensord(keys=["img"]),
