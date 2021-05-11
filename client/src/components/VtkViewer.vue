@@ -127,7 +127,7 @@ export default {
       this.slice = slice;
     },
     async takeScreenshot() {
-      var dataURL = await this.view.captureImage();
+      var dataURL = await this.view.captureImage({ size: [512, 512] });
       this.setCurrentScreenshot({
         name: `${this.currentSession.meta.experimentId}/${
           this.currentSession.name
