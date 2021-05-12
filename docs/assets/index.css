@@ -124,7 +124,7 @@
   }
 
   .button.is-secondary:hover {
-    @apply bg-secondary-300 text-white;
+    @apply bg-secondary-500 text-white;
   }
 
   .button.is-secondary.is-outline {
@@ -132,7 +132,7 @@
   }
 
   .button.is-secondary.is-outline:hover {
-    @apply bg-secondary-500 text-white;
+    @apply bg-secondary-50 text-secondary-500;
   }
 
   /* ACCENT BUTTONS */
