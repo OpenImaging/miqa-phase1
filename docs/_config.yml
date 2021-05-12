@@ -6,14 +6,14 @@ markdown: kramdown
 download_link: https://github.com/OpenImaging/miqa
 
 # Footer Info
-# footer_license: License info goes here
-# footer_links:
-#   - title: Privacy Policy
-#     url: #
-#   - title: Disclaimers
-#     url: #
-#   - title: Contact
-#     url: '/contact'
+footer_license: 'Copyright © 2020 Kitware. All rights reserved.'
+footer_links:
+  # - title: Privacy Policy
+  #   url: #
+  # - title: Disclaimers
+  #   url: #
+  # - title: Contact
+  #   url: 'https://www.kitware.com/contact-us/'
 
 defaults:
   - scope:
