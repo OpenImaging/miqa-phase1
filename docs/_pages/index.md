@@ -46,10 +46,10 @@ software:
     icon: img/software_logos/vtk-js.png
     link: 'https://kitware.github.io/vtk-js/index.html'
     github: 'https://github.com/kitware/vtk-js'
-  - name: GeoJS
-    icon: img/software_logos/geo-js.png
-    link: 'https://opengeoscience.github.io/geojs/index.html'
-    github: 'https://github.com/OpenGeoscience/geojs'
+  - name: Monai
+    icon: img/software_logos/monai.png
+    link: 'https://monai.io/'
+    github: 'https://github.com/Project-MONAI'
   - name: ITK.js
     icon: img/software_logos/itk.png
     link: 'https://insightsoftwareconsortium.github.io/itk-js/index.html'
@@ -97,7 +97,7 @@ collabrators:
     - name: 'Scott Wittenberg'
       title: 'Lead Developer'
     - name: 'Jeff Baumes'
-      title: 'Director'
+      title: 'Administrative Support'
   - name: 'Curtis Lisle'
     photo: img/collaborators/Curtis-Lisle.png
     university-logo: img/collaborators/Kvis.png
