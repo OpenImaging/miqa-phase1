@@ -15,6 +15,9 @@ module.exports = {
       'sans': '"Manrope", sans-serif'
     },
     extend: {
+      // fontFamily: {
+      //   'Montserrat': ['Montserrat', 'sans-serif']
+      // },
       colors: {
         'accent': {
           '50': '#fdf5f5',
