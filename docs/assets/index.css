@@ -171,6 +171,34 @@
     @apply bg-primary-500 text-white;
   }
 
+  /* HAS ICON BUTTONS */
+
+  .button.has-icon {
+    @apply relative;
+  }
+
+  .button.has-icon i {
+    @apply absolute bottom-0 flex items-center justify-center top-0;
+  }
+
+  .button.has-icon.icon-left {
+    @apply pl-10;
+  }
+
+  .button.has-icon.icon-left i {
+    @apply left-0 right-auto;
+  }
+
+  .button.has-icon.icon-right {
+    @apply pr-10;
+  }
+
+  .button.has-icon.icon-right i {
+    @apply right-0 left-auto;
+  }
+
+
+
   .bibliography {
     @apply border-t border-gray-300;
   }
