@@ -142,9 +142,9 @@ def evaluate_model(model, data_loader, device, writer, epoch, run_name):
             y_pred.extend(val_outputs.cpu().tolist())
 
             metric_count += len(val_outputs)
-            print('.', end='')
+            print('.', end='', flush=True)
             if metric_count % 60 == 0:
-                print("")
+                print("", flush=True)
 
         print("\n" + run_name + "_confusion_matrix:")
         print(confusion_matrix(y_true, y_pred))
@@ -295,9 +295,9 @@ def train_and_save_model(df, count_train, save_path, num_epochs, val_interval, o
             epoch_loss += loss.item()
             epoch_len = len(train_ds) // train_loader.batch_size
             # print(f"{step}:{loss.item():.4f}", end=' ')
-            print(".", end='')
-            if step % 70 == 0:
-                print("")  # new line
+            print('.', end='', flush=True)
+            if step % 60 == 0:
+                print("", flush=True)  # new line
             writer.add_scalar("train_loss", loss.item(), epoch_len * epoch + step)
             wandb.log({"train_loss": loss.item()})
         epoch_loss /= step
