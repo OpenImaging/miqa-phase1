@@ -13,7 +13,7 @@ import torch
 import wandb
 from monai.metrics import compute_roc_auc
 from monai.networks.nets.regressor import Regressor
-from monai.transforms import AddChanneld, Compose, LoadImaged, ScaleIntensityd, ToTensord
+from monai.transforms import AddChanneld, EnsureChannelFirstd, Compose, LoadImaged, ScaleIntensityd, ToTensord
 from sklearn.metrics import confusion_matrix, classification_report
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
@@ -186,12 +186,12 @@ def train_and_save_model(df, count_train, save_path, num_epochs, val_interval, o
     train_files = [{"img": img, "label": label} for img, label in zip(images[:count_train], labels[:count_train])]
     val_files = [{"img": img, "label": label} for img, label in zip(images[-count_val:], labels[-count_val:])]
 
-    itk_reader = monai.data.ITKReader(pixel_type=itk.F)
+    itk_reader = monai.data.ITKReader()
     # Define transforms for image
     train_transforms = Compose(
         [
             LoadImaged(keys=["img"], reader=itk_reader),
-            AddChanneld(keys=["img"]),
+            EnsureChannelFirstd(keys=["img"]),
             ScaleIntensityd(keys=["img"]),
             ToTensord(keys=["img"]),
         ]
@@ -199,7 +199,7 @@ def train_and_save_model(df, count_train, save_path, num_epochs, val_interval, o
     val_transforms = Compose(
         [
             LoadImaged(keys=["img"], reader=itk_reader),
-            AddChanneld(keys=["img"]),
+            EnsureChannelFirstd(keys=["img"]),
             ScaleIntensityd(keys=["img"]),
             ToTensord(keys=["img"]),
         ]
@@ -235,7 +235,7 @@ def train_and_save_model(df, count_train, save_path, num_epochs, val_interval, o
     val_ds = monai.data.Dataset(data=val_files, transform=val_transforms)
     val_loader = DataLoader(val_ds, batch_size=1, num_workers=1, pin_memory=torch.cuda.is_available())
 
-    model = TiledClassifier(in_shape=(1, 128, 48, 48), classes=2,
+    model = TiledClassifier(in_shape=(1, 64, 48, 48), classes=2,
                             channels=(2, 4, 8, 16),
                             strides=(2, 2, 2, 2,))
 
