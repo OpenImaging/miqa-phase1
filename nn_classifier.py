@@ -120,6 +120,15 @@ class TiledClassifier(monai.networks.nets.Classifier):
                            i_start:i_start + x_tile_size,
                            j_start:j_start + y_tile_size,
                            k_start: k_start + z_tile_size]
+
+                    # check if the tile is smaller than our NN input
+                    x_pad = max(0, x_tile_size - x_size)
+                    y_pad = max(0, y_tile_size - y_size)
+                    z_pad = max(0, z_tile_size - z_size)
+
+                    if x_pad + y_pad + z_pad > 0:  # we need to pad
+                        tile = torch.nn.functional.pad(tile, (0, z_pad, 0, y_pad, 0, x_pad), 'replicate')
+
                     results.append(super().forward(tile))
 
         # TODO: do something smarter than mean here
@@ -235,7 +244,7 @@ def train_and_save_model(df, count_train, save_path, num_epochs, val_interval, o
     val_ds = monai.data.Dataset(data=val_files, transform=val_transforms)
     val_loader = DataLoader(val_ds, batch_size=1, num_workers=1, pin_memory=torch.cuda.is_available())
 
-    model = TiledClassifier(in_shape=(1, 64, 48, 48), classes=2,
+    model = TiledClassifier(in_shape=(1, 128, 48, 48), classes=2,
                             channels=(2, 4, 8, 16),
                             strides=(2, 2, 2, 2,))
 
