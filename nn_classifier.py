@@ -94,6 +94,20 @@ def read_and_normalize_data_frame(tsv_path):
     return df
 
 
+def verify_images(data_frame):
+    all_ok = True
+    for row in data_frame.itertuples():
+        try:
+            dim = get_image_dimension(row.file_path)
+            if dim == (0, 0, 0):
+                print(f"Size of {row.file_path} is zero")
+                all_ok = False
+        except Exception as e:
+            print(f"There is some problem with: {row.file_path}:\n{e}")
+            all_ok = False
+    return all_ok
+
+
 class TiledClassifier(monai.networks.nets.Classifier):
     def forward(self, inputs):
         # split the input image into tiles and run each tile through NN
@@ -356,6 +370,11 @@ def process_folds(folds_prefix, validation_fold, evaluate_only, fold_count):
 
     df = pd.concat(folds, ignore_index=True)
     print(df)
+
+    print("Verifying input data integrity...") 
+    if not verify_images(df):
+        print("Data verification failed. Exiting...")
+        return
 
     print(f"Using fold {validation_fold} for validation")
     vf = folds.pop(validation_fold)
