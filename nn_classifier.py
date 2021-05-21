@@ -13,7 +13,7 @@ import torch
 import wandb
 from monai.metrics import compute_roc_auc
 from monai.networks.nets.regressor import Regressor
-from monai.transforms import AddChanneld, EnsureChannelFirstd, Compose, LoadImaged, ScaleIntensityd, ToTensord
+from monai.transforms import EnsureChannelFirstd, Compose, LoadImaged, ScaleIntensityd, ToTensord
 from sklearn.metrics import confusion_matrix, classification_report
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
@@ -280,7 +280,7 @@ def train_and_save_model(df, count_train, save_path, num_epochs, val_interval, o
     wandb.config.learning_rate = 5e-5
     optimizer = torch.optim.Adam(model.parameters(), wandb.config.learning_rate)
     # scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=4, factor=0.25, min_lr=1e-6)
-    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, eta_min=1e-6)
+    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=num_epochs, eta_min=1e-6)
     wandb.watch(model)
 
     # start a typical PyTorch training
@@ -382,9 +382,15 @@ def process_folds(folds_prefix, validation_fold, evaluate_only, fold_count):
     vf = folds.pop(validation_fold)
     folds.append(vf)
     df = pd.concat(folds, ignore_index=True)
+
+    # we should have at least 10k optimization steps and at least 20 epochs
+    val_count = max(1, int(500 / df.shape[0]))
+    epoch_count = max(20, int(10000 / df.shape[0]))
+    epoch_count = math.ceil(epoch_count / val_count) * val_count
+
     count_train = df.shape[0] - vf.shape[0]
     model_path = os.getcwd() + f"/miqa01-val{validation_fold}.pth"
-    sizes = train_and_save_model(df, count_train, save_path=model_path, num_epochs=50, val_interval=2,
+    sizes = train_and_save_model(df, count_train, save_path=model_path, num_epochs=epoch_count, val_interval=val_count,
                                  only_evaluate=evaluate_only)
 
     print("Image size distribution:\n", sizes)
