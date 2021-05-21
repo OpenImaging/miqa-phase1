@@ -279,7 +279,8 @@ def train_and_save_model(df, count_train, save_path, num_epochs, val_interval, o
         loss_function = torch.nn.CrossEntropyLoss(weight=class_weights)
     wandb.config.learning_rate = 5e-5
     optimizer = torch.optim.Adam(model.parameters(), wandb.config.learning_rate)
-    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=4, factor=0.25, min_lr=1e-6)
+    # scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=4, factor=0.25, min_lr=1e-6)
+    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, eta_min=1e-6)
     wandb.watch(model)
 
     # start a typical PyTorch training
