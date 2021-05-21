@@ -1,3 +1,6 @@
+// Explicity enable OpenGL rendering implementation
+import "vtk.js/Sources/Rendering/OpenGL/Profiles/Volume.js";
+
 import vtk2DView from "vtk.js/Sources/Proxy/Core/View2DProxy";
 import vtkGeometryRepresentationProxy from "vtk.js/Sources/Proxy/Representations/GeometryRepresentationProxy";
 import vtkSkyboxRepresentationProxy from "vtk.js/Sources/Proxy/Representations/SkyboxRepresentationProxy";
