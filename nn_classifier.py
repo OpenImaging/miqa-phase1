@@ -173,6 +173,7 @@ def evaluate_model(model, data_loader, device, writer, epoch, run_name):
         print(confusion_matrix(y_true, y_pred))
         print(classification_report(y_true, y_pred))
 
+        # TODO: do we need additional softmax here?
         auc_metric = compute_roc_auc(torch.as_tensor(y_pred), torch.as_tensor(y_true),
                                      average=monai.utils.Average.MACRO)
         writer.add_scalar(run_name + "_AUC", auc_metric, epoch + 1)
@@ -279,8 +280,7 @@ def train_and_save_model(df, count_train, save_path, num_epochs, val_interval, o
         loss_function = torch.nn.CrossEntropyLoss(weight=class_weights)
     wandb.config.learning_rate = 5e-5
     optimizer = torch.optim.Adam(model.parameters(), wandb.config.learning_rate)
-    # scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=4, factor=0.25, min_lr=1e-6)
-    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=num_epochs, eta_min=1e-6)
+    scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.85)
     wandb.watch(model)
 
     # start a typical PyTorch training
@@ -348,7 +348,7 @@ def train_and_save_model(df, count_train, save_path, num_epochs, val_interval, o
                 )
             )
 
-            scheduler.step(auc_metric)
+            scheduler.step()
             print(f"Learning rate after epoch {epoch}: {optimizer.param_groups[0]['lr']}")
             wandb.log({"learn_rate": optimizer.param_groups[0]['lr']})
 
