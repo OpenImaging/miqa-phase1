@@ -21,7 +21,7 @@ from torch.utils.tensorboard import SummaryWriter
 existing_count = 0
 missing_count = 0
 predict_hd_data_root = "P:/PREDICTHD_BIDS_DEFACE/"
-use_focal_loss = False
+use_focal_loss = True
 
 
 def get_image_dimension(path):
