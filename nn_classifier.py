@@ -259,9 +259,10 @@ def train_and_save_model(df, count_train, save_path, num_epochs, val_interval, o
     val_ds = monai.data.Dataset(data=val_files, transform=val_transforms)
     val_loader = DataLoader(val_ds, batch_size=1, num_workers=4, pin_memory=torch.cuda.is_available())
 
-    model = TiledClassifier(in_shape=(1, 64, 64, 64), classes=2,
-                            channels=(2, 8),
-                            strides=(2, 2))
+    # model = TiledClassifier(in_shape=(1, 64, 64, 64), classes=2,
+    #                         channels=(2, 8),
+    #                         strides=(2, 2))
+    model = monai.networks.nets.DenseNet121(spatial_dims=3, in_channels=1, out_channels=2)
 
     # dim = 0 [20, xxx] -> [10, ...], [10, ...] on 2 GPUs
     model = torch.nn.DataParallel(model)
