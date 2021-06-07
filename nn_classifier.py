@@ -232,7 +232,7 @@ def train_and_save_model(df, count_train, save_path, num_epochs, val_interval, o
     if False:  # Check size of the first input
         # Define dataset, data loader
         check_ds = monai.data.Dataset(data=train_files, transform=train_transforms)
-        check_loader = DataLoader(check_ds, batch_size=1, num_workers=1, pin_memory=torch.cuda.is_available())
+        check_loader = DataLoader(check_ds, batch_size=1, num_workers=4, pin_memory=torch.cuda.is_available())
         check_data = monai.utils.misc.first(check_loader)
         print(f'Single input\'s shape: {check_data["img"].shape}, label: {check_data["label"]}')
 
@@ -252,17 +252,16 @@ def train_and_save_model(df, count_train, save_path, num_epochs, val_interval, o
 
     # create a training data loader
     train_ds = monai.data.Dataset(data=train_files, transform=train_transforms)
-    train_loader = DataLoader(train_ds, batch_size=1, sampler=sampler, num_workers=1,
+    train_loader = DataLoader(train_ds, batch_size=1, sampler=sampler, num_workers=4,
                               pin_memory=torch.cuda.is_available())
 
     # create a validation data loader
     val_ds = monai.data.Dataset(data=val_files, transform=val_transforms)
-    val_loader = DataLoader(val_ds, batch_size=1, num_workers=1, pin_memory=torch.cuda.is_available())
+    val_loader = DataLoader(val_ds, batch_size=1, num_workers=4, pin_memory=torch.cuda.is_available())
 
-    # model = TiledClassifier(in_shape=(1, 64, 64, 64), classes=2,
-    #                         channels=(2, 8),
-    #                         strides=(2, 2))
-    model = monai.networks.nets.DenseNet121(spatial_dims=3, in_channels=1, out_channels=2)
+    model = TiledClassifier(in_shape=(1, 128, 48, 48), classes=2,
+                            channels=(2, 4, 8, 16),
+                            strides=(2, 2, 2, 2,))
 
     # dim = 0 [20, xxx] -> [10, ...], [10, ...] on 2 GPUs
     model = torch.nn.DataParallel(model)
@@ -350,7 +349,7 @@ def train_and_save_model(df, count_train, save_path, num_epochs, val_interval, o
             )
 
             scheduler.step()
-            print(f"Learning rate after epoch {epoch}: {optimizer.param_groups[0]['lr']}")
+            print(f"Learning rate after epoch {epoch + 1}: {optimizer.param_groups[0]['lr']}")
             wandb.log({"learn_rate": optimizer.param_groups[0]['lr']})
 
     epoch_suffix = ".epoch" + str(num_epochs)
