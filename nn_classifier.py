@@ -263,8 +263,8 @@ def train_and_save_model(df, count_train, save_path, num_epochs, val_interval, o
                             channels=(2, 4, 8, 16),
                             strides=(2, 2, 2, 2,))
 
-    # dim = 0 [20, xxx] -> [10, ...], [10, ...] on 2 GPUs
-    model = torch.nn.DataParallel(model)
+    # # dim = 0 [20, xxx] -> [10, ...], [10, ...] on 2 GPUs
+    # model = torch.nn.DataParallel(model)
     model.to(device)
 
     if os.path.exists(save_path) and only_evaluate:
