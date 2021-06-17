@@ -1,4 +1,4 @@
-<div class="bg-cover" style="background-image: url('{{ page.hero_image | prepend: site.baseurl }}');">
+<div class="bg-cover bg-opacity-50" style="background-image:linear-gradient(#0097d977, #0097d9ee), url('{{ page.hero_image | prepend: site.baseurl }}');">
   <div class="py-80 pb-24 text-center">
     <div>
       <h1 class="text-white text-shadow-2xl">
@@ -7,14 +7,10 @@
           <span class="text-white px-12">{{ page.hero_description }}</span>
         </span>
       </h1>
-      <!-- <a href="{{ page.learn_more_link }}" class="button is-white justify-between mt-8 mx-2 px-12 text-md"
-        target="_blank">
-        Learn More
-      </a> -->
       <a href="{{ page.github_link }}" class="button is-white is-outline has-icon icon-left mt-8 mx-2 text-md"
         target="_blank">
-        <i class="ri-github-fill text-2xl px-3"></i>
-        <span class="pl-2">View on Github</span>
+        <i class="ri-github-fill text-2xl px-1"></i>
+        <span class="pl-2">View on GitHub</span>
       </a>
     </div>
   </div>

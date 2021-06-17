@@ -42,46 +42,34 @@ features:
 software_title: 'Software we are utilizing'
 software_description: 'MIQA builds on open-source software to bring broad capabilities into our QA/QC platform'
 software:
-  - name: VTK.js
-    icon: img/software_logos/vtk-js.png
-    link: 'https://kitware.github.io/vtk-js/index.html'
-    github: 'https://github.com/kitware/vtk-js'
-  - name: Monai
+  - name: MONAI
     icon: img/software_logos/monai.png
     link: 'https://monai.io/'
     github: 'https://github.com/Project-MONAI'
   - name: ITK.js
-    icon: img/software_logos/itk.png
+    icon: img/software_logos/itkjs.png
     link: 'https://insightsoftwareconsortium.github.io/itk-js/index.html'
     github: 'https://github.com/InsightSoftwareConsortium/itk-js'
   - name: Girder
     icon: img/software_logos/girder.png
     link: 'https://girder.readthedocs.io/en/latest/#'
     github: 'https://github.com/girder/girder'
+  - name: VTK.js
+    icon: img/software_logos/vtk-js.png
+    link: 'https://kitware.github.io/vtk-js/index.html'
+    github: 'https://github.com/kitware/vtk-js'
   - name: PyTorch
     icon: img/software_logos/pytorch.png
     link: 'https://pytorch.org/'
     github: 'https://github.com/pytorch/pytorch'
+  - name: Vue.js
+    icon: img/software_logos/vuejs.png
+    link: 'https://vuejs.org/'
+    github: 'https://github.com/vuejs/vue'
 
 collabrators_title: 'Our Collaborators'
 collabrators_description: 'MIQA is brought to you by a collaborative team of medical imaging and software development experts, including'
 collabrators:
-  - name: 'Hans Johnson'
-    photo: img/collaborators/Hans-Johnson.png
-    university-logo: img/collaborators/IOWA.png
-    link: https://www.kitware.com/aashish-chaudhary/
-    titles:
-    - title: 'Associate Professor'
-      department: 'Electrical and Computer Engineering, IOWA'
-  - name: 'Kilian M. Pohl'
-    photo: img/collaborators/Kilian-M-Pohl.png
-    university-logo: img/collaborators/Stanford.png
-    link:
-    titles:
-      - title: 'Associate Professor of Psychiatry'
-        department: 'Stanford'
-      - title: 'Program Director of Biomedical Computing'
-        department: 'SRI International'
   - name: 'Aashish Chaudhary'
     photo: img/collaborators/Aashish-Chaudhary.png
     university-logo: img/collaborators/Kitware.png
@@ -92,12 +80,23 @@ collabrators:
     team:
     - name: 'Matt McCormick'
       title: 'Key Personnel'
-    - name: 'Dzenan Zukic'
+    - name: 'Dženan Zukić'
+      title: 'Lead Developer'
+    - name: 'Daniel Chiquito'
       title: 'Lead Developer'
     - name: 'Scott Wittenberg'
-      title: 'Lead Developer'
+      title: 'Developer'
     - name: 'Jeff Baumes'
       title: 'Administrative Support'
+  - name: 'Kilian M. Pohl'
+    photo: img/collaborators/Kilian-M-Pohl.png
+    university-logo: img/collaborators/Stanford.png
+    link:
+    titles:
+      - title: 'Associate Professor of Psychiatry'
+        department: 'Stanford'
+      - title: 'Program Director of Biomedical Computing'
+        department: 'SRI International'
   - name: 'Curtis Lisle'
     photo: img/collaborators/Curtis-Lisle.png
     university-logo: img/collaborators/Kvis.png
@@ -105,12 +104,19 @@ collabrators:
     titles:
     - title: 'CEO'
       department: 'KnowledgeVis, LLC'
+  - name: 'Hans Johnson'
+    photo: img/collaborators/Hans-Johnson.png
+    university-logo: img/collaborators/IOWA.png
+    link: https://www.kitware.com/aashish-chaudhary/
+    titles:
+    - title: 'Associate Professor'
+      department: 'Electrical and Computer Engineering, IOWA'
 
 #Foot Notes
 footnote: Get in touch with us to see if MIQA could improve accelerate your next imaging study.
 contact: https://www.kitware.com/contact-us/
 funding-note: Funded by NIH grant
-funding-number: xxxxxxxxx
+funding-number: R44MH119022
 ---
 
 # **M**edical **I**mage **Q**uality **A**ssurance **(MIQA)**
