@@ -1,0 +1,27 @@
+<div class="w-full">
+    <h2 class="font-light text-4xl text-secondary-800 text-center">{{ page.software_title }}</h2>
+    <div class="text-secondary-400 text-center pt-8 pb-12">
+        {{ page.software_description }}
+    </div>
+</div>
+<div class="grid lg:grid-cols-3 md:grid-cols-2 sm:grid-cols-1 gap-y-12 p-6 text-xs md:text-base ">
+    {% for item in page.software %}
+    <div class="flex">
+        <img src="{{ item.icon | prepend: site.baseurl }}" class="max-h-24 pr-6 place-self-end" alt="">
+        <!-- <i class="block mb-2 text-primary-500 text-4xl">{{ feature.icon }} </i> -->
+        <div>
+            <div class="text-xl mt-4 font-black text-secondary-800">{{ item.name }}</div>
+            <a href="{{ item.github }}" class="button is-secondary is-outline py-2 px-4 rounded inline-flex items-center text-md"
+                target="_blank">
+                <i class="ri-github-fill mr-2 w-4 text-lg"></i>
+                <span>GitHub</span>
+            </a>
+            <a href="{{ item.link }}" class="button is-secondary py-2 px-4 rounded inline-flex items-center text-md"
+                target="_blank">
+                <i class="ri-link mr-2 w-4 text-lg"></i>
+                <span>Website</span>
+            </a>
+        </div>
+    </div>
+    {% endfor %}
+</div>

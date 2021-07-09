@@ -1,0 +1,17 @@
+<div class="bg-cover bg-opacity-50" style="background-image:linear-gradient(#0097d977, #0097d9ee), url('{{ page.hero_image | prepend: site.baseurl }}');">
+  <div class="py-80 pb-24 text-center">
+    <div>
+      <h1 class="text-white text-shadow-2xl">
+        <span class="block text-5xl uppercase lg:text-7xl">{{ page.hero_title }}</span>
+        <span class="text-primary-300 text-base lg:text-xl">
+          <span class="text-white px-12">{{ page.hero_description }}</span>
+        </span>
+      </h1>
+      <a href="{{ page.github_link }}" class="button is-white is-outline has-icon icon-left mt-8 mx-2 text-md"
+        target="_blank">
+        <i class="ri-github-fill text-2xl px-1"></i>
+        <span class="pl-2">View on GitHub</span>
+      </a>
+    </div>
+  </div>
+</div>
