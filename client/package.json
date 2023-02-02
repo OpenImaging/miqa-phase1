@@ -12,7 +12,7 @@
     "bluebird": "^3.5.5",
     "itk": "14.0.0",
     "mousetrap": "scottwittenburg/mousetrap#fix-listener-leak",
-    "vtk.js": "14.16.5",
+    "vtk.js": "26.3.2",
     "vue": "^2.6.10",
     "vue-async-computed": "^3.5.1",
     "vue-router": "3.4.3",
