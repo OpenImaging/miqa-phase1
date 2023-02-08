@@ -4,7 +4,7 @@
 from setuptools import setup, find_packages
 
 requirements = [
-    'cryptography==3.2.1',
+    'cryptography==39.0.1',
     'girder==3.1.4',
     'girder_jobs==3.1.4',
     'girder-autojoin==3.1.4',
