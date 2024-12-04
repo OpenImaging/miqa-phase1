@@ -1,0 +1,7 @@
+- name: Features
+  url: /#features
+- name: Collaborators
+  url: /#collaborators
+- name: Contact
+  url: https://www.kitware.com/contact-us/
+  new_tab: true

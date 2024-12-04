@@ -1,0 +1,35 @@
+<div class="w-full">
+    <h2 class="font-light text-4xl text-secondary-800 text-center">{{ page.collabrators_title }}</h2>
+    <div class="text-secondary-400 text-center pt-8 pb-12">
+        {{ page.collabrators_description }}
+    </div>
+</div>
+<div class="grid gap-4 xl:grid-cols-4 lg:grid-cols-2 sm:grid-cols-1 gap-y-12 p-6 text-xs md:text-base min-w-full">
+    {% for collabrator in page.collabrators %}
+    <div>
+        <img src="{{ collabrator.university-logo | prepend: site.baseurl }}" class="h-20 pr-6 place-self-end" alt="">
+        <hr class="border-2 border-primary-400 rounded shadow" />
+        <div class="flex">
+            <img src="{{ collabrator.photo | prepend: site.baseurl }}" class="max-h-24 pr-2" style="border-radius: 50%;"
+                alt="">
+            <div>
+                <div class="text-xl font-bold text-secondary-400">{{ collabrator.name }}</div>
+                {% for title in collabrator.titles %}
+                <div class="text-secondary-400 text-sm font-thin">{{ title.title }}</div>
+                <div class="text-secondary-400 text-sm font-black">{{ title.department }}</div>
+                {% endfor %}
+            </div>
+        </div>
+        {% if collabrator.team %}
+        <div>
+            <div class="text-primary-500 text-sm mt-4">OTHER TEAM MEMBERS</div>
+            {% for member in collabrator.team %}
+            <div class="text-secondary-400 text-lg font-black mt-1">{{ member.name }}
+                <span class="text-secondary-400 text-sm font-thin">( {{ member.title }} )</span>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>
