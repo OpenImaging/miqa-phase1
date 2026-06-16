@@ -56,9 +56,15 @@ class Email(Resource):
         alternative.attach(MIMEText(''.join(
             [('<p>%s</p>' % line) for line in body.splitlines()])+'<br />'+'<br />'.join(images_html), 'html'))
 
+        to = message.get('to', [])
+        cc = message.get('cc', [])
+        bcc = message.get('bcc', [])
+
+        print("MIQA EMAIL ROUTE HIT", msg['From'], list(set(to) | set(cc) | set(bcc)), flush=True)
+
         events.daemon.trigger('_sendmail', info={
             'message': msg,
-            'recipients': list(set(message['to']) | set(message['cc']) | set(message['bcc']))
+            'recipients': list(set(to) | set(cc) | set(bcc))
         })
 
 

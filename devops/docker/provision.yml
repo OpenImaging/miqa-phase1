@@ -53,6 +53,7 @@
       - "Collaborator"
 
   - name: Ensure Default Assetstore
+    when: create_assetstore | default(true) | bool
     girder:
       host: "localhost"
       port: "8080"
@@ -66,6 +67,7 @@
       state: present
 
   - name: Ensure Default Collection
+    when: create_collection | default(true) | bool
     girder:
       host: "localhost"
       port: "8080"
