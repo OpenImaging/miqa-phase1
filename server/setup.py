@@ -4,6 +4,7 @@
 from setuptools import setup, find_packages
 
 requirements = [
+    'setuptools_scm==7.1.0',
     'cryptography==3.2.1',
     'girder==3.1.4',
     'girder_jobs==3.1.4',

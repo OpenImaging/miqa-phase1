@@ -1,4 +1,3 @@
-version: "2"
 
 services:
   database:
@@ -25,11 +24,11 @@ services:
     command:
       [
         "database:27017",
-        "admin_name=${GIRDER_ADMIN_NAME} admin_pass=${GIRDER_ADMIN_PASS} admin_email=${GIRDER_ADMIN_USER_EMAIL} smtp_server=${GIRDER_SMTP_RELAY} smtp_port=${GIRDER_SMTP_PORT} smtp_encryption=${GIRDER_SMTP_CRYPTO} smtp_username=${GIRDER_SMTP_USER} smtp_password=${GIRDER_SMTP_PASSWD} server_url_in_email=${SERVER_URL_IN_EMAIL} sender_address=${SENDER_ADDRESS} sample_data=${SAMPLE_DATA} session_timeout=${MIQA_SESSION_TIMEOUT}",
+        "admin_name=${GIRDER_ADMIN_NAME} admin_pass=${GIRDER_ADMIN_PASS} admin_email=${GIRDER_ADMIN_USER_EMAIL} smtp_server=${GIRDER_SMTP_RELAY} smtp_port=${GIRDER_SMTP_PORT} smtp_encryption=${GIRDER_SMTP_CRYPTO} smtp_username=${GIRDER_SMTP_USER} smtp_password=${GIRDER_SMTP_PASSWD} server_url_in_email=${SERVER_URL_IN_EMAIL} sender_address=${SENDER_ADDRESS} sample_data=${SAMPLE_DATA} session_timeout=${MIQA_SESSION_TIMEOUT}  create_assetstore=${GIRDER_CREATE_ASSETSTORE:-true} create_collection=${GIRDER_CREATE_COLLECTION:-true}",
       ]
 
   smtp-relay:
-    image: hongkongkiwi/postfix-smtp-relay:latest
+    image: boky/postfix:latest
     links:
       - web_server
     environment:
